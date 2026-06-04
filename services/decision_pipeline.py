@@ -89,7 +89,10 @@ def simulate_scenario(changes):
         df = prepare_live_features(df_sales, df_stock)
         if df.empty: return {"error": "Insufficient data."}
         
-        latest_row = df.iloc[-1:].copy()
+        last_date = df['date'].max()
+        daily_summary = df[df['date'] == last_date]
+        representative_idx = daily_summary['sales'].idxmax()
+        latest_row = daily_summary.loc[[representative_idx]].copy()
         
         # Apply Simulations
         latest_row['sales'] *= (1 + changes.get('sales', 0))
@@ -106,11 +109,13 @@ def simulate_scenario(changes):
         prediction = model.predict(latest_row[features])[0]
         decision = "Increase Production" if prediction == 1 else "Reduce Production"
         
+        base_prediction = model.predict(daily_summary.loc[[representative_idx]][features])[0]
+        
         return {
             "decision": decision,
             "impact": "Significant" if abs(changes.get('sales', 0)) > 0.2 else "Moderate",
             "risk_level": "HIGH" if decision == "Reduce Production" else "LOW",
-            "recommendation": "Strategic shift detected" if prediction != model.predict(df.iloc[-1:][features])[0] else "Current strategy remains optimal"
+            "recommendation": "Strategic shift detected" if prediction != base_prediction else "Current strategy remains optimal"
         }
     except Exception as e:
         return {"error": str(e)}
@@ -136,8 +141,9 @@ def run_pipeline():
         model_path = os.path.join(settings.BASE_DIR, "models", "decision_model.pkl")
         model = joblib.load(model_path)
         
-        latest_row = df.iloc[-1:]
-        last_date = latest_row.iloc[0]['date']
+        # Get the actual latest date in the entire dataset
+        last_date = df['date'].max()
+        daily_summary = df[df['date'] == last_date]
         
         # Find the actual previous date in the dataset
         available_dates = sorted(df['date'].unique())
@@ -149,7 +155,6 @@ def run_pipeline():
             total_prev_sales = 0
             
         # Aggregates for the dashboard cards
-        daily_summary = df[df['date'] == last_date]
         total_sales = daily_summary['sales'].sum()
         
         # Company-wide Growth Rate
@@ -158,12 +163,30 @@ def run_pipeline():
         
         features = ["sales", "sales_lag_1", "sales_lag_2", "sales_lag_3", "sales_ma_3", "sales_ma_7", "sales_ma_14", "sales_std_7", "momentum", "trend", "stock_ratio"]
         
-        # Prediction on the specific latest record
-        prediction = model.predict(latest_row[features])[0]
-        probs = model.predict_proba(latest_row[features])[0]
-        decision = "Increase Production" if prediction == 1 else "Reduce Production"
+        # Predictions for all active products on the latest date
+        predictions = model.predict(daily_summary[features])
+        probs = model.predict_proba(daily_summary[features])
         
+        # Weight the prediction by sales volume of each product
+        sales_weights = daily_summary['sales'].values
+        total_daily_sales = sales_weights.sum()
+        
+        if total_daily_sales > 0:
+            weighted_prob_1 = sum(probs[i][1] * sales_weights[i] for i in range(len(daily_summary))) / total_daily_sales
+            prediction = 1 if weighted_prob_1 >= 0.5 else 0
+            confidence_val = weighted_prob_1 if prediction == 1 else (1 - weighted_prob_1)
+        else:
+            prediction = int(round(predictions.mean()))
+            confidence_val = float(probs[:, prediction].mean())
+            
+        decision = "Increase Production" if prediction == 1 else "Reduce Production"
+        confidence = "High" if confidence_val > 0.7 else "Medium"
+        
+        # Find the product with the highest sales on last_date to use as the representative row for explanations/warnings
+        representative_idx = daily_summary['sales'].idxmax()
+        latest_row = daily_summary.loc[[representative_idx]]
         latest_data = latest_row.iloc[0]
+        
         reasons = get_explainable_reasons(model, latest_row, features)
         recommendations = generate_recommendations(decision, latest_data)
         warnings = generate_early_warnings(latest_data)
@@ -171,7 +194,7 @@ def run_pipeline():
         return {
             "date": str(latest_data['date']),
             "decision": decision,
-            "confidence": "High" if probs[prediction] > 0.7 else "Medium",
+            "confidence": confidence,
             "reasons": reasons,
             "recommendations": recommendations,
             "warnings": warnings,
