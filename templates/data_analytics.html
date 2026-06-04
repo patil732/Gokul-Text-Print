@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Visualization - Gokul Tex Print</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body id="analytics-page">
+    <nav class="navbar navbar-expand-lg shadow-sm">
+        <div class="container-fluid">
+            <span class="logo">GOKUL TEX PRINT</span>
+            <ul class="navbar-nav ms-4 d-none d-lg-flex flex-row gap-4">
+                <li class="nav-item"><a class="nav-link fw-bold text-secondary" href="/ceo">Strategic Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link fw-bold text-primary" href="/ceo/analytics">Data Visualization</a></li>
+            </ul>
+            <div class="ms-auto d-flex align-items-center">
+                <div class="me-4">
+                    <span class="text-secondary small me-2">👤 {{ session['user'] }}</span>
+                    <span class="badge bg-primary text-dark text-uppercase" style="font-size: 0.6rem;">{{ session['role'] }}</span>
+                </div>
+                <a href="/logout" class="btn-logout small">Sign Out</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-5">
+        <div class="mb-5">
+            <h1 class="fw-bold" style="color: var(--primary);">Data Intelligence Center</h1>
+            <p class="text-secondary">Comprehensive analysis of sales, inventory, and market trends.</p>
+        </div>
+
+        <div class="row g-4 mb-5">
+            <div class="col-lg-6">
+                <div class="card h-100">
+                    <h5 class="fw-bold mb-4">Top 10 Customers by Revenue</h5>
+                    <canvas id="customerSalesChart"></canvas>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card h-100">
+                    <h5 class="fw-bold mb-4">Stock Levels by Warehouse</h5>
+                    <canvas id="warehouseStockChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-5">
+            <div class="col-12">
+                <div class="card">
+                    <h5 class="fw-bold mb-4">Recent Sales Transactions (Textual Data)</h5>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Order Name</th>
+                                    <th>Date</th>
+                                    <th>Customer</th>
+                                    <th>Grand Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactions-table-body">
+                                <!-- Loaded via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="footer-brand">GOKUL TEX PRINT</div>
+                    <p class="footer-tagline">Supplying to USA, Middle East, Turkey, Indonesia, Sri Lanka, and Morocco.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="footer-contact">
+                        <p class="mb-1">📍 www.gokulprint.com</p>
+                        <p class="mb-0">📞 +91 74065 81999</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log("Fetching analytics data...");
+            const response = await fetch('/ceo/analytics-data');
+            const result = await response.json();
+            console.log("Data Received:", result);
+            
+            if (result.status === 'success') {
+                // 1. Customer Sales Chart
+                const cLabels = Object.keys(result.sales_by_product);
+                const cValues = Object.values(result.sales_by_product);
+                
+                new Chart(document.getElementById('customerSalesChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: cLabels,
+                        datasets: [{
+                            label: 'Revenue (INR)',
+                            data: cValues,
+                            backgroundColor: '#8cb054',
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } }
+                    }
+                });
+
+                // 2. Warehouse Stock Chart
+                const sLabels = result.stock_inventory.map(i => i.item_code);
+                const sValues = result.stock_inventory.map(i => parseFloat(i.actual_qty || 0));
+                
+                new Chart(document.getElementById('warehouseStockChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: sLabels,
+                        datasets: [{
+                            label: 'Quantity in Stock',
+                            data: sValues,
+                            backgroundColor: '#5d7c3b',
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+
+                // 3. Transactions Table
+                const tableBody = document.getElementById('transactions-table-body');
+                tableBody.innerHTML = result.recent_transactions.map(t => `
+                    <tr>
+                        <td class="fw-bold">${t.name || 'N/A'}</td>
+                        <td>${t.transaction_date || 'N/A'}</td>
+                        <td>${t.customer || 'N/A'}</td>
+                        <td class="text-primary fw-bold">₹${(t.grand_total || 0).toLocaleString()}</td>
+                    </tr>
+                `).join('');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Monitor - Gokul Tex Print</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body id="admin-dashboard">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <span class="logo">GOKUL ADMIN</span>
+            <div class="ms-auto d-flex align-items-center">
+                <div class="me-4">
+                    <span class="text-secondary small me-2">👤 {{ session['user'] }}</span>
+                    <span class="badge bg-secondary text-uppercase" style="font-size: 0.6rem;">{{ session['role'] }}</span>
+                </div>
+                <a href="/ceo" class="btn btn-primary btn-sm me-3 text-white">CEO View</a>
+                <a href="/logout" class="btn-logout small">Sign Out</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <div class="hero">
+            <h1>GOKUL ADMIN CENTER</h1>
+            <p class="mb-0">Infrastructure Health & Real-time System Metrics</p>
+            <span class="small text-primary fw-bold" style="letter-spacing: 2px;">EST. 1993 | SYSTEM OPERATIONS</span>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="metric-label mb-3">Core Engine Status</div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-secondary">ML Model</span>
+                        <span id="model-loaded" class="badge bg-success">READY</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-secondary">API connectivity</span>
+                        <span id="api-status" class="badge bg-primary">RUNNING</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="metric-label mb-3">Data Pipeline Health</div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-secondary">Records</span>
+                        <span id="total-rows" class="h4 mb-0 text-primary">0</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-secondary">Last Sync</span>
+                        <span id="last-updated" class="text-secondary small">...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 d-flex flex-column justify-content-center align-items-center text-center">
+                    <div class="metric-label mb-3">System Actions</div>
+                    <button onclick="triggerManualSync()" class="btn btn-primary w-100 mb-2 fw-bold text-white">🔄 Sync Data Now</button>
+                    <p class="small text-secondary mb-0">Forces immediate ERP ingestion</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="metric-label mb-3">User Access Management</div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Username</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="user-table-body">
+                                <!-- Loaded via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="metric-label mb-3">System Logs</div>
+            <div class="bg-light p-3 rounded" style="font-family: monospace; font-size: 0.8rem; color: #1a1f16; height: 300px; overflow-y: auto; border: 1px solid var(--border-light); box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
+                <div>[INFO] - 2026-05-04 22:38:00 - Flask Application started on port 5000</div>
+                <div>[INFO] - 2026-05-04 22:38:02 - Model loaded: decision_model.pkl</div>
+                <div>[INFO] - 2026-05-04 22:38:05 - Connection established to ERP server</div>
+                <div>[DATA] - 2026-05-04 22:38:10 - Processing 27,146 records...</div>
+                <div>[AUTH] - 2026-05-04 22:39:01 - User '{{ session['user'] }}' logged in as 'admin'</div>
+                <div>[READY] - System operational. Listening for API requests.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadAdminData() {
+            // 1. Load System Health
+            const healthRes = await fetch('/admin/monitor');
+            const health = await healthRes.json();
+            if (health.status === 'success') {
+                document.getElementById('total-rows').textContent = health.system.data_rows.toLocaleString();
+                document.getElementById('last-updated').textContent = health.system.last_updated;
+                document.getElementById('model-loaded').textContent = health.system.model_loaded ? 'ACTIVE' : 'MISSING';
+                document.getElementById('api-status').textContent = health.system.api_status.toUpperCase();
+            }
+
+            // 2. Load Users
+            const usersRes = await fetch('/admin/users');
+            const usersData = await usersRes.json();
+            if (usersData.status === 'success') {
+                const tbody = document.getElementById('user-table-body');
+                tbody.innerHTML = usersData.users.map(u => `
+                    <tr>
+                        <td class="small text-secondary">#${u.id}</td>
+                        <td class="fw-bold">${u.username}</td>
+                        <td><span class="badge ${u.role === 'admin' ? 'bg-primary' : 'bg-secondary'}">${u.role.toUpperCase()}</span></td>
+                        <td><span class="text-success small">● Active</span></td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        async function triggerManualSync() {
+            if (!confirm('Are you sure you want to force a data synchronization? This may take a few seconds.')) return;
+            
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⌛ Syncing...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/admin/sync-now', { method: 'POST' });
+                const result = await res.json();
+                alert(result.message);
+                loadAdminData();
+            } catch (e) {
+                alert('Sync failed: ' + e);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadAdminData);
+    </script>
+</body>
+</html>

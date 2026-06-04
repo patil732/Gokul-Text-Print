@@ -1,0 +1,9 @@
+flask
+python-dotenv
+pandas
+requests
+scikit-learn
+joblib
+shap
+apscheduler
+numpy

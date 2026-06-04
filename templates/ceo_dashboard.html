@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Executive Strategy Center - Gokul Tex Print</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body id="ceo-dashboard">
+    <nav class="navbar navbar-expand-lg shadow-sm">
+        <div class="container-fluid">
+            <span class="logo">GOKUL TEX PRINT</span>
+            <ul class="navbar-nav ms-4 d-none d-lg-flex flex-row gap-4">
+                <li class="nav-item"><a class="nav-link fw-bold text-primary" href="/ceo">Strategic Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link fw-bold text-secondary" href="/ceo/analytics">Data Visualization</a></li>
+            </ul>
+            <div class="ms-auto d-flex align-items-center">
+                <div class="me-4 d-none d-md-block">
+                    <span class="status-dot me-2"></span>
+                    <span class="small text-secondary fw-bold">Live Data Active</span>
+                </div>
+                <div class="me-4">
+                    <span class="text-secondary small me-2">👤 {{ session['user'] }}</span>
+                    <span class="badge bg-primary text-uppercase" style="font-size: 0.6rem;">{{ session['role'] }}</span>
+                </div>
+                <a href="/logout" class="btn-logout small">Sign Out</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <div class="hero">
+            <h1>GOKUL TEX PRINT</h1>
+            <p class="mb-2">25 Years of Excellence in Global Textile & Fashion Industry</p>
+            <div class="d-flex justify-content-center gap-3">
+                <span class="badge bg-primary text-dark fw-bold">EST. 1993</span>
+                <span class="badge border border-primary text-primary">Team of 750+ Experts</span>
+            </div>
+        </div>
+
+        <!-- Metric Grid -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-3"><div class="card"><div class="metric-label">Latest Sales</div><div id="metric-sales" class="metric-value">₹0</div><div id="metric-sales-sub" class="small text-secondary">...</div></div></div>
+            <div class="col-md-3"><div class="card"><div class="metric-label">Growth Rate</div><div id="metric-growth" class="metric-value">0%</div><div id="metric-growth-trend" class="metric-trend">...</div></div></div>
+            <div class="col-md-3"><div class="card"><div class="metric-label">Market Demand</div><div id="metric-demand" class="metric-value" style="font-size: 1.25rem;">...</div><div class="small text-secondary">Real-time Analysis</div></div></div>
+            <div class="col-md-3"><div class="card"><div class="metric-label">Records Analyzed</div><div id="metric-records" class="metric-value">0</div><div class="small text-secondary">API Sync Active</div></div></div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Strategic Engine (Left) -->
+            <div class="col-lg-4">
+                <div class="card decision-card mb-4 border-primary">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="metric-label text-primary">Strategic Verdict</div>
+                        <span id="ai-confidence" class="badge rounded-pill bg-primary text-dark">Confidence: ...</span>
+                    </div>
+                    <h2 id="ai-decision-text" class="my-3">...</h2>
+                    <div id="reasons-container" class="small text-secondary"></div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="metric-label mb-3">Actionable Recommendations</div>
+                    <ul id="recommendations-list" class="list-unstyled small text-secondary"></ul>
+                </div>
+
+                <div class="card">
+                    <div class="metric-label mb-3 text-danger">Early Warning Alerts</div>
+                    <div id="warnings-container"></div>
+                </div>
+            </div>
+
+            <!-- Analytics & Simulator (Right) -->
+            <div class="col-lg-8">
+                <!-- What-if Simulation -->
+                <div class="card mb-4 shadow-lg border-primary">
+                    <div class="metric-label mb-3 text-primary">Strategic What-if Simulator</div>
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-4">
+                            <label class="small text-secondary mb-1">Projected Sales Change (%)</label>
+                            <input type="number" id="sim-sales" class="form-control" value="10">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="small text-secondary mb-1">Inventory Adjustment (%)</label>
+                            <input type="number" id="sim-stock" class="form-control" value="-5">
+                        </div>
+                        <div class="col-md-4">
+                            <button onclick="runSimulation()" class="btn btn-primary w-100 py-2 fw-bold text-dark">Simulate Impact</button>
+                        </div>
+                    </div>
+                    <div id="sim-result" class="mt-3 p-4 rounded bg-light d-none border-start border-primary border-4 shadow-sm">
+                        <div class="d-flex justify-content-between">
+                            <span class="small text-secondary">Simulation Outcome:</span>
+                            <span id="sim-decision" class="fw-bold h5">...</span>
+                        </div>
+                        <div class="small text-secondary mt-1">Strategic Insight: <span id="sim-impact" class="text-light">...</span></div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="metric-label mb-3">Revenue Performance Trend</div>
+                    <div class="chart-container"><canvas id="salesPerformanceChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="footer-brand">GOKUL TEX PRINT</div>
+                    <p class="footer-tagline">Supplying to USA, Middle East, Turkey, Indonesia, Sri Lanka, and Morocco. Specialized in Weaving, Dyeing, Printing, and Embroidery.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="footer-contact">
+                        <p class="mb-1">📍 www.gokulprint.com</p>
+                        <p class="mb-0">📞 +91 74065 81999</p>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-4 pt-3 border-top border-secondary small text-secondary">
+                © 2026 Gokul Tex Print. All Rights Reserved. AI Strategy Dashboard.
+            </div>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
