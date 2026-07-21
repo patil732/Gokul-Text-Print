@@ -21,8 +21,10 @@ dist/
 .vscode/
 .idea/
 
-# Logs
+# Logs — log files are ignored; directory is tracked via logs/.gitkeep
 *.log
+logs/*.log
+logs/*.log.*
 
 # OS files
 Thumbs.db
