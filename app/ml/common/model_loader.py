@@ -39,7 +39,13 @@ def create_model_from_config(pipeline_name: str, config_path: str = _CONFIG_PATH
     """
     cfg = load_config(config_path).get(pipeline_name, {})
     algo = cfg.get("algorithm", "random_forest").lower()
-    params = cfg.get("hyperparameters", {})
+
+    # Support both nested algorithms config and legacy hyperparameters dict
+    algos_cfg = cfg.get("algorithms", {})
+    if algo in algos_cfg:
+        params = algos_cfg[algo]
+    else:
+        params = cfg.get("hyperparameters", {})
 
     log.info(f"Instantiating model algorithm '{algo}' for pipeline '{pipeline_name}' with params: {params}")
 
@@ -52,7 +58,6 @@ def create_model_from_config(pipeline_name: str, config_path: str = _CONFIG_PATH
             return XGBClassifier(**params)
         except ImportError:
             log.warning("XGBoost not installed. Falling back to RandomForestClassifier.")
-            # Remove non-RF parameters if any
             rf_params = {k: v for k, v in params.items() if k in ["n_estimators", "max_depth", "random_state", "n_jobs", "class_weight"]}
             return RandomForestClassifier(**rf_params)
 

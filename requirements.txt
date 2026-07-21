@@ -8,3 +8,5 @@ shap
 apscheduler
 numpy
 pyyaml
+xgboost
+lightgbm
