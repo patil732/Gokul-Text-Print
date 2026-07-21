@@ -1,0 +1,53 @@
+# ============================================================
+# Model Configuration
+# Defines algorithm choice, hyperparameters, scaler settings,
+# and feature schemas for sales and inventory pipelines.
+# ============================================================
+
+sales:
+  algorithm: random_forest   # Options: random_forest | xgboost | lightgbm
+  hyperparameters:
+    n_estimators: 200
+    max_depth: 10
+    random_state: 42
+    n_jobs: -1
+  scaler:
+    enabled: true
+    type: standard          # Options: standard | minmax | robust
+  features:
+    - sales
+    - sales_lag_1
+    - sales_lag_2
+    - sales_lag_3
+    - sales_ma_3
+    - sales_ma_7
+    - sales_ma_14
+    - sales_std_7
+    - momentum
+    - trend
+    - stock_ratio
+  target: target_decision
+
+inventory:
+  algorithm: random_forest   # Options: random_forest | xgboost | lightgbm
+  hyperparameters:
+    n_estimators: 300
+    max_depth: 8
+    random_state: 42
+    n_jobs: -1
+    class_weight: balanced
+  scaler:
+    enabled: true
+    type: minmax            # Options: standard | minmax | robust
+  features:
+    - total_stock
+    - warehouse_count
+    - avg_stock_per_wh
+    - max_stock_in_wh
+    - stock_concentration
+    - total_qty_planned
+    - total_produced
+    - production_gap
+    - fulfillment_rate
+    - has_open_orders
+  target: reorder_flag
