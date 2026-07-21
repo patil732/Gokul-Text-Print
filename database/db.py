@@ -73,6 +73,19 @@ def init_db() -> None:
         )
     """)
 
+    # Prediction history table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS prediction_history (
+            id          INTEGER  PRIMARY KEY AUTOINCREMENT,
+            timestamp   DATETIME DEFAULT CURRENT_TIMESTAMP,
+            model_name  TEXT     NOT NULL,
+            version     TEXT,
+            input_data  TEXT,
+            prediction  TEXT,
+            confidence  REAL
+        )
+    """)
+
     conn.commit()
     conn.close()
     logger.info(f"[db] Database initialised at {DB_PATH}")
