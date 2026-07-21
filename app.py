@@ -26,6 +26,9 @@ def create_app():
     from app.ml.sales.routes import sales_ml_bp
     app.register_blueprint(sales_ml_bp)
 
+    from app.ml.inventory.routes import inventory_ml_bp
+    app.register_blueprint(inventory_ml_bp)
+
     @app.route('/')
     def index():
         if 'user' in session:

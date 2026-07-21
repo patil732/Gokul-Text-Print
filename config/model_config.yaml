@@ -113,5 +113,13 @@ inventory:
     - production_gap
     - fulfillment_rate
     - has_open_orders
+    - available_qty
+    - safety_stock
+    - stock_turnover
+    - days_in_inventory
+    - fast_moving
+    - slow_moving
+    - dead_stock
+    - reorder_level
 
   target: reorder_flag

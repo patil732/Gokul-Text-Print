@@ -4,17 +4,26 @@ app/ml/inventory/inventory_pipeline.py
 End-to-end inventory reorder prediction pipeline orchestrator.
 """
 
-from app.inventory.data_loader import load_raw_stock, load_raw_production
-from app.inventory.preprocess import run_and_save
-from app.inventory.train import train
+from typing import Dict, Any
+from app.ml.inventory.inventory_feature_engineering import load_and_preprocess_inventory_data
+from app.ml.inventory.inventory_training import train_inventory_model
+from app.ml.inventory.inventory_prediction import predict_inventory
+from app.ml.common.logger import get_ml_logger
+
+log = get_ml_logger("inventory_pipeline")
 
 
-def run_inventory_pipeline(force_reprocess: bool = False):
+def run_inventory_pipeline(data_path: str = None, force_reprocess: bool = True) -> Dict[str, Any]:
     """
-    Run the end-to-end inventory data loading, feature engineering, and training pipeline.
+    Run the end-to-end inventory feature engineering, model training, and validation pipeline.
     """
-    if force_reprocess:
-        stock_df = load_raw_stock()
-        prod_df  = load_raw_production()
-        run_and_save(stock_df, prod_df)
-    train(force_reprocess=force_reprocess)
+    log.info("Executing full Inventory ML pipeline ...")
+
+    # 1. Feature Engineering
+    df_features = load_and_preprocess_inventory_data(data_path)
+
+    # 2. Training & Registration
+    train_summary = train_inventory_model(data_path=data_path)
+
+    log.info("Inventory ML pipeline execution completed successfully.")
+    return train_summary
