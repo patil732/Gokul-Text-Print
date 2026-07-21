@@ -42,30 +42,19 @@ def get_latest_sales_model_and_scaler(models_dir: str = SALES_MODELS_DIR):
     return model, scaler
 
 
+from app.ml.common.prediction_service import predict, log_prediction_record
+
 def log_prediction_to_db(model_name: str, version: str, input_data: Any, prediction: Any, confidence: float) -> None:
     """
-    Log a prediction record to the prediction_history table in the SQLite database.
+    Log a prediction record to the prediction_history table.
     """
-    try:
-        conn = get_db_connection()
-        conn.execute(
-            """
-            INSERT INTO prediction_history (model_name, version, input_data, prediction, confidence)
-            VALUES (?, ?, ?, ?, ?)
-            """,
-            (
-                model_name,
-                version,
-                json.dumps(input_data, default=str),
-                str(prediction),
-                float(confidence) if confidence is not None else 0.0,
-            ),
-        )
-        conn.commit()
-        conn.close()
-        log.info(f"Logged prediction to DB: model={model_name}, version={version}, prediction={prediction}")
-    except Exception as exc:
-        log.warning(f"Could not log prediction to DB: {exc}")
+    log_prediction_record(
+        model_name=model_name,
+        prediction=prediction,
+        input_data=input_data,
+        confidence=confidence,
+        version=version,
+    )
 
 
 def predict_sales(input_data: Union[Dict[str, Any], pd.DataFrame]) -> Dict[str, Any]:

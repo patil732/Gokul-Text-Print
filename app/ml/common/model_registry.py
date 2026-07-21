@@ -1,43 +1,27 @@
 """
 app/ml/common/model_registry.py
 --------------------------------
-Model registry persistence and metadata tracking.
+Model registry database persistence and metadata tracking.
 
-Saves registration entries to models/registry.json.
-Allows registering trained models (name, type, version, trained_at, accuracy)
-and fetching the latest version for a given model_name.
+Reads/writes directly to the model_registry database table:
+  model_registry(model_id UUID PK, model_name VARCHAR, model_type VARCHAR,
+                 version VARCHAR, trained_at TIMESTAMP, accuracy FLOAT,
+                 metrics TEXT, filepath TEXT)
 """
 
 import os
 import json
+import uuid
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 
 from app.ml.common.logger import get_ml_logger
+from database.db import get_db_connection
 
 log = get_ml_logger("model_registry")
 
 _PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 REGISTRY_JSON_PATH = os.path.join(_PROJECT_ROOT, "models", "registry.json")
-
-
-def _load_registry_data(filepath: str = REGISTRY_JSON_PATH) -> Dict[str, List[Dict[str, Any]]]:
-    """Load registry file content or return empty dictionary if file missing."""
-    if not os.path.exists(filepath):
-        return {}
-    try:
-        with open(filepath, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception as exc:
-        log.error(f"Failed to read model registry at {filepath}: {exc}")
-        return {}
-
-
-def _save_registry_data(data: Dict[str, List[Dict[str, Any]]], filepath: str = REGISTRY_JSON_PATH) -> None:
-    """Save registry data dictionary to filepath."""
-    os.makedirs(os.path.dirname(filepath), exist_ok=True)
-    with open(filepath, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, default=str)
 
 
 def register_model(
@@ -50,13 +34,13 @@ def register_model(
     registry_path: str = REGISTRY_JSON_PATH,
 ) -> Dict[str, Any]:
     """
-    Register a trained model entry in the model registry.
+    Register a trained model entry in the model_registry database table (and sync file backup).
 
     Parameters
     ----------
     model_name : str   (e.g., 'sales', 'inventory')
     model_type : str   (e.g., 'random_forest', 'xgboost')
-    version    : str   (e.g., 'v1.0', '1.0.0', '20260721_2230')
+    version    : str   (e.g., 'v1.0', '20260721_2230')
     accuracy   : float
     metrics    : dict, optional
     filepath   : str, optional (path to saved model artefact)
@@ -64,52 +48,147 @@ def register_model(
     Returns
     -------
     dict
-        The newly registered metadata entry.
+        The newly registered metadata entry containing UUID model_id.
     """
-    data = _load_registry_data(registry_path)
+    model_id = str(uuid.uuid4())
+    trained_at = datetime.now().isoformat()
 
     entry = {
+        "model_id": model_id,
         "model_name": model_name,
         "model_type": model_type,
         "version": version,
-        "trained_at": datetime.now().isoformat(),
+        "trained_at": trained_at,
         "accuracy": float(accuracy),
         "metrics": metrics or {},
         "filepath": filepath or "",
     }
 
-    if model_name not in data:
-        data[model_name] = []
+    # 1. Write to database table model_registry
+    try:
+        conn = get_db_connection()
+        conn.execute(
+            """
+            INSERT INTO model_registry (model_id, model_name, model_type, version, trained_at, accuracy, metrics, filepath)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                model_id,
+                model_name,
+                model_type,
+                version,
+                trained_at,
+                float(accuracy),
+                json.dumps(metrics or {}),
+                filepath or "",
+            ),
+        )
+        conn.commit()
+        conn.close()
+        log.info(f"Registered model '{model_name}' v{version} (id={model_id}) in database table 'model_registry'")
+    except Exception as exc:
+        log.error(f"Failed to register model in database: {exc}")
 
-    data[model_name].append(entry)
-    _save_registry_data(data, registry_path)
+    # 2. Sync file backup (registry.json)
+    try:
+        data = {}
+        if os.path.exists(registry_path):
+            with open(registry_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        if model_name not in data:
+            data[model_name] = []
+        data[model_name].append(entry)
+        os.makedirs(os.path.dirname(registry_path), exist_ok=True)
+        with open(registry_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, default=str)
+    except Exception as exc:
+        log.warning(f"Could not sync JSON backup registry: {exc}")
 
-    log.info(
-        f"Registered model '{model_name}' v{version} ({model_type}) "
-        f"with accuracy={accuracy:.4f} -> {registry_path}"
-    )
     return entry
 
 
 def get_latest_version(model_name: str, registry_path: str = REGISTRY_JSON_PATH) -> Optional[Dict[str, Any]]:
     """
-    Fetch the latest registered model version entry for a given model_name.
-
-    Returns None if no entries exist for model_name.
+    Fetch the latest registered model version entry for model_name from database model_registry table.
     """
-    data = _load_registry_data(registry_path)
-    entries = data.get(model_name, [])
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT model_id, model_name, model_type, version, trained_at, accuracy, metrics, filepath
+            FROM model_registry
+            WHERE model_name = ?
+            ORDER BY trained_at DESC
+            LIMIT 1
+            """,
+            (model_name,),
+        )
+        row = cursor.fetchone()
+        conn.close()
 
-    if not entries:
-        log.warning(f"No registered models found for '{model_name}' in {registry_path}")
-        return None
+        if row:
+            row_dict = dict(row)
+            if isinstance(row_dict.get("metrics"), str):
+                try:
+                    row_dict["metrics"] = json.loads(row_dict["metrics"])
+                except Exception:
+                    pass
+            log.info(f"Retrieved latest version from DB for '{model_name}': v{row_dict.get('version')}")
+            return row_dict
+    except Exception as exc:
+        log.warning(f"Database query failed for model_registry: {exc}. Falling back to JSON file.")
 
-    # Return the last added entry (chronologically latest)
-    latest_entry = entries[-1]
-    log.info(f"Retrieved latest version for '{model_name}': v{latest_entry.get('version')} ({latest_entry.get('model_type')})")
-    return latest_entry
+    # Fallback to JSON file if DB query fails or table empty
+    if os.path.exists(registry_path):
+        try:
+            with open(registry_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            entries = data.get(model_name, [])
+            if entries:
+                return entries[-1]
+        except Exception:
+            pass
+
+    log.warning(f"No registered models found for '{model_name}'")
+    return None
 
 
 def list_registered_models(registry_path: str = REGISTRY_JSON_PATH) -> Dict[str, List[Dict[str, Any]]]:
-    """List all registered models grouped by model_name."""
-    return _load_registry_data(registry_path)
+    """List all registered models from database model_registry table."""
+    result = {}
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT model_id, model_name, model_type, version, trained_at, accuracy, metrics, filepath
+            FROM model_registry
+            ORDER BY trained_at ASC
+            """
+        )
+        rows = cursor.fetchall()
+        conn.close()
+
+        for row in rows:
+            row_dict = dict(row)
+            name = row_dict["model_name"]
+            if name not in result:
+                result[name] = []
+            if isinstance(row_dict.get("metrics"), str):
+                try:
+                    row_dict["metrics"] = json.loads(row_dict["metrics"])
+                except Exception:
+                    pass
+            result[name].append(row_dict)
+        return result
+    except Exception as exc:
+        log.warning(f"Database list failed for model_registry ({exc}). Using JSON file.")
+
+    if os.path.exists(registry_path):
+        try:
+            with open(registry_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {}

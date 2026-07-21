@@ -73,16 +73,30 @@ def init_db() -> None:
         )
     """)
 
+    # Model registry table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS model_registry (
+            model_id   TEXT     PRIMARY KEY,
+            model_name TEXT     NOT NULL,
+            model_type TEXT     NOT NULL,
+            version    TEXT     NOT NULL,
+            trained_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            accuracy   REAL,
+            metrics    TEXT,
+            filepath   TEXT
+        )
+    """)
+
     # Prediction history table
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS prediction_history (
-            id          INTEGER  PRIMARY KEY AUTOINCREMENT,
-            timestamp   DATETIME DEFAULT CURRENT_TIMESTAMP,
-            model_name  TEXT     NOT NULL,
-            version     TEXT,
-            input_data  TEXT,
-            prediction  TEXT,
-            confidence  REAL
+            prediction_id TEXT     PRIMARY KEY,
+            model_name    TEXT     NOT NULL,
+            version       TEXT,
+            prediction    TEXT     NOT NULL,
+            input_data    TEXT,
+            confidence    REAL,
+            created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     """)
 
