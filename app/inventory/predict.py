@@ -146,7 +146,10 @@ def _shap_reasons(clf, X: pd.DataFrame, top_n: int = 3) -> list[str]:
             )
             explainer = shap.TreeExplainer(clf)
 
-        shap_values = explainer.shap_values(X)
+        if hasattr(explainer, "shap_values"):
+            shap_values = explainer.shap_values(X)
+        else:
+            shap_values = explainer(X).values
 
         if isinstance(shap_values, list):
             # List of arrays [class_0, class_1]

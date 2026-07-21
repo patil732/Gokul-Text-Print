@@ -55,56 +55,34 @@ MODEL_PATH = cfg.INVENTORY_MODEL_PATH
 SHAP_PATH  = cfg.INVENTORY_SHAP_PATH
 
 
+from app.ml.common.model_loader import create_model_from_config
+from typing import Any
+
 # --------------------------------------------------------------------------- #
 # Model factory
 # --------------------------------------------------------------------------- #
-def build() -> RandomForestClassifier:
+def build() -> Any:
     """
-    Return a freshly configured, **untrained** RandomForestClassifier.
-
-    Hyperparameters are tuned for a wide, sparse item-level dataset:
-      - n_estimators=300 : more trees for robustness over many items
-      - max_depth=8       : shallower than sales (simpler decision surface)
-      - class_weight='balanced' : handles the imbalanced reorder_flag target
-        (most items with actual_qty=0 → reorder_flag=1 dominates)
-
-    Returns
-    -------
-    RandomForestClassifier  Untrained model instance.
+    Return a freshly configured, **untrained** model object based on config/model_config.yaml.
     """
-    return RandomForestClassifier(
-        n_estimators=300,
-        max_depth=8,
-        random_state=42,
-        n_jobs=-1,
-        class_weight="balanced",   # corrects for majority reorder_flag=1 class
-    )
+    return create_model_from_config("inventory")
 
 
 # --------------------------------------------------------------------------- #
 # Model persistence
 # --------------------------------------------------------------------------- #
-def save(model: RandomForestClassifier, path: str = MODEL_PATH) -> None:
+def save(model: Any, path: str = MODEL_PATH) -> None:
     """
-    Persist a fitted RandomForest to *path* using joblib.
-
-    Parameters
-    ----------
-    model : RandomForestClassifier  Fitted model.
-    path  : str                     Destination (parent dir created if absent).
+    Persist a fitted model to *path* using joblib.
     """
     os.makedirs(os.path.dirname(path), exist_ok=True)
     joblib.dump(model, path)
     logger.info(f"[inventory.model] Model saved -> {path}")
 
 
-def load(path: str = MODEL_PATH) -> RandomForestClassifier:
+def load(path: str = MODEL_PATH) -> Any:
     """
     Load the trained inventory model from *path*.
-
-    Raises
-    ------
-    FileNotFoundError  If the artefact does not exist.
     """
     if not os.path.exists(path):
         raise FileNotFoundError(

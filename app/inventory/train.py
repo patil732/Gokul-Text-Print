@@ -185,7 +185,14 @@ def train(
         if len(X_train) > 500
         else X_train
     )
-    explainer = shap.TreeExplainer(clf, data=shap_background)
+    try:
+        explainer = shap.TreeExplainer(clf, data=shap_background)
+    except Exception as exc:
+        logger.warning(f"[inventory.train] TreeExplainer failed ({exc}) — using fallback Explainer.")
+        try:
+            explainer = shap.Explainer(clf.predict_proba, shap_background)
+        except Exception:
+            explainer = shap.Explainer(clf, shap_background)
     save_shap(explainer, path=SHAP_PATH)
 
     print(f"  Model     -> {MODEL_PATH}")

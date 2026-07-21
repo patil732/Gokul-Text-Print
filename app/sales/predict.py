@@ -143,8 +143,10 @@ def _shap_reasons(clf, X: pd.DataFrame, top_n: int = 3) -> list[str]:
             logger.warning(
                 "[sales.predict] SHAP artefact not found — building inline explainer."
             )
-            explainer = shap.TreeExplainer(clf)
-        shap_values = explainer.shap_values(X)
+        if hasattr(explainer, "shap_values"):
+            shap_values = explainer.shap_values(X)
+        else:
+            shap_values = explainer(X).values
         if isinstance(shap_values, list):
             vals = shap_values[1][0] if len(shap_values) > 1 else shap_values[0][0]
         elif isinstance(shap_values, np.ndarray):

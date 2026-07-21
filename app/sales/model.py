@@ -55,53 +55,34 @@ MODEL_PATH = cfg.SALES_MODEL_PATH
 SHAP_PATH  = cfg.SALES_SHAP_PATH
 
 
+from app.ml.common.model_loader import create_model_from_config
+from typing import Any
+
 # --------------------------------------------------------------------------- #
 # Model factory
 # --------------------------------------------------------------------------- #
-def build() -> RandomForestClassifier:
+def build() -> Any:
     """
-    Return a freshly configured, **untrained** RandomForestClassifier.
-
-    Hyperparameters match the original models/train_model.py so existing
-    training results remain reproducible.
-
-    Returns
-    -------
-    RandomForestClassifier
-        Untrained model instance.
+    Return a freshly configured, **untrained** model object based on config/model_config.yaml.
     """
-    return RandomForestClassifier(
-        n_estimators=200,
-        max_depth=10,
-        random_state=42,
-        n_jobs=-1,
-    )
+    return create_model_from_config("sales")
 
 
 # --------------------------------------------------------------------------- #
 # Model persistence
 # --------------------------------------------------------------------------- #
-def save(model: RandomForestClassifier, path: str = MODEL_PATH) -> None:
+def save(model: Any, path: str = MODEL_PATH) -> None:
     """
-    Persist a fitted RandomForest to *path* using joblib.
-
-    Parameters
-    ----------
-    model : RandomForestClassifier  Fitted model.
-    path  : str                     Destination (parent dir created if absent).
+    Persist a fitted model to *path* using joblib.
     """
     os.makedirs(os.path.dirname(path), exist_ok=True)
     joblib.dump(model, path)
     logger.info(f"[sales.model] Model saved -> {path}")
 
 
-def load(path: str = MODEL_PATH) -> RandomForestClassifier:
+def load(path: str = MODEL_PATH) -> Any:
     """
     Load the trained sales model from *path*.
-
-    Raises
-    ------
-    FileNotFoundError  If the artefact does not exist.
     """
     if not os.path.exists(path):
         raise FileNotFoundError(

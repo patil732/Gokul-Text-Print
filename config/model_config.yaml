@@ -66,9 +66,9 @@ sales:
 # Inventory Reorder Prediction Pipeline Configuration
 # ------------------------------------------------------------
 inventory:
-  # Active algorithm. Options: lightgbm | xgboost | random_forest
-  # LightGBM selected as best algorithm for imbalanced inventory reorder classification
-  algorithm: lightgbm
+  # Active algorithm. Options: xgboost | lightgbm | random_forest
+  # XGBoost active for both sales and inventory pipelines
+  algorithm: xgboost
 
   # Hyperparameter profiles per supported algorithm
   algorithms:
