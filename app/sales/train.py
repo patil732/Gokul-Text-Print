@@ -189,8 +189,8 @@ def train(
     explainer = shap.TreeExplainer(clf, data=shap_background)
     save_shap(explainer, path=SHAP_PATH)
 
-    print(f"  Model    → {MODEL_PATH}")
-    print(f"  Explainer→ {SHAP_PATH}")
+    print(f"  Model    -> {MODEL_PATH}")
+    print(f"  Explainer-> {SHAP_PATH}")
     logger.info("[sales.train] Training pipeline complete.")
 
 

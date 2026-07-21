@@ -291,7 +291,7 @@ def run_processing() -> dict:
         df_main.to_csv(output_path, index=False)
         output_rows = len(df_main)
         log.info(
-            f"Output: {output_rows:,} rows written → {output_path}",
+            f"Output: {output_rows:,} rows written -> {output_path}",
             extra={"etl_module": _MODULE},
         )
 

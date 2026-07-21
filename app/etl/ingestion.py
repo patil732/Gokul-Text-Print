@@ -238,7 +238,7 @@ def _write_csv(df, filename: str, label: str) -> None:
     path = os.path.join(cfg.RAW_DATA_DIR, filename)
     df.to_csv(path, index=False)
     log.info(
-        f"Written: {label} → {path}  ({len(df):,} rows)",
+        f"Written: {label} -> {path}  ({len(df):,} rows)",
         extra={"etl_module": _MODULE},
     )
 

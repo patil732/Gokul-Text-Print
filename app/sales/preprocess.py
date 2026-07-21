@@ -95,13 +95,14 @@ def preprocess(df: pd.DataFrame) -> pd.DataFrame:
         df["sales_ma_14"] = grp.transform(lambda x: x.rolling(window=14, min_periods=1).mean())
         df["sales_std_7"] = grp.transform(lambda x: x.rolling(window=7,  min_periods=1).std())
 
-        # --- 7. Momentum & trend ---
+        # --- 7. Momentum & trend & stock_ratio ---
         df["momentum"]   = df["sales"] - df["sales_lag_3"]
         df["prev_sales"] = grp.shift(1)
         df["growth_rate"] = (df["sales"] - df["prev_sales"]) / (df["prev_sales"] + 1)
         df["trend"] = df["growth_rate"].apply(
             lambda x: 1 if x > 0.05 else (-1 if x < -0.05 else 0)
         )
+        df["stock_ratio"] = (df["stock"] / (df["sales"] + 1)) if "stock" in df.columns else 0.0
 
         # --- 8. Target variable: will next period sales increase? ---
         df["next_sales"]       = grp.shift(-1)
@@ -142,7 +143,7 @@ def run_and_save(df: pd.DataFrame, output_path: str = PROCESSED_CSV) -> pd.DataF
     processed = preprocess(df)
     if not processed.empty:
         processed.to_csv(output_path, index=False)
-        logger.info(f"[sales.preprocess] Saved {len(processed):,} rows → {output_path}")
+        logger.info(f"[sales.preprocess] Saved {len(processed):,} rows -> {output_path}")
     return processed
 
 

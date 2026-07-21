@@ -95,7 +95,7 @@ def save(model: RandomForestClassifier, path: str = MODEL_PATH) -> None:
     """
     os.makedirs(os.path.dirname(path), exist_ok=True)
     joblib.dump(model, path)
-    logger.info(f"[inventory.model] Model saved → {path}")
+    logger.info(f"[inventory.model] Model saved -> {path}")
 
 
 def load(path: str = MODEL_PATH) -> RandomForestClassifier:
@@ -112,7 +112,7 @@ def load(path: str = MODEL_PATH) -> RandomForestClassifier:
             "Run: python -m app.inventory.train"
         )
     model = joblib.load(path)
-    logger.info(f"[inventory.model] Model loaded ← {path}")
+    logger.info(f"[inventory.model] Model loaded <- {path}")
     return model
 
 
@@ -130,7 +130,7 @@ def save_shap(explainer, path: str = SHAP_PATH) -> None:
     """
     os.makedirs(os.path.dirname(path), exist_ok=True)
     joblib.dump(explainer, path)
-    logger.info(f"[inventory.model] SHAP explainer saved → {path}")
+    logger.info(f"[inventory.model] SHAP explainer saved -> {path}")
 
 
 def load_shap(path: str = SHAP_PATH):
@@ -147,5 +147,5 @@ def load_shap(path: str = SHAP_PATH):
             "Run: python -m app.inventory.train"
         )
     explainer = joblib.load(path)
-    logger.info(f"[inventory.model] SHAP explainer loaded ← {path}")
+    logger.info(f"[inventory.model] SHAP explainer loaded <- {path}")
     return explainer

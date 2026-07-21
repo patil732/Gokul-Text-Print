@@ -214,7 +214,7 @@ def run_and_save(
     if not processed.empty:
         processed.to_csv(output_path, index=False)
         logger.info(
-            f"[inventory.preprocess] Saved {len(processed):,} rows → {output_path}"
+            f"[inventory.preprocess] Saved {len(processed):,} rows -> {output_path}"
         )
     return processed
 

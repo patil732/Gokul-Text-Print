@@ -145,9 +145,18 @@ def _shap_reasons(clf, X: pd.DataFrame, top_n: int = 3) -> list[str]:
             )
             explainer = shap.TreeExplainer(clf)
         shap_values = explainer.shap_values(X)
-        vals = (
-            shap_values[1] if isinstance(shap_values, list) else shap_values
-        ).flatten()
+        if isinstance(shap_values, list):
+            vals = shap_values[1][0] if len(shap_values) > 1 else shap_values[0][0]
+        elif isinstance(shap_values, np.ndarray):
+            if shap_values.ndim == 3:
+                vals = shap_values[0, :, 1] if shap_values.shape[2] > 1 else shap_values[0, :, 0]
+            elif shap_values.ndim == 2:
+                vals = shap_values[0]
+            else:
+                vals = shap_values.flatten()
+        else:
+            vals = np.array(shap_values).flatten()
+
         top_indices = np.argsort(np.abs(vals))[-top_n:][::-1]
         return [
             (
