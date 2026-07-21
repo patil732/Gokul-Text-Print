@@ -3,16 +3,19 @@ app/sales/model.py
 ------------------
 Random Forest classifier for sales demand forecasting.
 
-This is the authoritative definition of the sales model architecture.
-It owns:
-  - FEATURE_COLS  — the exact feature list the model expects at inference time.
-  - MODEL_PATH    — where the trained artefact is persisted on disk.
-  - build()       — factory that returns a freshly configured, untrained model.
-  - load()        — loads the trained artefact from MODEL_PATH.
-  - save()        — persists a trained model to MODEL_PATH.
+Authoritative definition of:
+  - FEATURE_COLS  — exact feature list expected at training and inference time.
+  - TARGET_COL    — binary classification target.
+  - MODEL_PATH    — serialised RandomForest artefact (models/sales_rf.pkl).
+  - SHAP_PATH     — serialised SHAP TreeExplainer (models/sales_shap.pkl).
+  - build()       — factory for a fresh, untrained model.
+  - save()        — persist a fitted model to MODEL_PATH.
+  - load()        — load the fitted model from MODEL_PATH.
+  - save_shap()   — persist a fitted SHAP explainer to SHAP_PATH.
+  - load_shap()   — load the SHAP explainer from SHAP_PATH.
 
-The inventory module has its own parallel model.py and a separate MODEL_PATH;
-the two artefacts never share a file.
+The inventory module has its own parallel model.py and completely
+separate artefact paths; the two never overwrite each other.
 """
 
 import os
@@ -23,11 +26,10 @@ from sklearn.ensemble import RandomForestClassifier
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from config.settings import settings
-from utils.logger import logger
+from utils.logger    import logger
 
 # --------------------------------------------------------------------------- #
-# Single source of truth for the feature contract
-# Keep this list in sync with app/sales/preprocess.py
+# Feature contract — keep in sync with app/sales/preprocess.py
 # --------------------------------------------------------------------------- #
 FEATURE_COLS = [
     "sales",
@@ -45,16 +47,23 @@ FEATURE_COLS = [
 
 TARGET_COL = "target_decision"
 
-# Sales model artefact is stored separately from any future inventory model
-MODEL_PATH = os.path.join(settings.BASE_DIR, "models", "sales_decision_model.pkl")
+# --------------------------------------------------------------------------- #
+# Artefact paths — sales-specific; never shared with inventory
+# --------------------------------------------------------------------------- #
+_MODELS_DIR = os.path.join(settings.BASE_DIR, "models")
+MODEL_PATH  = os.path.join(_MODELS_DIR, "sales_rf.pkl")
+SHAP_PATH   = os.path.join(_MODELS_DIR, "sales_shap.pkl")
 
 
+# --------------------------------------------------------------------------- #
+# Model factory
+# --------------------------------------------------------------------------- #
 def build() -> RandomForestClassifier:
     """
     Return a freshly configured, **untrained** RandomForestClassifier.
 
-    Hyperparameters are kept identical to the original models/train_model.py
-    implementation so existing training results remain reproducible.
+    Hyperparameters match the original models/train_model.py so existing
+    training results remain reproducible.
 
     Returns
     -------
@@ -65,20 +74,21 @@ def build() -> RandomForestClassifier:
         n_estimators=200,
         max_depth=10,
         random_state=42,
-        n_jobs=-1,          # use all available CPU cores during training
+        n_jobs=-1,
     )
 
 
+# --------------------------------------------------------------------------- #
+# Model persistence
+# --------------------------------------------------------------------------- #
 def save(model: RandomForestClassifier, path: str = MODEL_PATH) -> None:
     """
-    Persist a trained model to disk using joblib.
+    Persist a fitted RandomForest to *path* using joblib.
 
     Parameters
     ----------
-    model : RandomForestClassifier
-        A fitted model instance.
-    path : str
-        Destination file path.  Parent directory is created if absent.
+    model : RandomForestClassifier  Fitted model.
+    path  : str                     Destination (parent dir created if absent).
     """
     os.makedirs(os.path.dirname(path), exist_ok=True)
     joblib.dump(model, path)
@@ -87,28 +97,52 @@ def save(model: RandomForestClassifier, path: str = MODEL_PATH) -> None:
 
 def load(path: str = MODEL_PATH) -> RandomForestClassifier:
     """
-    Load the trained sales model from disk.
-
-    Parameters
-    ----------
-    path : str
-        Path to the serialised model file.
-
-    Returns
-    -------
-    RandomForestClassifier
-        The loaded, fitted model.
+    Load the trained sales model from *path*.
 
     Raises
     ------
-    FileNotFoundError
-        If the model artefact does not exist at *path*.
+    FileNotFoundError  If the artefact does not exist.
     """
     if not os.path.exists(path):
         raise FileNotFoundError(
-            f"[sales.model] No trained model found at {path}. "
-            "Run app/sales/train.py first."
+            f"[sales.model] No trained model at {path}. "
+            "Run: python -m app.sales.train"
         )
     model = joblib.load(path)
-    logger.info(f"[sales.model] Model loaded from {path}")
+    logger.info(f"[sales.model] Model loaded ← {path}")
     return model
+
+
+# --------------------------------------------------------------------------- #
+# SHAP explainer persistence
+# --------------------------------------------------------------------------- #
+def save_shap(explainer, path: str = SHAP_PATH) -> None:
+    """
+    Persist a fitted shap.TreeExplainer to *path* using joblib.
+
+    Parameters
+    ----------
+    explainer : shap.TreeExplainer  Fitted on X_train after model training.
+    path      : str                 Destination (parent dir created if absent).
+    """
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    joblib.dump(explainer, path)
+    logger.info(f"[sales.model] SHAP explainer saved → {path}")
+
+
+def load_shap(path: str = SHAP_PATH):
+    """
+    Load the SHAP TreeExplainer from *path*.
+
+    Raises
+    ------
+    FileNotFoundError  If the explainer artefact does not exist.
+    """
+    if not os.path.exists(path):
+        raise FileNotFoundError(
+            f"[sales.model] No SHAP explainer at {path}. "
+            "Run: python -m app.sales.train"
+        )
+    explainer = joblib.load(path)
+    logger.info(f"[sales.model] SHAP explainer loaded ← {path}")
+    return explainer

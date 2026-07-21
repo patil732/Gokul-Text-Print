@@ -3,30 +3,39 @@ app/sales/train.py
 ------------------
 Training entry point for the Sales demand-forecasting module.
 
-Run this file directly to retrain the sales model without touching
-any inventory code:
+CLI usage
+---------
+    python -m app.sales.train                        # default paths
+    python -m app.sales.train --force-reprocess      # re-run preprocessing even if CSV exists
+    python -m app.sales.train --processed-csv /path/to/custom.csv
+    python -m app.sales.train --help
 
-    python -m app.sales.train
-    # or
-    python app/sales/train.py
+Outputs (written to models/)
+-----------------------------
+    models/sales_rf.pkl      — fitted RandomForestClassifier
+    models/sales_shap.pkl    — fitted shap.TreeExplainer (built on training set)
 
 Pipeline
 --------
-1. Load raw sales data          (data_loader.load_raw_sales)
-2. Feature-engineer             (preprocess.run_and_save)
-3. Split into train / test
-4. Train RandomForest           (model.build / model.save)
-5. Evaluate and print metrics
+1. Load raw sales CSV                  (data_loader.load_raw_sales)
+2. Feature-engineer & persist CSV      (preprocess.run_and_save)
+3. Train / test split (80 / 20)
+4. Fit RandomForestClassifier          (model.build)
+5. Evaluate: accuracy, precision, recall, F1, confusion matrix
+6. Save model artefact                 (model.save  → models/sales_rf.pkl)
+7. Fit SHAP TreeExplainer on X_train   (shap.TreeExplainer)
+8. Save SHAP explainer                 (model.save_shap → models/sales_shap.pkl)
 
-Nothing here imports from app/inventory — the two modules are fully
-decoupled and can be retrained independently.
+No imports from app.inventory — fully decoupled.
 """
 
 import os
 import sys
+import argparse
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
+import shap
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import (
@@ -40,25 +49,39 @@ from sklearn.metrics import (
 
 from app.sales.data_loader import load_raw_sales
 from app.sales.preprocess  import run_and_save, PROCESSED_CSV
-from app.sales.model       import build, save, load, FEATURE_COLS, TARGET_COL, MODEL_PATH
-from utils.logger          import logger
+from app.sales.model       import (
+    build, save, load_shap,
+    save_shap, FEATURE_COLS, TARGET_COL, MODEL_PATH, SHAP_PATH,
+)
+from utils.logger import logger
 
 
-def train(processed_csv: str = PROCESSED_CSV) -> None:
+# --------------------------------------------------------------------------- #
+# Core training function
+# --------------------------------------------------------------------------- #
+def train(
+    processed_csv: str = PROCESSED_CSV,
+    force_reprocess: bool = False,
+) -> None:
     """
     Full training pipeline for the sales module.
 
     Parameters
     ----------
     processed_csv : str
-        Path to the preprocessed CSV.  If the file already exists it is
-        reused; otherwise raw data is loaded and processed first.
+        Path to the preprocessed feature CSV.  If the file already exists
+        it is reused unless *force_reprocess* is True.
+    force_reprocess : bool
+        When True, raw data is re-loaded and preprocessing is re-run even
+        if *processed_csv* already exists on disk.
     """
     # ------------------------------------------------------------------ #
-    # 1. Load + preprocess
+    # 1. Load or (re-)generate preprocessed data
     # ------------------------------------------------------------------ #
-    if not os.path.exists(processed_csv):
-        logger.info("[sales.train] Processed CSV missing — running preprocessing.")
+    needs_preprocess = force_reprocess or not os.path.exists(processed_csv)
+
+    if needs_preprocess:
+        logger.info("[sales.train] Running preprocessing pipeline …")
         raw = load_raw_sales()
         df  = run_and_save(raw, output_path=processed_csv)
     else:
@@ -70,33 +93,32 @@ def train(processed_csv: str = PROCESSED_CSV) -> None:
         return
 
     # ------------------------------------------------------------------ #
-    # 2. Validate required columns
+    # 2. Validate feature columns
     # ------------------------------------------------------------------ #
-    missing = (set(FEATURE_COLS) | {TARGET_COL}) - set(df.columns)
+    required = set(FEATURE_COLS) | {TARGET_COL}
+    missing  = required - set(df.columns)
     if missing:
         logger.error(f"[sales.train] Missing columns: {missing}. Re-run preprocessing.")
         return
 
-    # ------------------------------------------------------------------ #
-    # 3. Build X / y
-    # ------------------------------------------------------------------ #
-    # stock_ratio is in FEATURE_COLS but may not be in the processed CSV
-    # (stock data was optional during ingestion).  Fill with 0 if absent.
+    # stock_ratio is engineered from ERP stock data which is optional
     if "stock_ratio" not in df.columns:
-        logger.warning("[sales.train] 'stock_ratio' not found — defaulting to 0.")
+        logger.warning("[sales.train] 'stock_ratio' absent — filling with 0.")
         df["stock_ratio"] = 0.0
 
-    X = df[FEATURE_COLS]
-    y = df[TARGET_COL]
+    # ------------------------------------------------------------------ #
+    # 3. Build feature matrix and target vector
+    # ------------------------------------------------------------------ #
+    X = df[FEATURE_COLS].copy()
+    y = df[TARGET_COL].copy()
 
-    logger.info(f"[sales.train] Dataset: {len(X):,} rows | {len(FEATURE_COLS)} features")
+    logger.info(f"[sales.train] Dataset: {len(X):,} rows × {len(FEATURE_COLS)} features")
 
-    # Display sample of target variable (mirrors original train_model.py output)
-    print("\n" + "=" * 50)
-    print("  SAMPLE — TARGET VARIABLE (sales module)  ")
-    print("=" * 50)
+    print("\n" + "=" * 54)
+    print("   SAMPLE — TARGET VARIABLE  (sales module)")
+    print("=" * 54)
     print(df[[TARGET_COL]].head(10).to_string(index=False))
-    print("=" * 50 + "\n")
+    print("=" * 54 + "\n")
 
     # ------------------------------------------------------------------ #
     # 4. Train / test split
@@ -104,13 +126,14 @@ def train(processed_csv: str = PROCESSED_CSV) -> None:
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42
     )
+    logger.info(
+        f"[sales.train] Split — train: {len(X_train):,}  test: {len(X_test):,}"
+    )
 
     # ------------------------------------------------------------------ #
-    # 5. Train
+    # 5. Fit model
     # ------------------------------------------------------------------ #
-    logger.info(
-        f"[sales.train] Training RandomForest with {len(X_train):,} samples …"
-    )
+    logger.info("[sales.train] Fitting RandomForestClassifier …")
     clf = build()
     clf.fit(X_train, y_train)
 
@@ -126,30 +149,96 @@ def train(processed_csv: str = PROCESSED_CSV) -> None:
     cm        = confusion_matrix(y_test, y_pred)
     tn, fp, fn, tp = cm.ravel() if cm.size == 4 else (0, 0, 0, 0)
 
-    print("\n" + "=" * 50)
-    print("  SALES MODEL — TRAINING RESULTS  ")
-    print("=" * 50)
-    print(f"Accuracy:  {accuracy:.4f}")
-    print(f"Precision: {precision:.4f}")
-    print(f"Recall:    {recall:.4f}")
-    print(f"F1 Score:  {f1:.4f}")
-    print("-" * 50)
-    print("CONFUSION MATRIX:")
-    print(f"  True Negatives  (TN): {tn}")
-    print(f"  False Positives (FP): {fp}")
-    print(f"  False Negatives (FN): {fn}")
-    print(f"  True Positives  (TP): {tp}")
-    print("-" * 50)
-    print("CLASSIFICATION REPORT:")
+    print("\n" + "=" * 54)
+    print("   SALES MODEL — TRAINING RESULTS")
+    print("=" * 54)
+    print(f"  Accuracy  : {accuracy:.4f}")
+    print(f"  Precision : {precision:.4f}")
+    print(f"  Recall    : {recall:.4f}")
+    print(f"  F1 Score  : {f1:.4f}")
+    print("-" * 54)
+    print("  CONFUSION MATRIX")
+    print(f"    True Negatives  (TN) : {tn}")
+    print(f"    False Positives (FP) : {fp}")
+    print(f"    False Negatives (FN) : {fn}")
+    print(f"    True Positives  (TP) : {tp}")
+    print("-" * 54)
+    print("  CLASSIFICATION REPORT")
     print(classification_report(y_test, y_pred, zero_division=0))
-    print("=" * 50 + "\n")
+    print("=" * 54 + "\n")
 
     # ------------------------------------------------------------------ #
-    # 7. Persist
+    # 7. Save model artefact  →  models/sales_rf.pkl
     # ------------------------------------------------------------------ #
     save(clf, path=MODEL_PATH)
-    logger.info(f"[sales.train] Training complete. Model → {MODEL_PATH}")
+
+    # ------------------------------------------------------------------ #
+    # 8. Build and save SHAP explainer  →  models/sales_shap.pkl
+    #
+    # We fit the explainer on the training set so SHAP background
+    # statistics match the data distribution seen during training.
+    # A random subsample (≤500 rows) is used to keep fitting fast while
+    # still providing a representative background dataset.
+    # ------------------------------------------------------------------ #
+    logger.info("[sales.train] Building SHAP TreeExplainer on training set …")
+    shap_background = (
+        X_train.sample(n=min(500, len(X_train)), random_state=42)
+        if len(X_train) > 500
+        else X_train
+    )
+    explainer = shap.TreeExplainer(clf, data=shap_background)
+    save_shap(explainer, path=SHAP_PATH)
+
+    print(f"  Model    → {MODEL_PATH}")
+    print(f"  Explainer→ {SHAP_PATH}")
+    logger.info("[sales.train] Training pipeline complete.")
+
+
+# --------------------------------------------------------------------------- #
+# CLI entry point
+# --------------------------------------------------------------------------- #
+def _build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="python -m app.sales.train",
+        description="Train the Sales demand-forecasting RandomForest model.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=(
+            "Outputs\n"
+            "-------\n"
+            f"  {MODEL_PATH}\n"
+            f"  {SHAP_PATH}\n"
+        ),
+    )
+    parser.add_argument(
+        "--processed-csv",
+        default=PROCESSED_CSV,
+        metavar="PATH",
+        help=(
+            "Path to the preprocessed feature CSV. "
+            f"Default: {PROCESSED_CSV}"
+        ),
+    )
+    parser.add_argument(
+        "--force-reprocess",
+        action="store_true",
+        default=False,
+        help=(
+            "Re-run data loading and preprocessing even if the processed "
+            "CSV already exists on disk."
+        ),
+    )
+    return parser
+
+
+def main() -> None:
+    """Parse CLI args and run the training pipeline."""
+    parser = _build_parser()
+    args   = parser.parse_args()
+    train(
+        processed_csv=args.processed_csv,
+        force_reprocess=args.force_reprocess,
+    )
 
 
 if __name__ == "__main__":
-    train()
+    main()

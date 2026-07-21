@@ -8,9 +8,10 @@ Exposes two public functions:
   predict_row(row_df)   — classify a single feature row.
   predict_batch(df)     — classify a batch DataFrame.
 
-Both functions load the trained sales model on every call (suitable for
-low-frequency API / scheduled use).  For high-frequency usage, call
-model.load() once and reuse the returned object.
+Both functions load the trained artefacts (model + SHAP explainer) on
+every call, suitable for low-frequency API / scheduled use.  For
+high-frequency usage, call model.load() and model.load_shap() once and
+reuse the returned objects.
 
 This module has NO dependency on app/inventory.
 """
@@ -24,7 +25,7 @@ import pandas as pd
 import numpy as np
 import shap
 
-from app.sales.model import load, FEATURE_COLS
+from app.sales.model import load, load_shap, FEATURE_COLS, SHAP_PATH
 from utils.logger    import logger
 
 # Human-readable decision labels
@@ -128,9 +129,21 @@ def _infer(clf, row_df: pd.DataFrame) -> dict:
 
 
 def _shap_reasons(clf, X: pd.DataFrame, top_n: int = 3) -> list[str]:
-    """Return top-N SHAP-driven plain-English explanations."""
+    """
+    Return top-N SHAP-driven plain-English explanations.
+
+    Loads the pre-saved shap.TreeExplainer from models/sales_shap.pkl so
+    the background distribution always matches what was used at train time.
+    Falls back to constructing a fresh explainer if the artefact is absent.
+    """
     try:
-        explainer   = shap.TreeExplainer(clf)
+        try:
+            explainer = load_shap(SHAP_PATH)
+        except FileNotFoundError:
+            logger.warning(
+                "[sales.predict] SHAP artefact not found — building inline explainer."
+            )
+            explainer = shap.TreeExplainer(clf)
         shap_values = explainer.shap_values(X)
         vals = (
             shap_values[1] if isinstance(shap_values, list) else shap_values
