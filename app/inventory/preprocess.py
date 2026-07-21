@@ -39,8 +39,8 @@ import numpy as np
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from config.settings import settings
-from utils.logger    import logger
+from app.config  import cfg
+from utils.logger import logger
 
 # --------------------------------------------------------------------------- #
 # Constants
@@ -50,7 +50,7 @@ from utils.logger    import logger
 REORDER_THRESHOLD = 50.0
 
 PROCESSED_CSV = os.path.join(
-    settings.PROCESSED_DATA_DIR, "inventory_training_data.csv"
+    cfg.PROCESSED_DATA_DIR, "inventory_training_data.csv"
 )
 
 # Feature columns — MUST stay in sync with app/inventory/model.FEATURE_COLS

@@ -26,8 +26,8 @@ from sklearn.ensemble import RandomForestClassifier
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from config.settings import settings
-from utils.logger    import logger
+from app.config  import cfg
+from utils.logger import logger
 
 # --------------------------------------------------------------------------- #
 # Feature contract — MUST stay in sync with app/inventory/preprocess.py
@@ -48,11 +48,11 @@ FEATURE_COLS = [
 TARGET_COL = "reorder_flag"
 
 # --------------------------------------------------------------------------- #
-# Artefact paths — inventory-specific; never shared with sales
+# Artefact paths — sourced from app/config.py (env: INVENTORY_MODEL_VERSION)
+# Never shared with sales module
 # --------------------------------------------------------------------------- #
-_MODELS_DIR = os.path.join(settings.BASE_DIR, "models")
-MODEL_PATH  = os.path.join(_MODELS_DIR, "inventory_rf.pkl")
-SHAP_PATH   = os.path.join(_MODELS_DIR, "inventory_shap.pkl")
+MODEL_PATH = cfg.INVENTORY_MODEL_PATH
+SHAP_PATH  = cfg.INVENTORY_SHAP_PATH
 
 
 # --------------------------------------------------------------------------- #

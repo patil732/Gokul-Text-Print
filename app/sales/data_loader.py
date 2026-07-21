@@ -17,13 +17,13 @@ import pandas as pd
 # Allow direct script execution from any working directory
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from config.settings import settings
+from app.config  import cfg
 from utils.logger import logger
 
 # --------------------------------------------------------------------------- #
 # Constants
 # --------------------------------------------------------------------------- #
-_SALES_CSV = os.path.join(settings.RAW_DATA_DIR, "sales.csv")
+_SALES_CSV = os.path.join(cfg.RAW_DATA_DIR, "sales.csv")
 
 REQUIRED_COLUMNS = {"name", "transaction_date", "customer", "grand_total"}
 

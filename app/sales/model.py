@@ -25,8 +25,8 @@ from sklearn.ensemble import RandomForestClassifier
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from config.settings import settings
-from utils.logger    import logger
+from app.config  import cfg
+from utils.logger import logger
 
 # --------------------------------------------------------------------------- #
 # Feature contract — keep in sync with app/sales/preprocess.py
@@ -48,11 +48,11 @@ FEATURE_COLS = [
 TARGET_COL = "target_decision"
 
 # --------------------------------------------------------------------------- #
-# Artefact paths — sales-specific; never shared with inventory
+# Artefact paths — sourced from app/config.py (env: SALES_MODEL_VERSION)
+# Never shared with inventory module
 # --------------------------------------------------------------------------- #
-_MODELS_DIR = os.path.join(settings.BASE_DIR, "models")
-MODEL_PATH  = os.path.join(_MODELS_DIR, "sales_rf.pkl")
-SHAP_PATH   = os.path.join(_MODELS_DIR, "sales_shap.pkl")
+MODEL_PATH = cfg.SALES_MODEL_PATH
+SHAP_PATH  = cfg.SALES_SHAP_PATH
 
 
 # --------------------------------------------------------------------------- #

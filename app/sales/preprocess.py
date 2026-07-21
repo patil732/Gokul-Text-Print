@@ -18,13 +18,13 @@ import numpy as np
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from config.settings import settings
+from app.config  import cfg
 from utils.logger import logger
 
 # --------------------------------------------------------------------------- #
 # Output path for the sales-specific processed dataset
 # --------------------------------------------------------------------------- #
-PROCESSED_CSV = os.path.join(settings.PROCESSED_DATA_DIR, "sales_training_data.csv")
+PROCESSED_CSV = os.path.join(cfg.PROCESSED_DATA_DIR, "sales_training_data.csv")
 
 
 def preprocess(df: pd.DataFrame) -> pd.DataFrame:

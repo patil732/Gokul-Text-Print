@@ -21,14 +21,14 @@ import pandas as pd
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from config.settings import settings
-from utils.logger    import logger
+from app.config  import cfg
+from utils.logger import logger
 
 # --------------------------------------------------------------------------- #
 # File paths
 # --------------------------------------------------------------------------- #
-_STOCK_CSV = os.path.join(settings.RAW_DATA_DIR, "stock.csv")
-_PROD_CSV  = os.path.join(settings.RAW_DATA_DIR, "production.csv")
+_STOCK_CSV = os.path.join(cfg.RAW_DATA_DIR, "stock.csv")
+_PROD_CSV  = os.path.join(cfg.RAW_DATA_DIR, "production.csv")
 
 REQUIRED_STOCK_COLUMNS = {"name", "item_code", "actual_qty", "warehouse"}
 REQUIRED_PROD_COLUMNS  = {"name", "item", "qty", "produced_qty", "status"}
