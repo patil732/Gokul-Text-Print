@@ -333,6 +333,58 @@
         "roc_auc": 0.7447
       },
       "filepath": "D:\\Projects\\Gokul Text Print\\models\\sales\\sales_model.pkl"
+    },
+    {
+      "model_id": "83394b10-d8f2-4472-bcaa-98e20f1827b1",
+      "model_name": "sales",
+      "model_type": "xgboost",
+      "version": "unittest_v1",
+      "trained_at": "2026-07-21T23:19:01.583135",
+      "accuracy": 0.6845,
+      "metrics": {
+        "accuracy": 0.6845,
+        "precision": 0.6571,
+        "recall": 0.6178,
+        "f1_score": 0.6368,
+        "confusion_matrix": [
+          [
+            2421,
+            857
+          ],
+          [
+            1016,
+            1642
+          ]
+        ],
+        "roc_auc": 0.7447
+      },
+      "filepath": "D:\\Projects\\Gokul Text Print\\models\\sales\\sales_model.pkl"
+    },
+    {
+      "model_id": "0b505206-2119-4203-acf9-2189fcf20257",
+      "model_name": "sales",
+      "model_type": "xgboost",
+      "version": "unittest_api_v1",
+      "trained_at": "2026-07-21T23:19:13.267123",
+      "accuracy": 0.6845,
+      "metrics": {
+        "accuracy": 0.6845,
+        "precision": 0.6571,
+        "recall": 0.6178,
+        "f1_score": 0.6368,
+        "confusion_matrix": [
+          [
+            2421,
+            857
+          ],
+          [
+            1016,
+            1642
+          ]
+        ],
+        "roc_auc": 0.7447
+      },
+      "filepath": "D:\\Projects\\Gokul Text Print\\models\\sales\\sales_model.pkl"
     }
   ],
   "inventory": [
@@ -600,6 +652,58 @@
       "model_type": "xgboost",
       "version": "unittest_inv_api_v1",
       "trained_at": "2026-07-21T23:10:41.109430",
+      "accuracy": 1.0,
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "confusion_matrix": [
+          [
+            862,
+            0
+          ],
+          [
+            0,
+            14730
+          ]
+        ],
+        "roc_auc": 1.0
+      },
+      "filepath": "D:\\Projects\\Gokul Text Print\\models\\inventory\\inventory_model.pkl"
+    },
+    {
+      "model_id": "4e8973d3-71b0-4db2-b658-464b8aaa71ae",
+      "model_name": "inventory",
+      "model_type": "xgboost",
+      "version": "unittest_inv_v1",
+      "trained_at": "2026-07-21T23:19:14.679764",
+      "accuracy": 1.0,
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "confusion_matrix": [
+          [
+            862,
+            0
+          ],
+          [
+            0,
+            14730
+          ]
+        ],
+        "roc_auc": 1.0
+      },
+      "filepath": "D:\\Projects\\Gokul Text Print\\models\\inventory\\inventory_model.pkl"
+    },
+    {
+      "model_id": "5325fbad-66d7-41a8-bb35-cc43c2317358",
+      "model_name": "inventory",
+      "model_type": "xgboost",
+      "version": "unittest_inv_api_v1",
+      "trained_at": "2026-07-21T23:19:21.993315",
       "accuracy": 1.0,
       "metrics": {
         "accuracy": 1.0,
