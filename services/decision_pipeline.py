@@ -102,7 +102,8 @@ def simulate_scenario(changes):
         latest_row['momentum'] = latest_row['sales'] - latest_row['sales_lag_3']
         latest_row['stock_ratio'] = latest_row['stock'] / (latest_row['sales'] + 1)
         
-        model_path = os.path.join(settings.BASE_DIR, "models", "decision_model.pkl")
+        from app.config import cfg
+        model_path = cfg.SALES_MODEL_PATH
         model = joblib.load(model_path)
         features = ["sales", "sales_lag_1", "sales_lag_2", "sales_lag_3", "sales_ma_3", "sales_ma_7", "sales_ma_14", "sales_std_7", "momentum", "trend", "stock_ratio"]
         
@@ -138,7 +139,8 @@ def run_pipeline():
         df = prepare_live_features(df_sales, df_stock)
         if df.empty: return {"error": "Insufficient data."}
 
-        model_path = os.path.join(settings.BASE_DIR, "models", "decision_model.pkl")
+        from app.config import cfg
+        model_path = cfg.SALES_MODEL_PATH
         model = joblib.load(model_path)
         
         # Get the actual latest date in the entire dataset
