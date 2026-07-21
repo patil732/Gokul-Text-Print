@@ -9,6 +9,7 @@ via prediction_service, and logs prediction entries to prediction_history in dat
 
 import os
 import json
+from datetime import datetime
 from typing import Dict, Any, Union
 import pandas as pd
 
@@ -100,6 +101,9 @@ def predict_inventory(input_data: Union[Dict[str, Any], pd.DataFrame]) -> Dict[s
         confidence_v = float(probabilities[0][raw_pred]) if raw_pred < probabilities.shape[1] else float(probabilities[0].max())
 
     confidence_str = "High" if confidence_v > 0.70 else "Medium"
+    trained_at = reg_entry.get("trained_at", "") if reg_entry else ""
+    model_type = reg_entry.get("model_type", "xgboost") if reg_entry else "xgboost"
+    accuracy = reg_entry.get("accuracy", 0.0) if reg_entry else 0.0
 
     output = {
         "status": "success",
@@ -112,6 +116,13 @@ def predict_inventory(input_data: Union[Dict[str, Any], pd.DataFrame]) -> Dict[s
         "probability": round(confidence_v, 4),
         "is_batch": pred_res.get("is_batch", False),
         "count": pred_res.get("count", 1),
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "model_status": {
+            "model_type": model_type,
+            "version": version,
+            "accuracy": round(accuracy, 4),
+            "trained_at": trained_at,
+        },
     }
 
     # 4. Log to database

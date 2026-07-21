@@ -9,16 +9,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function fetchCEODashboard() {
     try {
-        const response = await fetch('/ceo/dashboard');
-        const result = await response.json();
-        
+        // Fetch ERP metrics and ML predictions in parallel
+        const [dashRes, salesRes, invRes] = await Promise.all([
+            fetch('/ceo/dashboard'),
+            fetch('/api/ml/sales/predict'),
+            fetch('/api/ml/inventory/predict')
+        ]);
+
+        const result = await dashRes.json();
+        const salesData = await salesRes.json();
+        const invData = await invRes.json();
+
         if (result.status === 'success') {
             const data = result.data;
-            
-            // 1. Metrics
+
+            // 1. Overview Metrics
             document.getElementById('metric-sales').textContent = formatCurrency(data.data.sales);
             document.getElementById('metric-sales-sub').textContent = `MA: ${formatCurrency(data.data.sales_ma_3)}`;
-            
+
             const growth = data.data.growth_rate * 100;
             document.getElementById('metric-growth').textContent = `${growth.toFixed(1)}%`;
             const gTrend = document.getElementById('metric-growth-trend');
@@ -30,23 +38,50 @@ async function fetchCEODashboard() {
             demandText.className = `metric-value ${data.data.trend === 1 ? 'text-success' : (data.data.trend === -1 ? 'text-danger' : 'text-primary')}`;
             document.getElementById('metric-records').textContent = data.total_records.toLocaleString();
 
-            // 2. Decision & Reasons
-            const dText = document.getElementById('ai-decision-text');
-            dText.textContent = data.decision;
-            dText.className = `my-3 ${data.decision === 'Increase Production' ? 'text-success' : 'text-danger'}`;
-            
-            const cBadge = document.getElementById('ai-confidence');
-            cBadge.textContent = `Confidence: ${data.confidence}`;
-            cBadge.className = `badge rounded-pill bg-${data.confidence === 'High' ? 'success' : 'warning text-dark'}`;
+            // 2. Sales Intelligence Panel
+            if (salesData.status === 'success') {
+                const sDec = document.getElementById('sales-decision-text');
+                sDec.textContent = salesData.decision;
+                sDec.className = `my-2 ${salesData.decision === 'Increase Production' ? 'text-success' : 'text-danger'}`;
 
-            const rContainer = document.getElementById('reasons-container');
-            rContainer.innerHTML = data.reasons.map(r => `<div class="mb-1">● ${r}</div>`).join('');
+                const sConf = document.getElementById('sales-confidence');
+                sConf.textContent = `Confidence: ${salesData.confidence} (${(salesData.probability * 100).toFixed(1)}%)`;
+                sConf.className = `badge rounded-pill bg-${salesData.confidence === 'High' ? 'success' : 'warning text-dark'}`;
 
-            // 3. Recommendations
+                const sStatus = salesData.model_status || {};
+                document.getElementById('sales-model-type').textContent = (sStatus.model_type || 'xgboost').toUpperCase();
+                document.getElementById('sales-model-version').textContent = sStatus.version || 'v1.0';
+                document.getElementById('sales-model-accuracy').textContent = sStatus.accuracy ? `${(sStatus.accuracy * 100).toFixed(1)}%` : 'N/A';
+                document.getElementById('sales-predict-timestamp').textContent = salesData.timestamp || 'Just now';
+
+                const sReasons = salesData.reasons || data.reasons || [];
+                document.getElementById('sales-reasons-container').innerHTML = sReasons.map(r => `<div class="mb-1">● ${r}</div>`).join('') || '<div class="text-muted">No specific drivers returned.</div>';
+            }
+
+            // 3. Inventory Intelligence Panel
+            if (invData.status === 'success') {
+                const iDec = document.getElementById('inventory-decision-text');
+                iDec.textContent = invData.decision;
+                iDec.className = `my-2 ${invData.decision === 'Reorder Required' ? 'text-danger' : 'text-success'}`;
+
+                const iConf = document.getElementById('inventory-confidence');
+                iConf.textContent = `Confidence: ${invData.confidence} (${(invData.probability * 100).toFixed(1)}%)`;
+                iConf.className = `badge rounded-pill bg-${invData.confidence === 'High' ? 'success' : 'warning text-dark'}`;
+
+                const iStatus = invData.model_status || {};
+                document.getElementById('inventory-model-type').textContent = (iStatus.model_type || 'xgboost').toUpperCase();
+                document.getElementById('inventory-model-version').textContent = iStatus.version || 'v1.0';
+                document.getElementById('inventory-model-accuracy').textContent = iStatus.accuracy ? `${(iStatus.accuracy * 100).toFixed(1)}%` : 'N/A';
+                document.getElementById('inventory-predict-timestamp').textContent = invData.timestamp || 'Just now';
+
+                const iReasons = invData.reasons || ['Current stock level relative to reorder threshold is primary driver.'];
+                document.getElementById('inventory-reasons-container').innerHTML = iReasons.map(r => `<div class="mb-1">● ${r}</div>`).join('');
+            }
+
+            // 4. Recommendations & Warnings
             const recList = document.getElementById('recommendations-list');
             recList.innerHTML = data.recommendations.map(r => `<li class="mb-2 border-start border-primary ps-2">${r}</li>`).join('');
 
-            // 4. Early Warnings
             const warnContainer = document.getElementById('warnings-container');
             if (data.warnings.length > 0) {
                 warnContainer.innerHTML = data.warnings.map(w => `<div class="alert-box small mb-2">⚠ ${w}</div>`).join('');

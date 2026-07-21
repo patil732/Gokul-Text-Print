@@ -49,15 +49,36 @@
         </div>
 
         <div class="row g-4">
-            <!-- Strategic Engine (Left) -->
-            <div class="col-lg-4">
-                <div class="card decision-card mb-4 border-primary">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div class="metric-label text-primary">Strategic Verdict</div>
-                        <span id="ai-confidence" class="badge rounded-pill bg-primary text-dark">Confidence: ...</span>
+            <!-- Strategic Intelligence Panels (Left) -->
+            <div class="col-lg-5">
+                <!-- Sales Intelligence Panel -->
+                <div class="card decision-card mb-4 border-primary shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="metric-label text-primary fw-bold">Sales Intelligence</div>
+                        <span id="sales-confidence" class="badge rounded-pill bg-primary text-dark">Confidence: ...</span>
                     </div>
-                    <h2 id="ai-decision-text" class="my-3">...</h2>
-                    <div id="reasons-container" class="small text-secondary"></div>
+                    <h3 id="sales-decision-text" class="my-2 text-success">...</h3>
+                    <div class="small text-secondary mb-2">
+                        <span>Model: <strong id="sales-model-type">...</strong> (v<span id="sales-model-version">...</span>)</span> |
+                        <span>Accuracy: <strong id="sales-model-accuracy">...</strong></span>
+                    </div>
+                    <div class="small text-muted mb-2">Last Predicted: <span id="sales-predict-timestamp">...</span></div>
+                    <div id="sales-reasons-container" class="small text-secondary pt-2 border-top"></div>
+                </div>
+
+                <!-- Inventory Intelligence Panel -->
+                <div class="card decision-card mb-4 border-success shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="metric-label text-success fw-bold">Inventory Intelligence</div>
+                        <span id="inventory-confidence" class="badge rounded-pill bg-success text-white">Confidence: ...</span>
+                    </div>
+                    <h3 id="inventory-decision-text" class="my-2 text-primary">...</h3>
+                    <div class="small text-secondary mb-2">
+                        <span>Model: <strong id="inventory-model-type">...</strong> (v<span id="inventory-model-version">...</span>)</span> |
+                        <span>Accuracy: <strong id="inventory-model-accuracy">...</strong></span>
+                    </div>
+                    <div class="small text-muted mb-2">Last Predicted: <span id="inventory-predict-timestamp">...</span></div>
+                    <div id="inventory-reasons-container" class="small text-secondary pt-2 border-top"></div>
                 </div>
 
                 <div class="card mb-4">
@@ -72,7 +93,7 @@
             </div>
 
             <!-- Analytics & Simulator (Right) -->
-            <div class="col-lg-8">
+            <div class="col-lg-7">
                 <!-- What-if Simulation -->
                 <div class="card mb-4 shadow-lg border-primary">
                     <div class="metric-label mb-3 text-primary">Strategic What-if Simulator</div>
