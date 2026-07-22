@@ -3,11 +3,12 @@ app/ml/sales/routes.py
 ----------------------
 Flask Blueprint exposing API endpoints for Sales ML model management:
 
-  - POST /api/ml/sales/train      : Trigger sales model training pipeline
-  - GET  /api/ml/sales/predict    : Run inference on query parameters
-  - POST /api/ml/sales/predict    : Run inference on JSON body features
-  - GET  /api/ml/sales/metrics    : Latest registered model evaluation metrics
-  - POST /api/sales/forecast      : Generate 7 / 30 / 90-day sales forecast
+  - POST /api/ml/sales/train         : Trigger sales model training pipeline
+  - GET  /api/ml/sales/predict       : Run inference on query parameters
+  - POST /api/ml/sales/predict       : Run inference on JSON body features
+  - GET  /api/ml/sales/metrics       : Latest registered model evaluation metrics
+  - POST /api/sales/forecast         : Generate 7 / 30 / 90-day sales forecast
+  - GET  /api/sales/recommendation   : Rules-based business recommendation
 """
 
 import time
@@ -15,6 +16,7 @@ from flask import Blueprint, jsonify, request
 from app.ml.sales.sales_training import train_sales_model
 from app.ml.sales.sales_prediction import predict_sales
 from app.ml.sales.forecast import generate_forecast, reload_model
+from app.ml.sales.recommendation import get_recommendation
 from app.ml.common.model_registry import get_latest_version
 from utils.logger import logger
 
@@ -201,4 +203,74 @@ def forecast_endpoint():
         }), 503
     except Exception as exc:
         logger.error(f"[sales_ml_bp] Forecast endpoint failed: {exc}", exc_info=True)
+        return jsonify({"status": "error", "message": str(exc)}), 500
+
+
+# --------------------------------------------------------------------------- #
+# GET /api/sales/recommendation
+# --------------------------------------------------------------------------- #
+
+@sales_ml_bp.route("/api/sales/recommendation", methods=["GET"])
+def recommendation_endpoint():
+    """
+    Generate a rules-based business recommendation driven by the latest
+    sales forecast.
+
+    Query Parameters (all optional)
+    --------------------------------
+    forecast_period : "7_days" | "30_days" | "90_days"  (default: "30_days")
+
+    Response JSON
+    -------------
+    {
+      "status":          "success",
+      "decision":        str,    # "Increase Production" | "Reduce Inventory" |
+                                 # "Maintain Current Production"
+      "reason":          str,    # human-readable explanation
+      "confidence":      float,  # model probability [0.0 – 1.0]
+      "growth_rate":     float,
+      "forecast_period": str,
+      "predicted_sales": float,
+      "model_type":      str,
+      "version":         str,
+      "stored_id":       int | None
+    }
+    """
+    try:
+        # Optional ?forecast_period=30_days query parameter
+        period = request.args.get("forecast_period", "30_days")
+
+        if period not in _VALID_PERIODS:
+            return jsonify({
+                "status":       "error",
+                "message":      (
+                    f"Invalid forecast_period '{period}'. "
+                    f"Must be one of: {sorted(_VALID_PERIODS)}"
+                ),
+                "valid_values": sorted(_VALID_PERIODS),
+            }), 400
+
+        result = get_recommendation(forecast_period=period)
+
+        return jsonify({
+            "status":          "success",
+            "decision":        result["decision"],
+            "reason":          result["reason"],
+            "confidence":      result["confidence"],
+            "growth_rate":     result["growth_rate"],
+            "forecast_period": result["forecast_period"],
+            "predicted_sales": result["predicted_sales"],
+            "model_type":      result["model_type"],
+            "version":         result["version"],
+            "stored_id":       result["stored_id"],
+        }), 200
+
+    except FileNotFoundError as exc:
+        return jsonify({
+            "status":  "error",
+            "message": str(exc),
+            "hint":    "Train a sales model first via POST /api/ml/sales/train",
+        }), 503
+    except Exception as exc:
+        logger.error(f"[sales_ml_bp] Recommendation endpoint failed: {exc}", exc_info=True)
         return jsonify({"status": "error", "message": str(exc)}), 500
