@@ -51,19 +51,166 @@
         <div class="row g-4">
             <!-- Strategic Intelligence Panels (Left) -->
             <div class="col-lg-5">
-                <!-- Sales Intelligence Panel -->
-                <div class="card decision-card mb-4 border-primary shadow-sm">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <div class="metric-label text-primary fw-bold">Sales Intelligence</div>
-                        <span id="sales-confidence" class="badge rounded-pill bg-primary text-dark">Confidence: ...</span>
+                <!-- ==================================================================== -->
+                <!-- Sales Intelligence Engine Panel (Sprint 2 Extended) -->
+                <!-- ==================================================================== -->
+                <div class="card mb-4 border-primary shadow-sm">
+                    <!-- Header & Horizon Controls -->
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                        <div>
+                            <div class="metric-label text-primary fw-bold h5 mb-0">📊 Sales Intelligence Engine</div>
+                            <span class="small text-secondary">Multi-model forecast, rules-based business recommendations, and SHAP feature attributions</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 mt-2 mt-sm-0">
+                            <span class="small text-secondary fw-bold">Horizon:</span>
+                            <div class="btn-group btn-group-sm" role="group" id="sales-period-selector">
+                                <button type="button" class="btn btn-outline-primary" onclick="setForecastPeriod('7_days')">7 Days</button>
+                                <button type="button" class="btn btn-primary active" id="btn-period-30_days" onclick="setForecastPeriod('30_days')">30 Days</button>
+                                <button type="button" class="btn btn-outline-primary" onclick="setForecastPeriod('90_days')">90 Days</button>
+                            </div>
+                        </div>
                     </div>
-                    <h3 id="sales-decision-text" class="my-2 text-success">...</h3>
-                    <div class="small text-secondary mb-2">
-                        <span>Model: <strong id="sales-model-type">...</strong> (v<span id="sales-model-version">...</span>)</span> |
-                        <span>Accuracy: <strong id="sales-model-accuracy">...</strong></span>
+
+                    <!-- Sales Intelligence KPI Cards -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3 col-sm-6">
+                            <div class="p-3 rounded bg-light border">
+                                <div class="metric-label">Total Revenue</div>
+                                <div id="sales-kpi-total-revenue" class="metric-value text-primary fs-4">₹0</div>
+                                <div class="small text-secondary">Historical Total</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <div class="p-3 rounded bg-light border">
+                                <div class="metric-label">Growth Rate</div>
+                                <div id="sales-kpi-growth-rate" class="metric-value fs-4">0%</div>
+                                <div id="sales-kpi-growth-sub" class="small text-secondary">Period-over-Period</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <div class="p-3 rounded bg-light border">
+                                <div class="metric-label">Forecasted Revenue</div>
+                                <div id="sales-kpi-forecast" class="metric-value text-success fs-4">₹0</div>
+                                <div id="sales-kpi-forecast-sub" class="small text-secondary">Projected for 30 Days</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <div class="p-3 rounded bg-light border">
+                                <div class="metric-label">AI Recommendation</div>
+                                <div id="sales-kpi-recommendation" class="metric-value fs-5 text-truncate">Loading...</div>
+                                <div id="sales-kpi-confidence" class="small text-secondary">Confidence: 0%</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="small text-muted mb-2">Last Predicted: <span id="sales-predict-timestamp">...</span></div>
-                    <div id="sales-reasons-container" class="small text-secondary pt-2 border-top"></div>
+
+                    <!-- AI Panel (Recommendation, Reason & SHAP Top Features) -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-lg-6">
+                            <div class="p-3 rounded border border-primary-subtle bg-light h-100">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-bold text-primary">🤖 Executive AI Decision Engine</span>
+                                    <span id="sales-ai-confidence-badge" class="badge bg-success">Confidence: 0%</span>
+                                </div>
+                                <h4 id="sales-ai-decision" class="fw-bold my-2 text-success">...</h4>
+                                <div class="small text-secondary mb-2">
+                                    <span>Model: <strong id="sales-ai-model-type">...</strong> (<span id="sales-ai-version">...</span>)</span> |
+                                    <span>Accuracy: <strong id="sales-model-accuracy">N/A</strong></span>
+                                </div>
+                                <div class="small text-muted mb-2">Last Predicted: <span id="sales-predict-timestamp">Just now</span></div>
+                                <div class="metric-label mb-1">Executive Reasoning (Step 4 Rules Engine)</div>
+                                <div id="sales-ai-reason" class="p-2 rounded bg-white border small text-dark mb-2" style="min-height: 60px;">
+                                    Loading AI reasoning...
+                                </div>
+                                <div id="sales-reasons-container" class="d-none"></div>
+                                <span id="sales-confidence" class="d-none"></span>
+                                <h3 id="sales-decision-text" class="d-none"></h3>
+                                <strong id="sales-model-type" class="d-none"></strong>
+                                <span id="sales-model-version" class="d-none"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-6">
+                            <div class="p-3 rounded border border-info-subtle bg-light h-100">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-bold text-dark">🔍 SHAP Top Feature Drivers (Step 5)</span>
+                                    <span class="badge bg-secondary">Feature Attribution</span>
+                                </div>
+                                <p class="small text-secondary mb-2">Top 3 contributing features driving the current sales forecast:</p>
+                                <div id="sales-shap-features-list" class="small">
+                                    <div class="text-muted">Loading SHAP explanations...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sales Charts Grid -->
+                    <div class="row g-3">
+                        <!-- Forecast Projection Chart -->
+                        <div class="col-lg-12 mb-2">
+                            <div class="p-3 rounded bg-white border">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="metric-label text-primary">📈 Revenue Forecast & Historical Projection</span>
+                                    <span id="forecast-period-badge" class="badge bg-primary">30 Days Projection</span>
+                                </div>
+                                <div class="chart-container" style="height: 260px;">
+                                    <canvas id="salesForecastChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sales Trend & Revenue Trend -->
+                        <div class="col-md-6">
+                            <div class="p-3 rounded bg-white border">
+                                <div class="metric-label mb-2">📊 Daily Sales Volume Trend</div>
+                                <div class="chart-container" style="height: 200px;">
+                                    <canvas id="salesVolumeTrendChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="p-3 rounded bg-white border">
+                                <div class="metric-label mb-2">💰 Revenue Trend</div>
+                                <div class="chart-container" style="height: 200px;">
+                                    <canvas id="revenueTrendChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Product Performance & Monthly Comparison -->
+                        <div class="col-md-6">
+                            <div class="p-3 rounded bg-white border">
+                                <div class="metric-label mb-2">🏷️ Product Performance</div>
+                                <div class="chart-container" style="height: 220px;">
+                                    <canvas id="productPerformanceChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="p-3 rounded bg-white border">
+                                <div class="metric-label mb-2">📅 Monthly Comparison</div>
+                                <div class="chart-container" style="height: 220px;">
+                                    <canvas id="monthlyComparisonChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Static SHAP Plots -->
+                        <div class="col-md-6">
+                            <div class="p-3 rounded bg-white border text-center">
+                                <div class="metric-label mb-2">🔬 SHAP Feature Summary Plot</div>
+                                <img src="/static/sales_explanations/shap_summary.png" class="img-fluid rounded border shadow-sm" alt="SHAP Summary Plot" style="max-height: 240px; object-fit: contain;">
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="p-3 rounded bg-white border text-center">
+                                <div class="metric-label mb-2">🏆 Feature Importance Ranking</div>
+                                <img src="/static/sales_explanations/feature_importance.png" class="img-fluid rounded border shadow-sm" alt="Feature Importance Plot" style="max-height: 240px; object-fit: contain;">
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Inventory Intelligence Panel -->

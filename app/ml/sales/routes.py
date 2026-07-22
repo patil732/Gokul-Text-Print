@@ -12,6 +12,7 @@ Flask Blueprint exposing API endpoints for Sales ML model management:
 """
 
 import time
+import pandas as pd
 from flask import Blueprint, jsonify, request
 from app.ml.sales.sales_training import train_sales_model
 from app.ml.sales.sales_prediction import predict_sales
@@ -275,3 +276,101 @@ def recommendation_endpoint():
     except Exception as exc:
         logger.error(f"[sales_ml_bp] Recommendation endpoint failed: {exc}", exc_info=True)
         return jsonify({"status": "error", "message": str(exc)}), 500
+
+
+# --------------------------------------------------------------------------- #
+# GET /api/sales/dashboard_data
+# --------------------------------------------------------------------------- #
+
+@sales_ml_bp.route("/api/sales/dashboard_data", methods=["GET"])
+def dashboard_data_endpoint():
+    """
+    Return comprehensive analytics for the Sales Intelligence Dashboard panel:
+      - KPI metrics (total revenue, growth rate, record count)
+      - Sales & Revenue trend series (daily/weekly)
+      - Product Performance ranking (top products by revenue)
+      - Monthly comparison breakdown (revenue per month)
+    """
+    try:
+        from app.ml.sales.dataset import load_sales_dataset
+        df = load_sales_dataset()
+
+        if df.empty:
+            return jsonify({"status": "error", "message": "No sales data available."}), 404
+
+        df["date"] = pd.to_datetime(df["date"])
+        df = df.sort_values("date")
+
+        # 1. Total Revenue
+        total_revenue = float(df["revenue"].sum())
+
+        # 2. Daily grouping for trends
+        daily = df.groupby("date").agg({
+            "revenue": "sum",
+            "quantity": "sum",
+        }).reset_index()
+
+        # Last 30 dates for trend charts
+        recent_daily = daily.tail(30)
+        dates_list   = recent_daily["date"].dt.strftime("%Y-%m-%d").tolist()
+        sales_series = recent_daily["quantity"].astype(float).tolist()
+        rev_series   = recent_daily["revenue"].round(2).astype(float).tolist()
+
+        # 3. Product Performance (Top 8)
+        prod_perf = (
+            df.groupby("product")["revenue"]
+            .sum()
+            .nlargest(8)
+            .reset_index()
+        )
+        product_names    = prod_perf["product"].tolist()
+        product_revenues = prod_perf["revenue"].round(2).tolist()
+
+        # 4. Monthly Comparison (Last 12 months)
+        df["year_month"] = df["date"].dt.strftime("%Y-%m")
+        monthly = (
+            df.groupby("year_month")["revenue"]
+            .sum()
+            .tail(12)
+            .reset_index()
+        )
+        month_labels   = monthly["year_month"].tolist()
+        month_revenues = monthly["revenue"].round(2).tolist()
+
+        # 5. Growth rate
+        if len(daily) >= 2:
+            last_rev = daily["revenue"].iloc[-1]
+            prev_rev = daily["revenue"].iloc[-2]
+            growth = round((last_rev - prev_rev) / (prev_rev + 1.0) * 100, 2)
+        else:
+            growth = 0.0
+
+        return jsonify({
+            "status": "success",
+            "kpis": {
+                "total_revenue": round(total_revenue, 2),
+                "growth_rate":   growth,
+                "record_count":  len(df),
+            },
+            "sales_trend": {
+                "dates":  dates_list,
+                "volume": sales_series,
+            },
+            "revenue_trend": {
+                "dates":   dates_list,
+                "revenue": rev_series,
+            },
+            "product_performance": {
+                "products": product_names,
+                "revenues": product_revenues,
+            },
+            "monthly_comparison": {
+                "months":   month_labels,
+                "revenues": month_revenues,
+            },
+        }), 200
+
+    except Exception as exc:
+        logger.error(f"[sales_ml_bp] Dashboard data endpoint failed: {exc}", exc_info=True)
+        return jsonify({"status": "error", "message": str(exc)}), 500
+
