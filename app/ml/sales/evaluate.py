@@ -272,7 +272,14 @@ def run_evaluation_pipeline(
     }
     with open(metrics_path, "w", encoding="utf-8") as f:
         json.dump(metrics_payload, f, indent=2, default=str)
-    log.info(f"[evaluate] Metrics saved → {metrics_path}")
+    log.info(f"[evaluate] Metrics saved -> {metrics_path}")
+
+    # Generate SHAP & feature importance plots for the best model
+    try:
+        from app.ml.sales.explain import generate_and_save_plots
+        generate_and_save_plots(best_model, scaler, X_test, feature_cols)
+    except Exception as exc:
+        log.warning(f"[evaluate] Explanation plot generation warning: {exc}")
 
     # ------------------------------------------------------------------ #
     # 7. Register model in registry

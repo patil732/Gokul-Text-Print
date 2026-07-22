@@ -188,6 +188,7 @@ def forecast_endpoint():
             "predicted_sales": result["predicted_sales"],
             "growth_rate":     result["growth_rate"],
             "confidence":      result["confidence"],
+            "explanation":     result.get("explanation", []),
             "model_type":      result["model_type"],
             "version":         result["version"],
             "elapsed_ms":      result["elapsed_ms"],

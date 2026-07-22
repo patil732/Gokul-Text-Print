@@ -174,9 +174,15 @@ class _ForecastEngine:
 
         Returns (predicted_class, confidence_probability).
         """
-        X = feature_vector.reshape(1, -1)
+        import pandas as pd
+        # Use a named DataFrame so scaler.transform() keeps feature names
+        # consistent with how the scaler was fitted (avoids sklearn warning).
+        X_df = pd.DataFrame([feature_vector], columns=self.feature_cols)
+
         if self.scaler is not None:
-            X = self.scaler.transform(X)
+            X = self.scaler.transform(X_df)
+        else:
+            X = X_df.values
 
         pred = int(self.model.predict(X)[0])
 
@@ -334,8 +340,21 @@ def generate_forecast(
     # Daily sales estimate: baseline ± confidence-weighted shift
     predicted_daily = base_daily * (1.0 + (growth_factor - 0.5) * 0.4)
     predicted_sales = round(predicted_daily * days, 2)
-
     growth_rate = _compute_growth_rate(base_daily, predicted_daily, days)
+
+    # ── Compute top 3 feature explanation via explain.py ─────────────── #
+    try:
+        from app.ml.sales.explain import explain_prediction
+        explanation = explain_prediction(
+            model=engine.model,
+            scaler=engine.scaler,
+            input_data=fv,
+            feature_names=engine.feature_cols,
+            top_n=3,
+        )
+    except Exception as exc:
+        log.warning(f"[forecast] Explanation computation warning: {exc}")
+        explanation = []
 
     elapsed_ms = round((time.perf_counter() - t0) * 1000, 2)
 
@@ -344,6 +363,7 @@ def generate_forecast(
         "predicted_sales":  predicted_sales,
         "growth_rate":      growth_rate,
         "confidence":       round(confidence, 4),
+        "explanation":      explanation,
         "model_type":       engine.model_type,
         "version":          engine.version,
         "elapsed_ms":       elapsed_ms,
