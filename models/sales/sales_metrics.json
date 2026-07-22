@@ -1,0 +1,68 @@
+{
+  "version": "20260722_integration",
+  "best_model": "random_forest",
+  "trained_at": "2026-07-22T22:41:57.869077",
+  "rmse": 0.0,
+  "mae": 0.0,
+  "r2": 1.0,
+  "accuracy": 1.0,
+  "f1_score": 0.0,
+  "all_results": [
+    {
+      "name": "random_forest",
+      "rmse": 0.0,
+      "mae": 0.0,
+      "r2": 1.0,
+      "accuracy": 1.0,
+      "f1_score": 0.0,
+      "status": "ok"
+    },
+    {
+      "name": "xgboost",
+      "rmse": 0.0,
+      "mae": 0.0,
+      "r2": 1.0,
+      "accuracy": 1.0,
+      "f1_score": 0.0,
+      "status": "ok"
+    },
+    {
+      "name": "lightgbm",
+      "rmse": 0.0,
+      "mae": 0.0,
+      "r2": 1.0,
+      "accuracy": 1.0,
+      "f1_score": 0.0,
+      "status": "ok"
+    },
+    {
+      "name": "gradient_boosting",
+      "status": "error",
+      "error": "\nAll the 24 fits failed.\nIt is very likely that your model is misconfigured.\nYou can try to debug the error by setting error_score='raise'.\n\nBelow are more details about the failures:\n--------------------------------------------------------------------------------\n24 fits failed with the following error:\nTraceback (most recent call last):\n  File \"D:\\Projects\\Gokul Text Print\\venv\\lib\\site-packages\\sklearn\\model_selection\\_validation.py\", line 859, in _fit_and_score\n    estimator.fit(X_train, y_train, **fit_params)\n  File \"D:\\Projects\\Gokul Text Print\\venv\\lib\\site-packages\\sklearn\\base.py\", line 1365, in wrapper\n    return fit_method(estimator, *args, **kwargs)\n  File \"D:\\Projects\\Gokul Text Print\\venv\\lib\\site-packages\\sklearn\\ensemble\\_gb.py\", line 669, in fit\n    y = self._encode_y(y=y, sample_weight=None)\n  File \"D:\\Projects\\Gokul Text Print\\venv\\lib\\site-packages\\sklearn\\ensemble\\_gb.py\", line 1536, in _encode_y\n    raise ValueError(\nValueError: y contains 1 class after sample_weight trimmed classes with zero weights, while a minimum of 2 classes are required.\n",
+      "rmse": 0.0,
+      "mae": 0.0,
+      "r2": 0.0,
+      "accuracy": 0.0,
+      "f1_score": 0.0
+    }
+  ],
+  "feature_cols": [
+    "sales",
+    "sales_lag_1",
+    "sales_lag_2",
+    "sales_lag_3",
+    "sales_ma_3",
+    "sales_ma_7",
+    "sales_ma_14",
+    "sales_std_7",
+    "momentum",
+    "trend",
+    "stock_ratio",
+    "product_popularity",
+    "seasonal_index",
+    "sales_frequency"
+  ],
+  "target_col": "target_decision",
+  "train_rows": 38568,
+  "test_rows": 9642
+}

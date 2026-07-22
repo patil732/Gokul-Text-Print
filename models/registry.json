@@ -385,6 +385,438 @@
         "roc_auc": 0.7447
       },
       "filepath": "D:\\Projects\\Gokul Text Print\\models\\sales\\sales_model.pkl"
+    },
+    {
+      "model_id": "f9283794-89fb-4f2e-9147-8b86844fe414",
+      "model_name": "sales",
+      "model_type": "gradient_boosting",
+      "version": "pytest_eval_v1",
+      "trained_at": "2026-07-22T21:48:42.360458",
+      "accuracy": 0.625,
+      "metrics": {
+        "rmse": 0.612372,
+        "mae": 0.375,
+        "r2": -0.534527,
+        "accuracy": 0.625,
+        "f1_score": 0.666667
+      },
+      "filepath": "C:\\Users\\priya\\AppData\\Local\\Temp\\pytest-of-priya\\pytest-1\\models_sales0\\sales_model.pkl"
+    },
+    {
+      "model_id": "4fa9cd63-1ca2-4ba3-bb31-9075c60b9e1b",
+      "model_name": "sales",
+      "model_type": "lightgbm",
+      "version": "pytest_train_v1",
+      "trained_at": "2026-07-22T21:48:48.293725",
+      "accuracy": 0.833333,
+      "metrics": {
+        "rmse": 0.408248,
+        "mae": 0.166667,
+        "r2": 0.330357,
+        "accuracy": 0.833333,
+        "f1_score": 0.821429
+      },
+      "filepath": "C:\\Users\\priya\\AppData\\Local\\Temp\\pytest-of-priya\\pytest-1\\train_models0\\sales_model.pkl"
+    },
+    {
+      "model_id": "1f1cb6a0-e880-42c3-a61c-2338cb3a01a9",
+      "model_name": "sales",
+      "model_type": "random_forest",
+      "version": "edge_missing_cols",
+      "trained_at": "2026-07-22T21:48:53.886143",
+      "accuracy": 0.583333,
+      "metrics": {
+        "rmse": 0.645497,
+        "mae": 0.416667,
+        "r2": -0.777778,
+        "accuracy": 0.583333,
+        "f1_score": 0.705882
+      },
+      "filepath": "C:\\Users\\priya\\AppData\\Local\\Temp\\pytest-of-priya\\pytest-1\\test_missing_feature_columns_f0\\models_missing\\sales_model.pkl"
+    },
+    {
+      "model_id": "27bf5154-c451-486a-b868-8e3e70d39aea",
+      "model_name": "sales",
+      "model_type": "gradient_boosting",
+      "version": "pytest_eval_v1",
+      "trained_at": "2026-07-22T21:49:39.863082",
+      "accuracy": 0.625,
+      "metrics": {
+        "rmse": 0.612372,
+        "mae": 0.375,
+        "r2": -0.534527,
+        "accuracy": 0.625,
+        "f1_score": 0.666667
+      },
+      "filepath": "C:\\Users\\priya\\AppData\\Local\\Temp\\pytest-of-priya\\pytest-2\\models_sales0\\sales_model.pkl"
+    },
+    {
+      "model_id": "3e131b0a-ca8b-4002-ae42-a379c5e775d9",
+      "model_name": "sales",
+      "model_type": "lightgbm",
+      "version": "pytest_train_v1",
+      "trained_at": "2026-07-22T21:49:45.361215",
+      "accuracy": 0.833333,
+      "metrics": {
+        "rmse": 0.408248,
+        "mae": 0.166667,
+        "r2": 0.330357,
+        "accuracy": 0.833333,
+        "f1_score": 0.821429
+      },
+      "filepath": "C:\\Users\\priya\\AppData\\Local\\Temp\\pytest-of-priya\\pytest-2\\train_models0\\sales_model.pkl"
+    },
+    {
+      "model_id": "89b24287-2b3f-4840-bd20-f153ab2e8abe",
+      "model_name": "sales",
+      "model_type": "random_forest",
+      "version": "edge_missing_cols",
+      "trained_at": "2026-07-22T21:49:50.170423",
+      "accuracy": 0.583333,
+      "metrics": {
+        "rmse": 0.645497,
+        "mae": 0.416667,
+        "r2": -0.777778,
+        "accuracy": 0.583333,
+        "f1_score": 0.705882
+      },
+      "filepath": "C:\\Users\\priya\\AppData\\Local\\Temp\\pytest-of-priya\\pytest-2\\test_missing_feature_columns_f0\\models_missing\\sales_model.pkl"
+    },
+    {
+      "model_id": "c364ce69-6edb-4fa1-85c9-db71f03ac132",
+      "model_name": "sales",
+      "model_type": "xgboost",
+      "version": "unittest_v1",
+      "trained_at": "2026-07-22T21:51:36.605171",
+      "accuracy": 0.691543,
+      "metrics": {
+        "rmse": 0.555389,
+        "mae": 0.308457,
+        "r2": -0.247436,
+        "accuracy": 0.691543,
+        "f1_score": 0.645361
+      },
+      "filepath": "D:\\Projects\\Gokul Text Print\\models\\sales\\sales_model.pkl"
+    },
+    {
+      "model_id": "69ba781f-33fc-4413-b55c-62bed1c66742",
+      "model_name": "sales",
+      "model_type": "xgboost",
+      "version": "unittest_api_v1",
+      "trained_at": "2026-07-22T21:53:08.942626",
+      "accuracy": 0.691543,
+      "metrics": {
+        "rmse": 0.555389,
+        "mae": 0.308457,
+        "r2": -0.247436,
+        "accuracy": 0.691543,
+        "f1_score": 0.645361
+      },
+      "filepath": "D:\\Projects\\Gokul Text Print\\models\\sales\\sales_model.pkl"
+    },
+    {
+      "model_id": "3d807a4d-3ac7-4646-a793-eb6e97a4d37c",
+      "model_name": "sales",
+      "model_type": "random_forest",
+      "version": "20260722_integration",
+      "trained_at": "2026-07-22T22:27:42.016552",
+      "accuracy": 1.0,
+      "metrics": {
+        "rmse": 0.0,
+        "mae": 0.0,
+        "r2": 1.0,
+        "accuracy": 1.0,
+        "f1_score": 0.0
+      },
+      "filepath": "D:\\Projects\\Gokul Text Print\\tests\\..\\models\\sales\\sales_model.pkl"
+    },
+    {
+      "model_id": "85709808-1684-40ac-be03-69c70bafe791",
+      "model_name": "sales",
+      "model_type": "random_forest",
+      "version": "20260722_integration",
+      "trained_at": "2026-07-22T22:29:27.909246",
+      "accuracy": 1.0,
+      "metrics": {
+        "rmse": 0.0,
+        "mae": 0.0,
+        "r2": 1.0,
+        "accuracy": 1.0,
+        "f1_score": 0.0
+      },
+      "filepath": "D:\\Projects\\Gokul Text Print\\tests\\..\\models\\sales\\sales_model.pkl"
+    },
+    {
+      "model_id": "4e8850df-8d0f-4ebc-9db5-24b14444590e",
+      "model_name": "sales",
+      "model_type": "random_forest",
+      "version": "20260722_integration",
+      "trained_at": "2026-07-22T22:30:34.172496",
+      "accuracy": 1.0,
+      "metrics": {
+        "rmse": 0.0,
+        "mae": 0.0,
+        "r2": 1.0,
+        "accuracy": 1.0,
+        "f1_score": 0.0
+      },
+      "filepath": "D:\\Projects\\Gokul Text Print\\tests\\..\\models\\sales\\sales_model.pkl"
+    },
+    {
+      "model_id": "0ef8a977-506e-46c1-bc62-f5a562055b61",
+      "model_name": "sales",
+      "model_type": "random_forest",
+      "version": "20260722_integration",
+      "trained_at": "2026-07-22T22:32:05.954353",
+      "accuracy": 1.0,
+      "metrics": {
+        "rmse": 0.0,
+        "mae": 0.0,
+        "r2": 1.0,
+        "accuracy": 1.0,
+        "f1_score": 0.0
+      },
+      "filepath": "D:\\Projects\\Gokul Text Print\\tests\\..\\models\\sales\\sales_model.pkl"
+    },
+    {
+      "model_id": "8517a34b-66cb-45f0-88c3-e86ca6cf5720",
+      "model_name": "sales",
+      "model_type": "gradient_boosting",
+      "version": "pytest_eval_v1",
+      "trained_at": "2026-07-22T22:33:45.298030",
+      "accuracy": 0.625,
+      "metrics": {
+        "rmse": 0.612372,
+        "mae": 0.375,
+        "r2": -0.534527,
+        "accuracy": 0.625,
+        "f1_score": 0.666667
+      },
+      "filepath": "C:\\Users\\priya\\AppData\\Local\\Temp\\pytest-of-priya\\pytest-8\\models_sales0\\sales_model.pkl"
+    },
+    {
+      "model_id": "1b0a6439-9ab4-465a-a029-9fb0dbdfc40c",
+      "model_name": "sales",
+      "model_type": "lightgbm",
+      "version": "pytest_train_v1",
+      "trained_at": "2026-07-22T22:33:53.557148",
+      "accuracy": 0.833333,
+      "metrics": {
+        "rmse": 0.408248,
+        "mae": 0.166667,
+        "r2": 0.330357,
+        "accuracy": 0.833333,
+        "f1_score": 0.821429
+      },
+      "filepath": "C:\\Users\\priya\\AppData\\Local\\Temp\\pytest-of-priya\\pytest-8\\train_models0\\sales_model.pkl"
+    },
+    {
+      "model_id": "fc729f10-bb89-4496-89f3-07ee158d8d92",
+      "model_name": "sales",
+      "model_type": "random_forest",
+      "version": "edge_missing_cols",
+      "trained_at": "2026-07-22T22:34:00.201577",
+      "accuracy": 0.583333,
+      "metrics": {
+        "rmse": 0.645497,
+        "mae": 0.416667,
+        "r2": -0.777778,
+        "accuracy": 0.583333,
+        "f1_score": 0.705882
+      },
+      "filepath": "C:\\Users\\priya\\AppData\\Local\\Temp\\pytest-of-priya\\pytest-8\\test_missing_feature_columns_f0\\models_missing\\sales_model.pkl"
+    },
+    {
+      "model_id": "792d09fc-c6d6-4055-98ba-7a1dd414a293",
+      "model_name": "sales",
+      "model_type": "xgboost",
+      "version": "unittest_v1",
+      "trained_at": "2026-07-22T22:36:22.815458",
+      "accuracy": 0.691543,
+      "metrics": {
+        "rmse": 0.555389,
+        "mae": 0.308457,
+        "r2": -0.247436,
+        "accuracy": 0.691543,
+        "f1_score": 0.645361
+      },
+      "filepath": "D:\\Projects\\Gokul Text Print\\models\\sales\\sales_model.pkl"
+    },
+    {
+      "model_id": "8d68b190-0cc7-412b-a4e9-2a2a2ccd5f9d",
+      "model_name": "sales",
+      "model_type": "gradient_boosting",
+      "version": "pytest_eval_v1",
+      "trained_at": "2026-07-22T22:36:23.503886",
+      "accuracy": 0.625,
+      "metrics": {
+        "rmse": 0.612372,
+        "mae": 0.375,
+        "r2": -0.534527,
+        "accuracy": 0.625,
+        "f1_score": 0.666667
+      },
+      "filepath": "C:\\Users\\priya\\AppData\\Local\\Temp\\pytest-of-priya\\pytest-9\\models_sales0\\sales_model.pkl"
+    },
+    {
+      "model_id": "f1ecb800-2303-48d1-9176-519bce75c5d0",
+      "model_name": "sales",
+      "model_type": "lightgbm",
+      "version": "pytest_train_v1",
+      "trained_at": "2026-07-22T22:36:32.029611",
+      "accuracy": 0.833333,
+      "metrics": {
+        "rmse": 0.408248,
+        "mae": 0.166667,
+        "r2": 0.330357,
+        "accuracy": 0.833333,
+        "f1_score": 0.821429
+      },
+      "filepath": "C:\\Users\\priya\\AppData\\Local\\Temp\\pytest-of-priya\\pytest-9\\train_models0\\sales_model.pkl"
+    },
+    {
+      "model_id": "4ee6e6a4-c7ea-490d-ade7-4f5ba4841fcf",
+      "model_name": "sales",
+      "model_type": "random_forest",
+      "version": "edge_missing_cols",
+      "trained_at": "2026-07-22T22:36:56.293428",
+      "accuracy": 0.583333,
+      "metrics": {
+        "rmse": 0.645497,
+        "mae": 0.416667,
+        "r2": -0.777778,
+        "accuracy": 0.583333,
+        "f1_score": 0.705882
+      },
+      "filepath": "C:\\Users\\priya\\AppData\\Local\\Temp\\pytest-of-priya\\pytest-9\\test_missing_feature_columns_f0\\models_missing\\sales_model.pkl"
+    },
+    {
+      "model_id": "991deed9-5394-4c3f-8c62-c045b39b9356",
+      "model_name": "sales",
+      "model_type": "xgboost",
+      "version": "unittest_api_v1",
+      "trained_at": "2026-07-22T22:38:42.493970",
+      "accuracy": 0.691543,
+      "metrics": {
+        "rmse": 0.555389,
+        "mae": 0.308457,
+        "r2": -0.247436,
+        "accuracy": 0.691543,
+        "f1_score": 0.645361
+      },
+      "filepath": "D:\\Projects\\Gokul Text Print\\models\\sales\\sales_model.pkl"
+    },
+    {
+      "model_id": "0214517e-a54c-4c52-9ffa-12b81011a799",
+      "model_name": "sales",
+      "model_type": "random_forest",
+      "version": "20260722_integration",
+      "trained_at": "2026-07-22T22:39:38.193421",
+      "accuracy": 1.0,
+      "metrics": {
+        "rmse": 0.0,
+        "mae": 0.0,
+        "r2": 1.0,
+        "accuracy": 1.0,
+        "f1_score": 0.0
+      },
+      "filepath": "D:\\Projects\\Gokul Text Print\\tests\\..\\models\\sales\\sales_model.pkl"
+    },
+    {
+      "model_id": "9d3d3c7c-7a81-4a37-81cd-af2d2cbec470",
+      "model_name": "sales",
+      "model_type": "xgboost",
+      "version": "unittest_v1",
+      "trained_at": "2026-07-22T22:39:48.391950",
+      "accuracy": 0.691543,
+      "metrics": {
+        "rmse": 0.555389,
+        "mae": 0.308457,
+        "r2": -0.247436,
+        "accuracy": 0.691543,
+        "f1_score": 0.645361
+      },
+      "filepath": "D:\\Projects\\Gokul Text Print\\models\\sales\\sales_model.pkl"
+    },
+    {
+      "model_id": "dac88069-eacd-40d5-8be2-93aa785ceca5",
+      "model_name": "sales",
+      "model_type": "xgboost",
+      "version": "unittest_api_v1",
+      "trained_at": "2026-07-22T22:41:33.075766",
+      "accuracy": 0.691543,
+      "metrics": {
+        "rmse": 0.555389,
+        "mae": 0.308457,
+        "r2": -0.247436,
+        "accuracy": 0.691543,
+        "f1_score": 0.645361
+      },
+      "filepath": "D:\\Projects\\Gokul Text Print\\models\\sales\\sales_model.pkl"
+    },
+    {
+      "model_id": "2e415f69-0cb9-4bf1-8ec2-b64ed414a9ba",
+      "model_name": "sales",
+      "model_type": "lightgbm",
+      "version": "pytest_eval_v1",
+      "trained_at": "2026-07-22T22:42:09.581434",
+      "accuracy": 0.375,
+      "metrics": {
+        "rmse": 0.790569,
+        "mae": 0.625,
+        "r2": -1.557545,
+        "accuracy": 0.375,
+        "f1_score": 0.468085
+      },
+      "filepath": "C:\\Users\\priya\\AppData\\Local\\Temp\\pytest-of-priya\\pytest-10\\models_sales0\\sales_model.pkl"
+    },
+    {
+      "model_id": "de76e11b-d2c9-4e04-b639-67d326b2c756",
+      "model_name": "sales",
+      "model_type": "random_forest",
+      "version": "20260722_integration",
+      "trained_at": "2026-07-22T22:42:16.299414",
+      "accuracy": 1.0,
+      "metrics": {
+        "rmse": 0.0,
+        "mae": 0.0,
+        "r2": 1.0,
+        "accuracy": 1.0,
+        "f1_score": 0.0
+      },
+      "filepath": "D:\\Projects\\Gokul Text Print\\tests\\..\\models\\sales\\sales_model.pkl"
+    },
+    {
+      "model_id": "5b5af971-ab2c-493e-83fd-d39c682d4806",
+      "model_name": "sales",
+      "model_type": "lightgbm",
+      "version": "pytest_train_v1",
+      "trained_at": "2026-07-22T22:42:17.592234",
+      "accuracy": 0.833333,
+      "metrics": {
+        "rmse": 0.408248,
+        "mae": 0.166667,
+        "r2": 0.330357,
+        "accuracy": 0.833333,
+        "f1_score": 0.821429
+      },
+      "filepath": "C:\\Users\\priya\\AppData\\Local\\Temp\\pytest-of-priya\\pytest-10\\train_models0\\sales_model.pkl"
+    },
+    {
+      "model_id": "44a0f913-3edc-4b01-b879-e0ceaad96fec",
+      "model_name": "sales",
+      "model_type": "gradient_boosting",
+      "version": "edge_missing_cols",
+      "trained_at": "2026-07-22T22:42:25.112059",
+      "accuracy": 0.666667,
+      "metrics": {
+        "rmse": 0.57735,
+        "mae": 0.333333,
+        "r2": -0.422222,
+        "accuracy": 0.666667,
+        "f1_score": 0.75
+      },
+      "filepath": "C:\\Users\\priya\\AppData\\Local\\Temp\\pytest-of-priya\\pytest-10\\test_missing_feature_columns_f0\\models_missing\\sales_model.pkl"
     }
   ],
   "inventory": [
@@ -704,6 +1136,162 @@
       "model_type": "xgboost",
       "version": "unittest_inv_api_v1",
       "trained_at": "2026-07-21T23:19:21.993315",
+      "accuracy": 1.0,
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "confusion_matrix": [
+          [
+            862,
+            0
+          ],
+          [
+            0,
+            14730
+          ]
+        ],
+        "roc_auc": 1.0
+      },
+      "filepath": "D:\\Projects\\Gokul Text Print\\models\\inventory\\inventory_model.pkl"
+    },
+    {
+      "model_id": "331b9777-f6f8-464b-bc28-f1b9318fd067",
+      "model_name": "inventory",
+      "model_type": "xgboost",
+      "version": "unittest_inv_v1",
+      "trained_at": "2026-07-22T22:33:17.125817",
+      "accuracy": 1.0,
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "confusion_matrix": [
+          [
+            862,
+            0
+          ],
+          [
+            0,
+            14730
+          ]
+        ],
+        "roc_auc": 1.0
+      },
+      "filepath": "D:\\Projects\\Gokul Text Print\\models\\inventory\\inventory_model.pkl"
+    },
+    {
+      "model_id": "9a995eae-aee2-4514-ab80-b39d188c57d5",
+      "model_name": "inventory",
+      "model_type": "xgboost",
+      "version": "unittest_inv_api_v1",
+      "trained_at": "2026-07-22T22:33:23.927394",
+      "accuracy": 1.0,
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "confusion_matrix": [
+          [
+            862,
+            0
+          ],
+          [
+            0,
+            14730
+          ]
+        ],
+        "roc_auc": 1.0
+      },
+      "filepath": "D:\\Projects\\Gokul Text Print\\models\\inventory\\inventory_model.pkl"
+    },
+    {
+      "model_id": "93c53abf-6923-42d5-92c8-82422eb9f3ec",
+      "model_name": "inventory",
+      "model_type": "xgboost",
+      "version": "unittest_inv_v1",
+      "trained_at": "2026-07-22T22:35:53.718454",
+      "accuracy": 1.0,
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "confusion_matrix": [
+          [
+            862,
+            0
+          ],
+          [
+            0,
+            14730
+          ]
+        ],
+        "roc_auc": 1.0
+      },
+      "filepath": "D:\\Projects\\Gokul Text Print\\models\\inventory\\inventory_model.pkl"
+    },
+    {
+      "model_id": "6ee48a0f-71cf-4d87-a0b8-62ed6487f007",
+      "model_name": "inventory",
+      "model_type": "xgboost",
+      "version": "unittest_inv_api_v1",
+      "trained_at": "2026-07-22T22:36:00.897184",
+      "accuracy": 1.0,
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "confusion_matrix": [
+          [
+            862,
+            0
+          ],
+          [
+            0,
+            14730
+          ]
+        ],
+        "roc_auc": 1.0
+      },
+      "filepath": "D:\\Projects\\Gokul Text Print\\models\\inventory\\inventory_model.pkl"
+    },
+    {
+      "model_id": "d9458d38-de08-40f4-a6f5-6c19e42ce801",
+      "model_name": "inventory",
+      "model_type": "xgboost",
+      "version": "unittest_inv_v1",
+      "trained_at": "2026-07-22T22:41:32.883415",
+      "accuracy": 1.0,
+      "metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "confusion_matrix": [
+          [
+            862,
+            0
+          ],
+          [
+            0,
+            14730
+          ]
+        ],
+        "roc_auc": 1.0
+      },
+      "filepath": "D:\\Projects\\Gokul Text Print\\models\\inventory\\inventory_model.pkl"
+    },
+    {
+      "model_id": "a6b3532d-3bb9-499e-a98b-c299c30a4052",
+      "model_name": "inventory",
+      "model_type": "xgboost",
+      "version": "unittest_inv_api_v1",
+      "trained_at": "2026-07-22T22:41:39.929818",
       "accuracy": 1.0,
       "metrics": {
         "accuracy": 1.0,

@@ -86,17 +86,19 @@ class TestExplainabilityFunctions:
         assert explainer is not None
 
     def test_compute_shap_values_matrix_shape(self, loaded_engine):
-        X = np.random.default_rng(42).uniform(10, 1000, (10, len(_FEATURE_COLS)))
-        shap_mat = compute_shap_values(loaded_engine.model, X, feature_names=_FEATURE_COLS)
+        feature_cols = loaded_engine.feature_cols
+        X = np.random.default_rng(42).uniform(10, 1000, (10, len(feature_cols)))
+        shap_mat = compute_shap_values(loaded_engine.model, X, feature_names=feature_cols)
         assert isinstance(shap_mat, np.ndarray)
-        assert shap_mat.shape == (10, len(_FEATURE_COLS))
+        assert shap_mat.shape == (10, len(feature_cols))
 
     def test_get_feature_importance_ranking_structure(self, loaded_engine):
-        X = np.random.default_rng(42).uniform(10, 1000, (15, len(_FEATURE_COLS)))
-        rankings = get_feature_importance(loaded_engine.model, X, feature_names=_FEATURE_COLS)
+        feature_cols = loaded_engine.feature_cols
+        X = np.random.default_rng(42).uniform(10, 1000, (15, len(feature_cols)))
+        rankings = get_feature_importance(loaded_engine.model, X, feature_names=feature_cols)
 
         assert isinstance(rankings, list)
-        assert len(rankings) == len(_FEATURE_COLS)
+        assert len(rankings) == len(feature_cols)
 
         for item in rankings:
             assert "feature" in item
@@ -105,24 +107,21 @@ class TestExplainabilityFunctions:
             assert isinstance(item["importance"], float)
 
     def test_get_feature_importance_is_sorted_descending(self, loaded_engine):
-        X = np.random.default_rng(42).uniform(10, 1000, (15, len(_FEATURE_COLS)))
-        rankings = get_feature_importance(loaded_engine.model, X, feature_names=_FEATURE_COLS)
+        feature_cols = loaded_engine.feature_cols
+        X = np.random.default_rng(42).uniform(10, 1000, (15, len(feature_cols)))
+        rankings = get_feature_importance(loaded_engine.model, X, feature_names=feature_cols)
 
         scores = [item["importance"] for item in rankings]
         assert scores == sorted(scores, reverse=True), "Feature importances must be sorted descending."
 
     def test_explain_prediction_returns_top_3_features(self, loaded_engine):
-        sample_dict = {
-            "sales": 25000.0, "sales_lag_1": 24000.0, "sales_lag_2": 23000.0,
-            "sales_lag_3": 22000.0, "sales_ma_3": 24000.0, "sales_ma_7": 23500.0,
-            "sales_ma_14": 23000.0, "sales_std_7": 1500.0, "momentum": 1000.0,
-            "trend": 1.0, "stock_ratio": 2.5,
-        }
+        feature_cols = loaded_engine.feature_cols
+        sample_dict = {f: 100.0 for f in feature_cols}
         exp = explain_prediction(
             model=loaded_engine.model,
             scaler=loaded_engine.scaler,
             input_data=sample_dict,
-            feature_names=_FEATURE_COLS,
+            feature_names=feature_cols,
             top_n=3,
         )
 
@@ -138,12 +137,13 @@ class TestExplainabilityFunctions:
             assert isinstance(item["shap_value"], float)
 
     def test_explain_prediction_sorted_by_abs_shap_value(self, loaded_engine):
-        sample_dict = {f: 100.0 for f in _FEATURE_COLS}
+        feature_cols = loaded_engine.feature_cols
+        sample_dict = {f: 100.0 for f in feature_cols}
         exp = explain_prediction(
             model=loaded_engine.model,
             scaler=loaded_engine.scaler,
             input_data=sample_dict,
-            feature_names=_FEATURE_COLS,
+            feature_names=feature_cols,
             top_n=3,
         )
 

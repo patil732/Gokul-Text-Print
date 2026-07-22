@@ -142,7 +142,8 @@ class TestForecastResponseSchema:
     """Assert field types and value constraints for the 7_days response."""
 
     @pytest.fixture(scope="class")
-    def body(self, flask_client):
+    @classmethod
+    def body(cls, flask_client):
         resp, _ = _post_forecast(flask_client, {"forecast_period": "7_days"})
         return resp.get_json()
 
@@ -321,7 +322,8 @@ class TestForecastCrossperiod:
     """Sanity-check relative forecast magnitudes across horizons."""
 
     @pytest.fixture(scope="class")
-    def all_forecasts(self, flask_client):
+    @classmethod
+    def all_forecasts(cls, flask_client):
         results = {}
         for p in _VALID_PERIODS:
             # Warm up first

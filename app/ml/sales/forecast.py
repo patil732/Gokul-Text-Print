@@ -78,17 +78,20 @@ _PERIOD_DAYS: Dict[str, int] = {
 
 # Default feature vector baseline (mimics a typical sales day at the median)
 _DEFAULT_BASELINE: Dict[str, float] = {
-    "sales":        20_000.0,
-    "sales_lag_1":  19_500.0,
-    "sales_lag_2":  19_000.0,
-    "sales_lag_3":  18_500.0,
-    "sales_ma_3":   19_500.0,
-    "sales_ma_7":   19_000.0,
-    "sales_ma_14":  18_500.0,
-    "sales_std_7":   1_200.0,
-    "momentum":        500.0,
-    "trend":             1.0,
-    "stock_ratio":       2.0,
+    "sales":              20_000.0,
+    "sales_lag_1":        19_500.0,
+    "sales_lag_2":        19_000.0,
+    "sales_lag_3":        18_500.0,
+    "sales_ma_3":         19_500.0,
+    "sales_ma_7":         19_000.0,
+    "sales_ma_14":        18_500.0,
+    "sales_std_7":         1_200.0,
+    "momentum":              500.0,
+    "trend":                   1.0,
+    "stock_ratio":             2.0,
+    "product_popularity":      0.15,
+    "seasonal_index":          1.00,
+    "sales_frequency":        25.0,
 }
 
 
@@ -146,9 +149,12 @@ class _ForecastEngine:
             self.model = joblib.load(model_path)
             self.scaler = joblib.load(scaler_path) if os.path.exists(scaler_path) else None
 
-            # Feature contract from config
-            cfg_yaml = load_config()
-            self.feature_cols = cfg_yaml.get("sales", {}).get("features", list(_DEFAULT_BASELINE.keys()))
+            # Feature contract from scaler or config
+            if hasattr(self.scaler, "feature_names_in_") and self.scaler.feature_names_in_ is not None:
+                self.feature_cols = list(self.scaler.feature_names_in_)
+            else:
+                cfg_yaml = load_config()
+                self.feature_cols = cfg_yaml.get("sales", {}).get("features", list(_DEFAULT_BASELINE.keys()))
 
             # Registry metadata
             reg = get_latest_version("sales")

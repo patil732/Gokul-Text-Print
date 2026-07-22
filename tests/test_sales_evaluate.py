@@ -55,6 +55,7 @@ _FEATURE_COLS = [
     "sales", "sales_lag_1", "sales_lag_2", "sales_lag_3",
     "sales_ma_3", "sales_ma_7", "sales_ma_14", "sales_std_7",
     "momentum", "trend", "stock_ratio",
+    "product_popularity", "seasonal_index", "sales_frequency",
 ]
 _TARGET_COL = "target_decision"
 
@@ -82,9 +83,12 @@ def _make_synthetic_df(n: int = 200, seed: int = 42) -> pd.DataFrame:
         "sales_std_7":  rng.uniform(0,     5_000, n),
         "momentum":     rng.uniform(-5_000, 5_000, n),
         "trend":        rng.choice([-1, 0, 1], n),
-        "stock_ratio":  rng.uniform(0.1, 10.0, n),
+        "stock_ratio":        rng.uniform(0.1, 10.0, n),
+        "product_popularity": rng.uniform(0.01, 0.5, n),
+        "seasonal_index":     rng.uniform(0.8, 1.2, n),
+        "sales_frequency":    rng.uniform(1.0, 30.0, n),
         # Binary target — ~60 % positive class to avoid all-one degenerate split
-        "target_decision": rng.choice([0, 1], n, p=[0.4, 0.6]),
+        "target_decision":    rng.choice([0, 1], n, p=[0.4, 0.6]),
     })
     return df
 
