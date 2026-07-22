@@ -386,6 +386,19 @@ def generate_forecast(
         version     = engine.version,
     )
 
+    # ── Log to sales_prediction_history table (Sprint 2) ─────────────── #
+    try:
+        from app.ml.common.prediction_service import log_sales_prediction_history
+        log_sales_prediction_history(
+            forecast_period=forecast_period,
+            forecast_value=predicted_sales,
+            recommendation="Pending Recommendation",
+            confidence=confidence,
+            model_version=engine.version,
+        )
+    except Exception as exc:
+        log.warning(f"[forecast] Failed to log sales_prediction_history: {exc}")
+
     log.info(
         f"[forecast] period={forecast_period}  days={days}  "
         f"predicted_sales={predicted_sales:,.2f}  growth_rate={growth_rate:+.2f}%  "

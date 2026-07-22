@@ -374,3 +374,105 @@ def dashboard_data_endpoint():
         logger.error(f"[sales_ml_bp] Dashboard data endpoint failed: {exc}", exc_info=True)
         return jsonify({"status": "error", "message": str(exc)}), 500
 
+
+# --------------------------------------------------------------------------- #
+# GET /api/sales/history
+# --------------------------------------------------------------------------- #
+
+@sales_ml_bp.route("/api/sales/history", methods=["GET"])
+def sales_history_endpoint():
+    """
+    GET /api/sales/history
+    Return paginated historical predictions from sales_prediction_history table,
+    ordered by prediction_date descending.
+
+    Query Parameters
+    ----------------
+    page  : int (default: 1)
+    limit / per_page : int (default: 10, max: 100)
+
+    Response JSON
+    -------------
+    {
+      "status":        "success",
+      "page":          int,
+      "per_page":      int,
+      "total_records": int,
+      "total_pages":   int,
+      "data": [
+        {
+          "prediction_id":   str (UUID),
+          "prediction_date": str (ISO timestamp),
+          "forecast_period": str,
+          "forecast_value":  float,
+          "recommendation":  str,
+          "confidence":      float,
+          "model_version":   str
+        }, ...
+      ]
+    }
+    """
+    try:
+        from database.db import get_db_connection
+
+        page     = request.args.get("page", 1, type=int)
+        per_page = request.args.get("limit", request.args.get("per_page", 10, type=int), type=int)
+
+        if page < 1:
+            page = 1
+        if per_page < 1:
+            per_page = 10
+        if per_page > 100:
+            per_page = 100
+
+        offset = (page - 1) * per_page
+
+        conn = get_db_connection()
+
+        # Count total records
+        total_row = conn.execute("SELECT COUNT(*) FROM sales_prediction_history").fetchone()
+        total_records = total_row[0] if total_row else 0
+
+        # Query paginated rows ordered by prediction_date DESC
+        rows = conn.execute(
+            """
+            SELECT prediction_id, prediction_date, forecast_period,
+                   forecast_value, recommendation, confidence, model_version
+            FROM sales_prediction_history
+            ORDER BY prediction_date DESC
+            LIMIT ? OFFSET ?
+            """,
+            (per_page, offset),
+        ).fetchall()
+
+        conn.close()
+
+        records = [
+            {
+                "prediction_id":   row["prediction_id"],
+                "prediction_date": str(row["prediction_date"]),
+                "forecast_period": row["forecast_period"],
+                "forecast_value":  float(row["forecast_value"]),
+                "recommendation":  row["recommendation"] or "N/A",
+                "confidence":      float(row["confidence"]) if row["confidence"] is not None else 0.0,
+                "model_version":   row["model_version"] or "v1.0",
+            }
+            for row in rows
+        ]
+
+        total_pages = (total_records + per_page - 1) // per_page if per_page > 0 else 1
+
+        return jsonify({
+            "status":        "success",
+            "page":          page,
+            "per_page":      per_page,
+            "total_records": total_records,
+            "total_pages":   total_pages,
+            "data":          records,
+        }), 200
+
+    except Exception as exc:
+        logger.error(f"[sales_ml_bp] History endpoint failed: {exc}", exc_info=True)
+        return jsonify({"status": "error", "message": str(exc)}), 500
+
+

@@ -64,6 +64,61 @@ def log_prediction_record(
     return prediction_id
 
 
+def log_sales_prediction_history(
+    forecast_period: str,
+    forecast_value: float,
+    recommendation: Optional[str] = None,
+    confidence: Optional[float] = None,
+    model_version: Optional[str] = None,
+    prediction_date: Optional[str] = None,
+    prediction_id: Optional[str] = None,
+) -> str:
+    """
+    Log a record into the sales_prediction_history table.
+
+    Table schema:
+      sales_prediction_history(
+        prediction_id UUID PK,
+        prediction_date TIMESTAMP,
+        forecast_period VARCHAR,
+        forecast_value FLOAT,
+        recommendation VARCHAR,
+        confidence FLOAT,
+        model_version VARCHAR
+      )
+    """
+    pid   = prediction_id or str(uuid.uuid4())
+    pdate = prediction_date or datetime.now().isoformat()
+
+    try:
+        conn = get_db_connection()
+        conn.execute(
+            """
+            INSERT INTO sales_prediction_history (
+                prediction_id, prediction_date, forecast_period,
+                forecast_value, recommendation, confidence, model_version
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                pid,
+                pdate,
+                forecast_period,
+                float(forecast_value),
+                recommendation or "N/A",
+                float(confidence) if confidence is not None else 0.0,
+                model_version or "v1.0",
+            ),
+        )
+        conn.commit()
+        conn.close()
+        log.info(f"Logged sales prediction history to DB: prediction_id={pid}")
+    except Exception as exc:
+        log.warning(f"Failed to write sales_prediction_history: {exc}")
+
+    return pid
+
+
 def predict(
     model: Any,
     scaler: Optional[Any] = None,

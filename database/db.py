@@ -100,6 +100,19 @@ def init_db() -> None:
         )
     """)
 
+    # Sales prediction history table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS sales_prediction_history (
+            prediction_id   TEXT     PRIMARY KEY,
+            prediction_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+            forecast_period TEXT     NOT NULL,
+            forecast_value  REAL     NOT NULL,
+            recommendation  TEXT,
+            confidence      REAL,
+            model_version   TEXT
+        )
+    """)
+
     conn.commit()
     conn.close()
     logger.info(f"[db] Database initialised at {DB_PATH}")

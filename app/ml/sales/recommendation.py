@@ -308,6 +308,18 @@ def get_recommendation(
         log.warning(f"[recommendation] Storage call raised unexpectedly: {exc}")
         stored_id = None
 
+    try:
+        from app.ml.common.prediction_service import log_sales_prediction_history
+        log_sales_prediction_history(
+            forecast_period=period,
+            forecast_value=predicted_sales,
+            recommendation=rule_result["decision"],
+            confidence=confidence,
+            model_version=version,
+        )
+    except Exception as exc:
+        log.warning(f"[recommendation] Failed to write sales_prediction_history: {exc}")
+
     return {
         "decision":        rule_result["decision"],
         "reason":          rule_result["reason"],

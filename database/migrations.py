@@ -33,6 +33,16 @@ CREATE TABLE IF NOT EXISTS prediction_history (
     confidence    FLOAT,
     created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS sales_prediction_history (
+    prediction_id   UUID PRIMARY KEY,
+    prediction_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    forecast_period VARCHAR(50) NOT NULL,
+    forecast_value  FLOAT NOT NULL,
+    recommendation  VARCHAR(100),
+    confidence      FLOAT,
+    model_version   VARCHAR(50)
+);
 """
 
 
