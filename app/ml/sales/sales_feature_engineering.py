@@ -3,10 +3,20 @@ app/ml/sales/sales_feature_engineering.py
 ------------------------------------------
 Feature engineering for the Sales ML domain module.
 
-Computes:
+Sprint 1 features
+-----------------
   - Daily Sales, Weekly Sales, Monthly Sales
   - Growth Rate, Rolling Average, 7-Day Moving Average
   - Revenue Trend, Sales Volatility
+  - Lag features (lag_1 / lag_2 / lag_3), Momentum, Stock Ratio
+
+Sprint 2 additions
+------------------
+  - Product Popularity  : product's share of total revenue across the dataset
+  - Seasonal Index      : per-(product, month) mean sales divided by the
+                          product's overall mean — captures seasonal uplift/drag
+  - Sales Frequency     : rolling 30-day count of distinct sale days per product
+
 Reuses existing ETL output / sales dataset without modifying ETL logic.
 """
 
@@ -111,14 +121,147 @@ def compute_sales_features(df: pd.DataFrame) -> pd.DataFrame:
     df["next_sales"] = grp.shift(-1)
     df["target_decision"] = (df["next_sales"] > df["sales"]).astype(int)
 
+    # ------------------------------------------------------------------ #
+    # Sprint 2 — New features
+    # ------------------------------------------------------------------ #
+
+    # 8. Product Popularity
+    #    Each product's cumulative revenue as a fraction of grand-total revenue
+    #    across the entire dataset (global popularity score ∈ [0, 1]).
+    total_revenue = df["sales"].sum()
+    if total_revenue > 0:
+        product_totals = df.groupby("product")["sales"].transform("sum")
+        df["product_popularity"] = product_totals / total_revenue
+    else:
+        df["product_popularity"] = 0.0
+
+    # 9. Seasonal Index
+    #    Ratio of the (product, month) mean to the product's overall mean.
+    #    Values > 1 indicate above-average demand for that month;
+    #    values < 1 indicate below-average demand.
+    if "date" in df.columns:
+        df["_month"] = df["date"].dt.month
+        product_mean       = df.groupby("product")["sales"].transform("mean").replace(0, np.nan)
+        product_month_mean = df.groupby(["product", "_month"])["sales"].transform("mean")
+        df["seasonal_index"] = (product_month_mean / product_mean).fillna(1.0)
+        df = df.drop(columns=["_month"])
+    else:
+        df["seasonal_index"] = 1.0
+
+    # 10. Sales Frequency
+    #     Within a 30-day rolling window, count the number of distinct
+    #     calendar days on which the product recorded a sale.
+    #     Reflects how consistently (frequently) a product moves.
+    if "date" in df.columns:
+        # Convert date to integer ordinal for rolling arithmetic
+        df["_date_ord"] = df["date"].map(lambda d: d.toordinal() if pd.notna(d) else np.nan)
+
+        def _rolling_distinct_days(group: pd.Series) -> pd.Series:
+            """Count distinct sale days in a 30-day trailing window."""
+            result = np.zeros(len(group), dtype=float)
+            values = group.values
+            for i in range(len(values)):
+                current = values[i]
+                if np.isnan(current):
+                    continue
+                window_vals = values[max(0, i - 29): i + 1]   # up to 30 observations
+                result[i] = len(set(v for v in window_vals if not np.isnan(v)))
+            return pd.Series(result, index=group.index)
+
+        df["sales_frequency"] = (
+            df.groupby("product")["_date_ord"]
+            .transform(_rolling_distinct_days)
+        )
+        df = df.drop(columns=["_date_ord"])
+    else:
+        df["sales_frequency"] = 1.0
+
     df = df.replace([np.inf, -np.inf], np.nan).fillna(0.0)
-    log.info(f"Sales feature engineering complete: {len(df):,} rows x {len(df.columns)} columns.")
+    log.info(
+        f"Sales feature engineering complete: {len(df):,} rows x {len(df.columns)} columns "
+        f"(includes Sprint-2 features: product_popularity, seasonal_index, sales_frequency)."
+    )
+    return df
+
+
+def compute_extended_features(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Compute only the three Sprint-2 feature additions on an already-prepared
+    DataFrame (must contain 'product', 'sales', and optionally 'date').
+
+    This is a lightweight wrapper for cases where the Sprint-1 features have
+    already been computed and only the new features are needed.
+
+    Returns
+    -------
+    pd.DataFrame
+        Input DataFrame extended with:
+          - product_popularity
+          - seasonal_index
+          - sales_frequency
+    """
+    if df.empty:
+        log.warning("compute_extended_features(): received empty DataFrame.")
+        return pd.DataFrame()
+
+    df = df.copy()
+
+    if "product" not in df.columns:
+        df["product"] = "default_product"
+    if "sales" not in df.columns:
+        df["sales"] = 0.0
+
+    # Product Popularity
+    total_revenue = df["sales"].sum()
+    if total_revenue > 0:
+        product_totals = df.groupby("product")["sales"].transform("sum")
+        df["product_popularity"] = product_totals / total_revenue
+    else:
+        df["product_popularity"] = 0.0
+
+    # Seasonal Index
+    if "date" in df.columns:
+        df["date"] = pd.to_datetime(df["date"], errors="coerce")
+        df["_month"] = df["date"].dt.month
+        product_mean       = df.groupby("product")["sales"].transform("mean").replace(0, np.nan)
+        product_month_mean = df.groupby(["product", "_month"])["sales"].transform("mean")
+        df["seasonal_index"] = (product_month_mean / product_mean).fillna(1.0)
+        df = df.drop(columns=["_month"])
+    else:
+        df["seasonal_index"] = 1.0
+
+    # Sales Frequency
+    if "date" in df.columns:
+        df["_date_ord"] = df["date"].map(lambda d: d.toordinal() if pd.notna(d) else np.nan)
+
+        def _rolling_distinct_days(group: pd.Series) -> pd.Series:
+            result = np.zeros(len(group), dtype=float)
+            values = group.values
+            for i in range(len(values)):
+                current = values[i]
+                if np.isnan(current):
+                    continue
+                window_vals = values[max(0, i - 29): i + 1]
+                result[i] = len(set(v for v in window_vals if not np.isnan(v)))
+            return pd.Series(result, index=group.index)
+
+        df["sales_frequency"] = (
+            df.groupby("product")["_date_ord"]
+            .transform(_rolling_distinct_days)
+        )
+        df = df.drop(columns=["_date_ord"])
+    else:
+        df["sales_frequency"] = 1.0
+
+    df = df.replace([np.inf, -np.inf], np.nan).fillna(0.0)
+    log.info(f"compute_extended_features(): added 3 Sprint-2 features to {len(df):,} rows.")
     return df
 
 
 def load_and_preprocess_sales_data(filepath: str = None) -> pd.DataFrame:
     """
-    Load data from processed CSV or raw sales CSV and compute features.
+    Load data from processed CSV or raw sales CSV and compute features
+    (Sprint-1 + Sprint-2).
     """
     filepath = filepath or os.path.join(cfg.PROCESSED_DATA_DIR, "training_data.csv")
     if not os.path.exists(filepath):
