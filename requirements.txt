@@ -11,3 +11,4 @@ pyyaml
 xgboost
 lightgbm
 pytest
+pypdf

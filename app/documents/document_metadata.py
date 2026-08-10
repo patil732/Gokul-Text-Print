@@ -3,12 +3,17 @@ app/documents/document_metadata.py
 ------------------------------------
 Sprint 4 — RAG Knowledge Engine
 
-Database operations for the ``documents`` table:
-  - Insert a new document record.
-  - Check for duplicates by (document_name, file_hash).
-  - List all active documents.
-  - Fetch a single document by its ID.
-  - Soft-delete a document (sets status = 'deleted').
+Database operations for the ``documents`` and ``document_chunks`` tables:
+  documents table:
+    - Insert a new document record.
+    - Check for duplicates by (document_name, file_hash).
+    - List all non-deleted documents.
+    - Fetch a single document by its ID.
+    - Soft-delete a document (sets status = 'deleted').
+    - Update document status (pending → processing → processed / failed).
+  document_chunks table:
+    - Bulk-insert extracted text chunks.
+    - Retrieve chunks for a document ordered by chunk_index.
 
 All DB access uses ``database.db.get_db_connection()`` — the same pattern
 used throughout the rest of the project.
@@ -138,7 +143,12 @@ def insert_document(meta: dict[str, Any]) -> dict[str, Any]:
 
 def list_documents() -> list[dict[str, Any]]:
     """
-    Return all documents whose status is ``'active'``, ordered newest first.
+    Return all non-deleted documents, ordered newest first.
+
+    After Sprint 4 Step 2, documents progress through:
+      active → processing → processed / failed
+    This query includes all live statuses so callers always see documents
+    regardless of whether chunking has completed.
 
     Returns
     -------
@@ -147,7 +157,7 @@ def list_documents() -> list[dict[str, Any]]:
     """
     conn  = get_db_connection()
     rows  = conn.execute(
-        "SELECT * FROM documents WHERE status = 'active' ORDER BY upload_date DESC"
+        "SELECT * FROM documents WHERE status != 'deleted' ORDER BY upload_date DESC"
     ).fetchall()
     conn.close()
     return [_row_to_dict(r) for r in rows]
@@ -191,7 +201,7 @@ def soft_delete_document(document_id: str) -> bool:
     """
     conn    = get_db_connection()
     cursor  = conn.execute(
-        "UPDATE documents SET status = 'deleted' WHERE document_id = ? AND status = 'active'",
+        "UPDATE documents SET status = 'deleted' WHERE document_id = ? AND status != 'deleted'",
         (document_id,),
     )
     updated = cursor.rowcount > 0
@@ -204,3 +214,144 @@ def soft_delete_document(document_id: str) -> bool:
         logger.warning(f"[document_metadata] Document not found or already deleted: {document_id}")
 
     return updated
+
+
+# --------------------------------------------------------------------------- #
+# Status management (Sprint 4 Step 2)
+# --------------------------------------------------------------------------- #
+
+def update_document_status(document_id: str, status: str) -> bool:
+    """
+    Update the ``status`` field of a document record.
+
+    Valid status values in the RAG pipeline lifecycle:
+      ``'active'``      — initial state after upload (Step 1)
+      ``'processing'``  — extraction pipeline started
+      ``'processed'``   — chunks successfully extracted and stored
+      ``'failed'``      — extraction pipeline encountered an error
+      ``'deleted'``     — soft-deleted (use soft_delete_document() instead)
+
+    Parameters
+    ----------
+    document_id : str
+        UUID string of the target document.
+    status : str
+        The new status value.
+
+    Returns
+    -------
+    bool
+        ``True`` if the record was found and updated.
+    """
+    conn    = get_db_connection()
+    cursor  = conn.execute(
+        "UPDATE documents SET status = ? WHERE document_id = ?",
+        (status, document_id),
+    )
+    updated = cursor.rowcount > 0
+    conn.commit()
+    conn.close()
+
+    if updated:
+        logger.info(
+            f"[document_metadata] Status updated: {document_id} → '{status}'"
+        )
+    else:
+        logger.warning(
+            f"[document_metadata] update_document_status: document not found: {document_id}"
+        )
+    return updated
+
+
+# --------------------------------------------------------------------------- #
+# Chunk persistence (Sprint 4 Step 2)
+# --------------------------------------------------------------------------- #
+
+def insert_chunks(
+    document_id: str,
+    source_document: str,
+    chunks: list[dict],
+) -> int:
+    """
+    Bulk-insert extracted text chunks into the ``document_chunks`` table.
+
+    Parameters
+    ----------
+    document_id : str
+        UUID of the parent document (FK).
+    source_document : str
+        The ``document_name`` value (denormalised for query convenience).
+    chunks : list[dict]
+        Output of ``chunker.chunk_pages()``.  Each element must have keys:
+        ``chunk_index`` (int), ``page_number`` (int), ``chunk_text`` (str).
+
+    Returns
+    -------
+    int
+        Number of chunk rows inserted.
+    """
+    import uuid as _uuid  # local import to avoid polluting module namespace
+
+    if not chunks:
+        logger.warning(
+            f"[document_metadata] insert_chunks called with empty list for {document_id}"
+        )
+        return 0
+
+    rows = [
+        (
+            str(_uuid.uuid4()),
+            document_id,
+            c["chunk_index"],
+            c["page_number"],
+            source_document,
+            c["chunk_text"],
+        )
+        for c in chunks
+    ]
+
+    conn = get_db_connection()
+    conn.executemany(
+        """
+        INSERT INTO document_chunks
+            (chunk_id, document_id, chunk_index, page_number,
+             source_document, chunk_text)
+        VALUES (?, ?, ?, ?, ?, ?)
+        """,
+        rows,
+    )
+    conn.commit()
+    conn.close()
+
+    logger.info(
+        f"[document_metadata] Inserted {len(rows)} chunks for document {document_id}"
+    )
+    return len(rows)
+
+
+def get_chunks(document_id: str) -> list[dict[str, Any]]:
+    """
+    Retrieve all chunks for a document, ordered by ``chunk_index``.
+
+    Parameters
+    ----------
+    document_id : str
+        UUID of the parent document.
+
+    Returns
+    -------
+    list[dict]
+        Each element is a fully-populated chunk record dict.
+        Empty list if the document has no chunks.
+    """
+    conn  = get_db_connection()
+    rows  = conn.execute(
+        """
+        SELECT * FROM document_chunks
+        WHERE document_id = ?
+        ORDER BY chunk_index ASC
+        """,
+        (document_id,),
+    ).fetchall()
+    conn.close()
+    return [_row_to_dict(r) for r in rows]

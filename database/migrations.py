@@ -2,11 +2,12 @@
 database/migrations.py
 ----------------------
 Database schema migrations script creating:
-  1. model_registry(model_id UUID PK, model_name VARCHAR, model_type VARCHAR, version VARCHAR, trained_at TIMESTAMP, accuracy FLOAT)
-  2. prediction_history(prediction_id UUID PK, model_name VARCHAR, prediction JSON, created_at TIMESTAMP)
-  3. documents(document_id UUID PK, document_name VARCHAR, document_type VARCHAR, upload_date TIMESTAMP,
-               uploaded_by VARCHAR, file_path VARCHAR, status VARCHAR, file_hash VARCHAR)
-     [Sprint 4 — RAG Knowledge Engine]
+  1. model_registry(model_id UUID PK, ...)
+  2. prediction_history(prediction_id UUID PK, ...)
+  3. documents(document_id UUID PK, ...) [Sprint 4 Step 1]
+  4. document_chunks(chunk_id UUID PK, document_id FK, chunk_index INT,
+                     page_number INT, source_document VARCHAR, chunk_text TEXT)
+     [Sprint 4 Step 2 — RAG Extraction Pipeline]
 """
 
 import os
@@ -58,6 +59,16 @@ CREATE TABLE IF NOT EXISTS documents (
     status        VARCHAR(50)  NOT NULL DEFAULT 'active',
     file_hash     VARCHAR(64)  NOT NULL,
     UNIQUE (document_name, file_hash)
+);
+
+-- Sprint 4 Step 2: RAG extraction pipeline — text chunks
+CREATE TABLE IF NOT EXISTS document_chunks (
+    chunk_id        UUID         PRIMARY KEY,
+    document_id     UUID         NOT NULL REFERENCES documents(document_id),
+    chunk_index     INTEGER      NOT NULL,
+    page_number     INTEGER      NOT NULL,
+    source_document VARCHAR(255) NOT NULL,
+    chunk_text      TEXT         NOT NULL
 );
 """
 

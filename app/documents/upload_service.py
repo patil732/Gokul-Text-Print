@@ -8,7 +8,14 @@ Orchestrates the end-to-end PDF upload workflow:
   2. Compute a SHA-256 hash of the file bytes.
   3. Reject duplicates (same ``document_name`` + ``file_hash``).
   4. Persist the file to the local documents/ directory.
-  5. Write metadata to the ``documents`` table.
+  5. Write metadata to the ``documents`` table (status: 'active').
+  6. Trigger the RAG extraction pipeline (Step 2):
+       a. Update status → 'processing'.
+       b. Extract text pages via ``app.rag.loader``.
+       c. Chunk the text via ``app.rag.chunker``.
+       d. Persist chunks to ``document_chunks``.
+       e. Update status → 'processed'.
+       f. On any error: update status → 'failed', log, re-raise.
 
 Usage
 -----
@@ -38,8 +45,15 @@ if _PROJECT_ROOT not in sys.path:
     sys.path.insert(0, _PROJECT_ROOT)
 
 from app.documents.storage_service   import compute_file_hash, save_file  # noqa: E402
-from app.documents.document_metadata import document_exists, insert_document  # noqa: E402
-from utils.logger                    import logger                          # noqa: E402
+from app.documents.document_metadata import (                               # noqa: E402
+    document_exists,
+    insert_document,
+    update_document_status,
+    insert_chunks,
+)
+from app.rag.loader  import extract_pages   # noqa: E402
+from app.rag.chunker import chunk_pages     # noqa: E402
+from utils.logger    import logger          # noqa: E402
 
 
 # --------------------------------------------------------------------------- #
@@ -140,8 +154,42 @@ def process_upload(
             "file_hash":     file_hash,
         }
     )
+    document_id = record["document_id"]
 
-    logger.info(
-        f"[upload_service] Upload complete: {record['document_id']} '{filename}'"
-    )
+    # ── 7. RAG extraction pipeline (Sprint 4 Step 2) ─────────────────────── #
+    try:
+        # a. Mark as processing
+        update_document_status(document_id, "processing")
+        record["status"] = "processing"
+
+        # b. Extract text pages from the saved PDF
+        pages = extract_pages(file_path)
+
+        # c. Split into overlapping chunks
+        chunks = chunk_pages(pages)
+
+        # d. Persist chunks to document_chunks table
+        chunk_count = insert_chunks(document_id, filename, chunks)
+
+        # e. Mark as processed
+        update_document_status(document_id, "processed")
+        record["status"]      = "processed"
+        record["chunk_count"] = chunk_count
+
+        logger.info(
+            f"[upload_service] Pipeline complete: {document_id} — "
+            f"{chunk_count} chunks from '{filename}'"
+        )
+
+    except Exception as exc:
+        # f. Mark as failed — upload record is preserved for audit/retry
+        logger.error(
+            f"[upload_service] RAG pipeline failed for {document_id} "
+            f"('{filename}'): {exc}"
+        )
+        update_document_status(document_id, "failed")
+        record["status"] = "failed"
+        # Re-raise so the route can return an appropriate HTTP error
+        raise
+
     return record
