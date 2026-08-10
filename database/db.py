@@ -7,6 +7,9 @@ DB_PATH is sourced from app/config.cfg.DB_PATH, which is derived from
 the DATABASE_URL environment variable (set in .env).  The default value
 is `sqlite:///ai_decision.db`, which maps to <project_root>/ai_decision.db.
 
+Sprint 4 — RAG Knowledge Engine
+    documents table added for PDF document tracking and duplicate detection.
+
 To point at a different database, set DATABASE_URL in .env:
 
     # SQLite (default)
@@ -110,6 +113,21 @@ def init_db() -> None:
             recommendation  TEXT,
             confidence      REAL,
             model_version   TEXT
+        )
+    """)
+
+    # Documents table (Sprint 4 — RAG Knowledge Engine)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS documents (
+            document_id   TEXT PRIMARY KEY,
+            document_name TEXT NOT NULL,
+            document_type TEXT NOT NULL,
+            upload_date   DATETIME DEFAULT CURRENT_TIMESTAMP,
+            uploaded_by   TEXT NOT NULL,
+            file_path     TEXT NOT NULL,
+            status        TEXT NOT NULL DEFAULT 'active',
+            file_hash     TEXT NOT NULL,
+            UNIQUE (document_name, file_hash)
         )
     """)
 

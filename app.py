@@ -4,6 +4,7 @@ from utils.logger import logger
 from routes.ceo import ceo_bp
 from routes.admin import admin_bp
 from routes.auth import auth_bp
+from routes.documents import documents_bp
 from database.db import init_db
 from services.automation import start_scheduler
 
@@ -28,6 +29,9 @@ def create_app():
 
     from app.ml.inventory.routes import inventory_ml_bp
     app.register_blueprint(inventory_ml_bp)
+
+    # Sprint 4 — RAG Knowledge Engine: document management
+    app.register_blueprint(documents_bp)
 
     @app.route('/')
     def index():
