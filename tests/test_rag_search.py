@@ -32,6 +32,7 @@ import uuid
 
 import numpy as np
 import pytest
+from unittest.mock import patch, MagicMock
 
 # --------------------------------------------------------------------------- #
 # Project root on sys.path
@@ -40,6 +41,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from database.db import get_db_connection, init_db
 import faiss
+
 
 # --------------------------------------------------------------------------- #
 # Flask app factory
@@ -504,9 +506,16 @@ class TestSearchEndpoint:
 
     def test_search_empty_index_returns_503(self, flask_client):
         from app.rag.vector_store import inject_index
+        from app.rag import embeddings as emb_module
+        emb_module.set_provider(MockProvider())
         inject_index(None, [])
-        resp = flask_client.post("/api/rag/search", json={"query": "anything"})
-        assert resp.status_code == 503
+        with patch("database.db.get_db_connection") as mock_conn:
+            mock_cursor = MagicMock()
+            mock_cursor.fetchone.return_value = {"cnt": 0}
+            mock_conn.return_value.execute.return_value = mock_cursor
+            resp = flask_client.post("/api/rag/search", json={"query": "anything"})
+            assert resp.status_code == 503
+
 
     def test_search_elapsed_ms_is_positive(self, flask_client):
         from app.rag import embeddings as emb_module

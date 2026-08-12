@@ -380,11 +380,15 @@ class TestChatEndpoint:
         from app.rag import chat_service as chat_mod
         chat_mod.set_chat_provider(MockChatProvider())
 
-        with patch("app.rag.chat_service.retrieve", return_value=[]):
-            # No embeddings in DB fixture
+        with patch("app.rag.chat_service.retrieve", return_value=[]), \
+             patch("database.db.get_db_connection") as mock_conn:
+            mock_cursor = MagicMock()
+            mock_cursor.fetchone.return_value = {"cnt": 0}
+            mock_conn.return_value.execute.return_value = mock_cursor
             resp = flask_client.post("/api/chat", json={"question": "What is the policy?"})
             assert resp.status_code == 503
             assert "No documents have been indexed yet" in resp.get_json()["message"]
+
 
 
 # ============================================================================ #

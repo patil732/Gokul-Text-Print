@@ -183,6 +183,12 @@ def _load_all_embeddings() -> tuple[list[list[float]], list[str]]:
         Positional map: ``vectors[i]`` belongs to ``chunk_ids[i]``.
     """
     from database.db import get_db_connection  # local import — avoids circular deps
+    from app.rag.embeddings import _resolve_config
+
+    try:
+        target_dim = _resolve_config().dimension
+    except Exception:
+        target_dim = None
 
     conn = get_db_connection()
     rows = conn.execute(
@@ -192,7 +198,6 @@ def _load_all_embeddings() -> tuple[list[list[float]], list[str]]:
 
     vectors:   list[list[float]] = []
     chunk_ids: list[str]         = []
-    target_dim: int | None       = None
 
     for row in rows:
         try:
@@ -216,6 +221,7 @@ def _load_all_embeddings() -> tuple[list[list[float]], list[str]]:
             )
 
     return vectors, chunk_ids
+
 
 
 
