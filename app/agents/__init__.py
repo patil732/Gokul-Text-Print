@@ -12,6 +12,7 @@ Exports:
   - build_copilot_prompt
 """
 
+from app.agents.base_agent import BaseAgent as ContractBaseAgent, AgentResponse
 from app.agents.base import BaseAgent, call_api
 from app.agents.sales_agent import SalesAgent
 from app.agents.inventory_agent import InventoryAgent
@@ -21,6 +22,8 @@ from app.agents.prompt_builder import build_copilot_prompt
 
 __all__ = [
     "BaseAgent",
+    "ContractBaseAgent",
+    "AgentResponse",
     "call_api",
     "SalesAgent",
     "InventoryAgent",
@@ -28,3 +31,4 @@ __all__ = [
     "ManagerAgent",
     "build_copilot_prompt",
 ]
+
