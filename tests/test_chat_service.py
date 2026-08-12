@@ -149,28 +149,33 @@ def reset_providers_and_cache():
 
 @pytest.fixture(autouse=True)
 def cleanup_test_data():
-    yield
     from app.documents.storage_service import delete_file
-    conn = get_db_connection()
-    rows = conn.execute(
-        "SELECT document_id, file_path FROM documents WHERE uploaded_by = '__test__'"
-    ).fetchall()
-    doc_ids = [r["document_id"] for r in rows]
-    if doc_ids:
-        ph = ",".join("?" * len(doc_ids))
-        c_rows = conn.execute(
-            f"SELECT chunk_id FROM document_chunks WHERE document_id IN ({ph})", doc_ids
+    def _clean():
+        conn = get_db_connection()
+        rows = conn.execute(
+            "SELECT document_id, file_path FROM documents WHERE uploaded_by = '__test__'"
         ).fetchall()
-        cids = [c["chunk_id"] for c in c_rows]
-        if cids:
-            cph = ",".join("?" * len(cids))
-            conn.execute(f"DELETE FROM chunk_embeddings WHERE chunk_id IN ({cph})", cids)
-        conn.execute(f"DELETE FROM document_chunks WHERE document_id IN ({ph})", doc_ids)
-    conn.execute("DELETE FROM documents WHERE uploaded_by = '__test__'")
-    conn.commit()
-    conn.close()
-    for r in rows:
-        delete_file(r["file_path"])
+        doc_ids = [r["document_id"] for r in rows]
+        if doc_ids:
+            ph = ",".join("?" * len(doc_ids))
+            c_rows = conn.execute(
+                f"SELECT chunk_id FROM document_chunks WHERE document_id IN ({ph})", doc_ids
+            ).fetchall()
+            cids = [c["chunk_id"] for c in c_rows]
+            if cids:
+                cph = ",".join("?" * len(cids))
+                conn.execute(f"DELETE FROM chunk_embeddings WHERE chunk_id IN ({cph})", cids)
+            conn.execute(f"DELETE FROM document_chunks WHERE document_id IN ({ph})", doc_ids)
+        conn.execute("DELETE FROM documents WHERE uploaded_by = '__test__'")
+        conn.commit()
+        conn.close()
+        for r in rows:
+            delete_file(r["file_path"])
+
+    _clean()
+    yield
+    _clean()
+
 
 
 # ============================================================================ #

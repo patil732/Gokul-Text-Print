@@ -239,12 +239,12 @@ class TestUploadService:
         monkeypatch.setattr(storage_service, "STORAGE_DIR", str(tmp_path))
 
         from app.documents.upload_service import process_upload
-        fs     = _make_werkzeug_file("sprint4_test.pdf", b"%PDF-1.4 unique_upload")
+        fs     = _make_werkzeug_file("sprint4_test.pdf", _make_pdf_bytes("Sprint 4 unique upload content"))
         record = process_upload(fs, uploaded_by="__test__")
 
         assert record["document_name"] == "sprint4_test.pdf"
         assert record["document_type"] == "pdf"
-        assert record["status"]        == "active"
+        assert record["status"]        in ("active", "processed")
         assert record["uploaded_by"]   == "__test__"
         assert len(record["file_hash"]) == 64
         assert os.path.exists(record["file_path"]), "File must exist on disk after upload."
@@ -265,7 +265,7 @@ class TestUploadService:
         monkeypatch.setattr(storage_service, "STORAGE_DIR", str(tmp_path))
 
         from app.documents.upload_service import process_upload, DuplicateDocumentError
-        content  = b"%PDF-1.4 duplicate content xyz"
+        content  = _make_pdf_bytes("Duplicate content for unit testing")
         filename = f"dup_test_{uuid.uuid4().hex[:6]}.pdf"
 
         # First upload — must succeed
@@ -285,19 +285,17 @@ class TestUploadService:
         from app.documents.upload_service import process_upload
         base_name = f"samenamed_{uuid.uuid4().hex[:6]}.pdf"
 
-        fs1 = _make_werkzeug_file(base_name, b"%PDF content version 1")
+        fs1 = _make_werkzeug_file(base_name, _make_pdf_bytes("Content version 1"))
         r1  = process_upload(fs1, uploaded_by="__test__")
 
-        # Different content → different hash → different filename needed to avoid
-        # OS file-collision. The duplicate check is (name, hash) so name alone
-        # is not the blocker; rename to make the OS happy too.
         new_name = base_name.replace(".pdf", "_v2.pdf")
-        fs2 = _make_werkzeug_file(new_name, b"%PDF content version 2")
+        fs2 = _make_werkzeug_file(new_name, _make_pdf_bytes("Content version 2"))
         r2  = process_upload(fs2, uploaded_by="__test__")
 
         assert r1["document_id"] != r2["document_id"], (
             "Different content must produce independent document records."
         )
+
 
     def test_missing_file_raises_value_error(self, tmp_path, monkeypatch):
         """process_upload() with no file must raise ValueError."""

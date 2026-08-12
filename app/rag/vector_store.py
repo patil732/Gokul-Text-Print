@@ -192,12 +192,23 @@ def _load_all_embeddings() -> tuple[list[list[float]], list[str]]:
 
     vectors:   list[list[float]] = []
     chunk_ids: list[str]         = []
+    target_dim: int | None       = None
 
     for row in rows:
         try:
             vec = json.loads(row["embedding"])
+            if not isinstance(vec, list) or not vec:
+                continue
+            if target_dim is not None and len(vec) != target_dim:
+                logger.warning(
+                    f"[vector_store] Skipping embedding with mismatched dimension "
+                    f"({len(vec)} != {target_dim}) for chunk {row['chunk_id']}"
+                )
+                continue
             vectors.append(vec)
             chunk_ids.append(row["chunk_id"])
+            if target_dim is None:
+                target_dim = len(vec)
         except (json.JSONDecodeError, KeyError) as exc:
             logger.warning(
                 f"[vector_store] Skipping malformed embedding for "
@@ -205,6 +216,7 @@ def _load_all_embeddings() -> tuple[list[list[float]], list[str]]:
             )
 
     return vectors, chunk_ids
+
 
 
 # --------------------------------------------------------------------------- #
