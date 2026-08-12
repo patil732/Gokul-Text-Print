@@ -12,3 +12,6 @@ xgboost
 lightgbm
 pytest
 pypdf
+sentence-transformers
+openai
+google-generativeai

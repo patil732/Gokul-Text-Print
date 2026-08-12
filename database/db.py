@@ -8,8 +8,9 @@ the DATABASE_URL environment variable (set in .env).  The default value
 is `sqlite:///ai_decision.db`, which maps to <project_root>/ai_decision.db.
 
 Sprint 4 — RAG Knowledge Engine
-    documents table: PDF document tracking and duplicate detection.
+    documents table:       PDF document tracking and duplicate detection.
     document_chunks table: extracted text chunks for RAG retrieval.
+    chunk_embeddings table: dense vectors per chunk (Step 3).
 
 To point at a different database, set DATABASE_URL in .env:
 
@@ -142,6 +143,20 @@ def init_db() -> None:
             source_document TEXT    NOT NULL,
             chunk_text      TEXT    NOT NULL,
             FOREIGN KEY (document_id) REFERENCES documents(document_id)
+        )
+    """)
+
+    # Chunk embeddings table (Sprint 4 Step 3 — embedding backend)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS chunk_embeddings (
+            embedding_id TEXT     PRIMARY KEY,
+            chunk_id     TEXT     NOT NULL UNIQUE,
+            chunk_hash   TEXT     NOT NULL,
+            embedding    TEXT     NOT NULL,
+            provider     TEXT     NOT NULL,
+            model        TEXT     NOT NULL,
+            created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (chunk_id) REFERENCES document_chunks(chunk_id)
         )
     """)
 

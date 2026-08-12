@@ -14,8 +14,9 @@ Orchestrates the end-to-end PDF upload workflow:
        b. Extract text pages via ``app.rag.loader``.
        c. Chunk the text via ``app.rag.chunker``.
        d. Persist chunks to ``document_chunks``.
-       e. Update status → 'processed'.
-       f. On any error: update status → 'failed', log, re-raise.
+       e. Generate embeddings for each chunk (Step 3 — non-fatal).
+       f. Update status → 'processed'.
+       g. On extraction error: update status → 'failed', log, re-raise.
 
 Usage
 -----
@@ -51,9 +52,10 @@ from app.documents.document_metadata import (                               # no
     update_document_status,
     insert_chunks,
 )
-from app.rag.loader  import extract_pages   # noqa: E402
-from app.rag.chunker import chunk_pages     # noqa: E402
-from utils.logger    import logger          # noqa: E402
+from app.rag.loader            import extract_pages              # noqa: E402
+from app.rag.chunker           import chunk_pages                # noqa: E402
+from app.rag.embedding_pipeline import embed_document_chunks     # noqa: E402
+from utils.logger              import logger                     # noqa: E402
 
 
 # --------------------------------------------------------------------------- #
@@ -171,7 +173,22 @@ def process_upload(
         # d. Persist chunks to document_chunks table
         chunk_count = insert_chunks(document_id, filename, chunks)
 
-        # e. Mark as processed
+        # e. Generate embeddings (Step 3) — non-fatal: failure logs but
+        #    does not prevent the document from being marked 'processed'.
+        try:
+            embed_count = embed_document_chunks(document_id, filename)
+            record["embed_count"] = embed_count
+            logger.info(
+                f"[upload_service] Embedded {embed_count} chunks "
+                f"for {document_id}"
+            )
+        except Exception as emb_exc:
+            logger.warning(
+                f"[upload_service] Embedding skipped for {document_id}: {emb_exc}"
+            )
+            record["embed_count"] = 0
+
+        # f. Mark as processed
         update_document_status(document_id, "processed")
         record["status"]      = "processed"
         record["chunk_count"] = chunk_count
@@ -182,7 +199,7 @@ def process_upload(
         )
 
     except Exception as exc:
-        # f. Mark as failed — upload record is preserved for audit/retry
+        # g. Mark as failed — upload record is preserved for audit/retry
         logger.error(
             f"[upload_service] RAG pipeline failed for {document_id} "
             f"('{filename}'): {exc}"

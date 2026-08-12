@@ -70,6 +70,17 @@ CREATE TABLE IF NOT EXISTS document_chunks (
     source_document VARCHAR(255) NOT NULL,
     chunk_text      TEXT         NOT NULL
 );
+
+-- Sprint 4 Step 3: RAG embedding backend
+CREATE TABLE IF NOT EXISTS chunk_embeddings (
+    embedding_id UUID         PRIMARY KEY,
+    chunk_id     UUID         NOT NULL UNIQUE REFERENCES document_chunks(chunk_id),
+    chunk_hash   VARCHAR(64)  NOT NULL,
+    embedding    TEXT         NOT NULL,    -- JSON-encoded float list; use vector(n) with pgvector
+    provider     VARCHAR(50)  NOT NULL,
+    model        VARCHAR(255) NOT NULL,
+    created_at   TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
+);
 """
 
 

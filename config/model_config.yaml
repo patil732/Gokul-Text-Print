@@ -171,3 +171,31 @@ inventory:
     - reorder_level
 
   target: reorder_flag
+
+
+# ------------------------------------------------------------
+# RAG Knowledge Engine — Embedding Configuration
+# Sprint 4 Step 3
+# ------------------------------------------------------------
+rag:
+  embedding:
+    # Active provider.  Options: sentence_transformers | openai | gemini
+    # Switch provider here; no code changes required.
+    provider: sentence_transformers
+    batch_size: 32            # chunks embedded per provider call
+
+  # Per-provider settings.  Only the active provider's block is used at runtime.
+  providers:
+    sentence_transformers:
+      model: all-MiniLM-L6-v2   # 384-dim, fast, runs fully offline
+      dimension: 384
+
+    openai:
+      model: text-embedding-3-small   # 1 536-dim
+      dimension: 1536
+      api_key_env: OPENAI_API_KEY     # env var holding the API key
+
+    gemini:
+      model: models/text-embedding-004   # 768-dim
+      dimension: 768
+      api_key_env: GEMINI_API_KEY        # env var holding the API key
