@@ -204,3 +204,105 @@ body {
     color: var(--primary);
     margin-right: 8px;
 }
+
+/* ==========================================================================
+   Knowledge Management & RAG Chat UI (Sprint 4)
+   ========================================================================== */
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 480px;
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid var(--border-light);
+    overflow: hidden;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    background: #fafbfa;
+}
+
+.chat-message {
+    display: flex;
+    max-width: 85%;
+    animation: fadeIn 0.25s ease-out;
+}
+
+.chat-message.user {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+.chat-message.assistant {
+    align-self: flex-start;
+}
+
+.chat-bubble {
+    padding: 0.85rem 1.15rem;
+    border-radius: 14px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    position: relative;
+    word-break: break-word;
+}
+
+.chat-message.user .chat-bubble {
+    background-color: var(--primary);
+    color: #ffffff;
+    border-bottom-right-radius: 4px;
+}
+
+.chat-message.assistant .chat-bubble {
+    background-color: #ffffff;
+    color: var(--text-primary);
+    border: 1px solid var(--border-light);
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.chat-input-container {
+    padding: 0.85rem 1rem;
+    background: #ffffff;
+    border-top: 1px solid var(--border-light);
+}
+
+.sources-panel {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid var(--border-light);
+    padding: 1.25rem;
+}
+
+.source-badge-card {
+    background: #f8faf7;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid var(--primary);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    transition: all 0.2s ease;
+}
+
+.source-badge-card:hover {
+    transform: translateX(2px);
+    border-color: var(--primary);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.04);
+}
+
+.doc-table th {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    font-weight: 700;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}

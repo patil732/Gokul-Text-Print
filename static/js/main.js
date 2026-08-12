@@ -10,11 +10,14 @@ let monthlyComparisonChart = null;
 document.addEventListener('DOMContentLoaded', function() {
     if (document.getElementById('ceo-dashboard')) {
         fetchCEODashboard();
+        loadDocumentsList();
+        loadChatHistory();
     }
     if (document.getElementById('admin-dashboard')) {
         fetchAdminMonitor();
     }
 });
+
 
 async function fetchCEODashboard() {
     try {
@@ -530,3 +533,338 @@ async function fetchAdminMonitor() {
         console.error('Admin Monitor Error:', error);
     }
 }
+
+// =========================================================================== //
+// Sprint 4 — Enterprise Knowledge Management & RAG Chat UI
+// =========================================================================== //
+
+async function loadDocumentsList() {
+    const tbody = document.getElementById('documents-table-body');
+    if (!tbody) return;
+
+    try {
+        const res = await fetch('/api/documents');
+        const data = await res.json();
+
+        if (data.status === 'success' && data.documents) {
+            if (data.documents.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted small py-3">No enterprise documents uploaded yet. Upload a PDF above.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.documents.map(doc => {
+                let statusBadge = '';
+                if (doc.status === 'processed') {
+                    statusBadge = '<span class="badge bg-success">Processed</span>';
+                } else if (doc.status === 'processing') {
+                    statusBadge = '<span class="badge bg-warning text-dark"><span class="spinner-border spinner-border-sm me-1"></span>Processing</span>';
+                } else if (doc.status === 'failed') {
+                    statusBadge = '<span class="badge bg-danger">Failed</span>';
+                } else {
+                    statusBadge = `<span class="badge bg-secondary">${doc.status}</span>`;
+                }
+
+                const docName = escapeHtml(doc.document_name || 'Document');
+                const docId = escapeHtml(doc.document_id || '');
+                const chunkCount = doc.chunk_count !== undefined ? doc.chunk_count : (doc.chunks || '-');
+
+                return `
+                    <tr>
+                        <td>
+                            <div class="fw-bold small text-truncate" style="max-width: 170px;" title="${docName}">
+                                📄 ${docName}
+                            </div>
+                            <div class="text-muted" style="font-size: 0.68rem;">${doc.upload_date || ''}</div>
+                        </td>
+                        <td>${statusBadge}</td>
+                        <td class="small fw-semibold text-secondary">${chunkCount}</td>
+                        <td class="text-end">
+                            <button class="btn btn-outline-danger btn-sm py-0 px-2" style="font-size: 0.72rem;" onclick="deleteDocument('${docId}', '${docName}')" title="Delete document">
+                                🗑
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        } else {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-danger small py-2">Failed to load documents.</td></tr>';
+        }
+    } catch (err) {
+        console.error('Error loading documents:', err);
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-danger small py-2">Error connecting to document service.</td></tr>';
+    }
+}
+
+async function handleDocumentUpload(event) {
+    event.preventDefault();
+    const fileInput = document.getElementById('doc-file-input');
+    const uploadBtn = document.getElementById('btn-upload-doc');
+    const alertBox = document.getElementById('upload-status-alert');
+
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+        return;
+    }
+
+    const file = fileInput.files[0];
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('uploaded_by', 'executive');
+
+    uploadBtn.disabled = true;
+    uploadBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Uploading & Chunking...';
+    alertBox.className = 'mt-2 alert alert-info small py-2';
+    alertBox.textContent = 'Uploading PDF and generating text chunks...';
+    alertBox.classList.remove('d-none');
+
+    try {
+        const res = await fetch('/api/documents/upload', {
+            method: 'POST',
+            body: formData,
+        });
+        const result = await res.json();
+
+        if (res.status === 201 && result.status === 'success') {
+            alertBox.className = 'mt-2 alert alert-success small py-2';
+            alertBox.textContent = `✓ Document "${file.name}" uploaded, chunked, and embedded successfully!`;
+            fileInput.value = '';
+            loadDocumentsList();
+            setTimeout(() => { alertBox.classList.add('d-none'); }, 5000);
+        } else if (res.status === 409) {
+            alertBox.className = 'mt-2 alert alert-warning small py-2';
+            alertBox.textContent = `⚠ Duplicate rejected: "${file.name}" has already been uploaded.`;
+        } else {
+            alertBox.className = 'mt-2 alert alert-danger small py-2';
+            alertBox.textContent = `✗ Upload failed: ${result.message || 'Unknown error'}`;
+        }
+    } catch (err) {
+        console.error('Upload error:', err);
+        alertBox.className = 'mt-2 alert alert-danger small py-2';
+        alertBox.textContent = '✗ Connection error while uploading document.';
+    } finally {
+        uploadBtn.disabled = false;
+        uploadBtn.textContent = 'Upload & Index Document';
+    }
+}
+
+async function deleteDocument(docId, docName) {
+    if (!confirm(`Are you sure you want to remove "${docName}" from the knowledge base?`)) {
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/documents/${docId}`, {
+            method: 'DELETE',
+        });
+        const result = await res.json();
+
+        if (res.ok && result.status === 'success') {
+            loadDocumentsList();
+        } else {
+            alert(`Could not delete document: ${result.message || 'Error'}`);
+        }
+    } catch (err) {
+        console.error('Delete error:', err);
+        alert('Network error while deleting document.');
+    }
+}
+
+async function loadChatHistory() {
+    const container = document.getElementById('chat-messages-container');
+    if (!container) return;
+
+    try {
+        const res = await fetch('/api/chat/history?limit=10');
+        const data = await res.json();
+
+        if (data.status === 'success' && data.history && data.history.length > 0) {
+            const chronological = [...data.history].reverse();
+            container.innerHTML = '';
+
+            chronological.forEach(turn => {
+                appendChatMessage('user', turn.question, false);
+                appendChatMessage('assistant', turn.answer, false);
+            });
+
+            const latestTurn = data.history[0];
+            if (latestTurn && latestTurn.retrieved_documents && latestTurn.retrieved_documents.length > 0) {
+                renderSourcesPanel(latestTurn.retrieved_documents);
+            }
+
+            container.scrollTop = container.scrollHeight;
+        }
+    } catch (err) {
+        console.warn('Could not load chat history:', err);
+    }
+}
+
+async function handleChatSubmit(event) {
+    event.preventDefault();
+    const input = document.getElementById('chat-question-input');
+    const sendBtn = document.getElementById('btn-send-chat');
+    const question = input.value.trim();
+
+    if (!question) return;
+
+    appendChatMessage('user', question, true);
+    input.value = '';
+    sendBtn.disabled = true;
+
+    const typingId = showTypingIndicator();
+
+    try {
+        const res = await fetch('/api/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question: question }),
+        });
+        const result = await res.json();
+
+        removeTypingIndicator(typingId);
+
+        if (res.status === 200 && result.status === 'success') {
+            appendChatMessage('assistant', result.answer, true);
+            renderSourcesPanel(result.sources || []);
+        } else if (res.status === 503) {
+            appendChatMessage('assistant', '⚠ No documents indexed yet. Please upload at least one PDF in the repository panel on the left.', true);
+            renderSourcesPanel([]);
+        } else {
+            appendChatMessage('assistant', `⚠ Error: ${result.message || 'Failed to generate answer.'}`, true);
+        }
+    } catch (err) {
+        console.error('Chat error:', err);
+        removeTypingIndicator(typingId);
+        appendChatMessage('assistant', '⚠ Connection error with AI assistant. Please try again.', true);
+    } finally {
+        sendBtn.disabled = false;
+        input.focus();
+    }
+}
+
+function appendChatMessage(role, text, scroll = true) {
+    const container = document.getElementById('chat-messages-container');
+    if (!container) return;
+
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `chat-message ${role}`;
+
+    const roleName = role === 'user' ? 'You' : 'AI Assistant';
+    const roleHeader = role === 'user'
+        ? ''
+        : `<strong class="d-block mb-1 text-primary">${roleName}</strong>`;
+
+    msgDiv.innerHTML = `
+        <div class="chat-bubble">
+            ${roleHeader}
+            ${escapeHtml(text)}
+        </div>
+    `;
+
+    container.appendChild(msgDiv);
+    if (scroll) {
+        container.scrollTop = container.scrollHeight;
+    }
+}
+
+function showTypingIndicator() {
+    const container = document.getElementById('chat-messages-container');
+    if (!container) return null;
+
+    const id = 'typing-' + Date.now();
+    const typingDiv = document.createElement('div');
+    typingDiv.id = id;
+    typingDiv.className = 'chat-message assistant';
+    typingDiv.innerHTML = `
+        <div class="chat-bubble text-secondary">
+            <span class="spinner-grow spinner-grow-sm me-1" role="status"></span>
+            <span class="small fst-italic">Consulting enterprise document knowledge base...</span>
+        </div>
+    `;
+    container.appendChild(typingDiv);
+    container.scrollTop = container.scrollHeight;
+    return id;
+}
+
+function removeTypingIndicator(id) {
+    if (!id) return;
+    const el = document.getElementById(id);
+    if (el) el.remove();
+}
+
+function renderSourcesPanel(sources) {
+    const container = document.getElementById('sources-list-container');
+    const badge = document.getElementById('sources-count-badge');
+    if (!container) return;
+
+    if (!sources || sources.length === 0) {
+        badge.textContent = '0 Sources Cited';
+        badge.className = 'badge bg-light text-secondary border';
+        container.innerHTML = `
+            <div class="text-secondary small fst-italic p-2 bg-light rounded text-center">
+                No specific document excerpts cited for this response.
+            </div>
+        `;
+        return;
+    }
+
+    badge.textContent = `${sources.length} Source${sources.length > 1 ? 's' : ''} Cited`;
+    badge.className = 'badge bg-success-subtle text-success border border-success-subtle';
+
+    container.innerHTML = sources.map((s, idx) => {
+        const docName = escapeHtml(s.document || s.source_document || 'Document');
+        const pageNum = s.page || s.page_number || 1;
+        const scoreText = s.score !== undefined ? `${(s.score * 100).toFixed(0)}% Relevance` : 'Verified Citation';
+
+        return `
+            <div class="source-badge-card d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-primary text-white" style="font-size: 0.7rem;">[${idx + 1}]</span>
+                    <div>
+                        <strong class="small text-dark d-block">${docName}</strong>
+                        <span class="text-secondary" style="font-size: 0.75rem;">Page ${pageNum}</span>
+                    </div>
+                </div>
+                <span class="badge bg-light text-success border border-success-subtle" style="font-size: 0.72rem;">
+                    ${scoreText}
+                </span>
+            </div>
+        `;
+    }).join('');
+}
+
+function clearChatMessages() {
+    const container = document.getElementById('chat-messages-container');
+    const sourcesContainer = document.getElementById('sources-list-container');
+    const badge = document.getElementById('sources-count-badge');
+
+    if (container) {
+        container.innerHTML = `
+            <div class="chat-message assistant">
+                <div class="chat-bubble">
+                    <strong class="d-block mb-1 text-primary">AI Assistant</strong>
+                    Conversation view cleared. Ask any question about your uploaded enterprise PDFs and SOPs.
+                </div>
+            </div>
+        `;
+    }
+
+    if (sourcesContainer && badge) {
+        badge.textContent = '0 Sources Cited';
+        badge.className = 'badge bg-light text-secondary border';
+        sourcesContainer.innerHTML = `
+            <div class="text-secondary small fst-italic p-2 bg-light rounded text-center">
+                No query executed yet. Ask a question above to inspect cited sources with page numbers and confidence.
+            </div>
+        `;
+    }
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
