@@ -162,16 +162,23 @@ class TestPlotGeneration:
 
     def test_plots_saved_to_static_explanations_folder(self, loaded_engine, tmp_path):
         out_dir = str(tmp_path / "sales_explanations")
-        X = np.random.default_rng(99).uniform(100, 5000, (20, len(_FEATURE_COLS)))
-        df_sample = pd.DataFrame(X, columns=_FEATURE_COLS)
+        feat_cols = getattr(loaded_engine, "feature_names", None) or getattr(loaded_engine.model, "feature_names_in_", None) or _FEATURE_COLS
+        if hasattr(feat_cols, "tolist"):
+            feat_cols = feat_cols.tolist()
+        else:
+            feat_cols = list(feat_cols)
+
+        X = np.random.default_rng(99).uniform(100, 5000, (20, len(feat_cols)))
+        df_sample = pd.DataFrame(X, columns=feat_cols)
 
         plots = generate_and_save_plots(
             model=loaded_engine.model,
             scaler=loaded_engine.scaler,
             X_sample=df_sample,
-            feature_names=_FEATURE_COLS,
+            feature_names=feat_cols,
             output_dir=out_dir,
         )
+
 
         assert "summary_plot" in plots
         assert "waterfall_plot" in plots
