@@ -71,7 +71,13 @@ def predict_sales(input_data: Union[Dict[str, Any], pd.DataFrame]) -> Dict[str, 
     dict
         Structured output containing decision, prediction, confidence, probability, and domain.
     """
-    # 1. Fetch feature names from config
+    # 2. Get latest version info & load model + scaler
+    reg_entry = get_latest_version("sales")
+    version = reg_entry.get("version", "v1.0") if reg_entry else "v1.0"
+
+    model, scaler = get_latest_sales_model_and_scaler()
+
+    # 1. Fetch feature names from config or model introspection
     cfg = load_config().get("sales", {})
     feature_names = cfg.get("features", [
         "sales", "sales_lag_1", "sales_lag_2", "sales_lag_3",
@@ -79,14 +85,18 @@ def predict_sales(input_data: Union[Dict[str, Any], pd.DataFrame]) -> Dict[str, 
         "momentum", "trend", "stock_ratio"
     ])
 
-    # 2. Get latest version info & load model + scaler
-    reg_entry = get_latest_version("sales")
-    version = reg_entry.get("version", "v1.0") if reg_entry else "v1.0"
-
-    model, scaler = get_latest_sales_model_and_scaler()
+    if hasattr(model, "feature_names_in_"):
+        feature_names = list(model.feature_names_in_)
+    elif hasattr(model, "n_features_in_") and model.n_features_in_ == 14:
+        feature_names = [
+            "sales", "sales_lag_1", "sales_lag_2", "sales_lag_3",
+            "sales_ma_3", "sales_ma_7", "sales_ma_14", "sales_std_7",
+            "momentum", "trend", "stock_ratio", "month", "day", "dayofweek"
+        ]
 
     # 3. Run prediction via common service
     pred_res = predict(model, scaler, input_data, feature_names=feature_names)
+
 
     predictions = pred_res["predictions"]
     probabilities = pred_res.get("probabilities")
