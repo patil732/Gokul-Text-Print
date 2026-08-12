@@ -162,17 +162,18 @@ class TestPlotGeneration:
 
     def test_plots_saved_to_static_explanations_folder(self, loaded_engine, tmp_path):
         out_dir = str(tmp_path / "sales_explanations")
-        feat_cols = (
-            getattr(loaded_engine.scaler, "feature_names_in_", None)
-            or getattr(loaded_engine.model, "feature_names_in_", None)
-            or getattr(loaded_engine, "feature_names", None)
-            or _FEATURE_COLS
-        )
+        feat_cols = getattr(loaded_engine.scaler, "feature_names_in_", None)
+        if feat_cols is None:
+            feat_cols = getattr(loaded_engine.model, "feature_names_in_", None)
+        if feat_cols is None:
+            feat_cols = getattr(loaded_engine, "feature_names", None)
+        if feat_cols is None:
+            feat_cols = _FEATURE_COLS
+
         if hasattr(feat_cols, "tolist"):
             feat_cols = feat_cols.tolist()
         else:
             feat_cols = list(feat_cols)
-
 
         X = np.random.default_rng(99).uniform(100, 5000, (20, len(feat_cols)))
         df_sample = pd.DataFrame(X, columns=feat_cols)
