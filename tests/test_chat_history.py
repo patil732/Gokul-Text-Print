@@ -53,10 +53,11 @@ class MockEmbeddingProvider:
     """Mock embedding provider."""
 
     def embed(self, text: str) -> list[float]:
-        return [1.0, 0.0, 0.0, 0.0]
+        return [1.0] + [0.0] * 383
 
     def embed_batch(self, texts: list[str]) -> list[list[float]]:
-        return [[1.0, 0.0, 0.0, 0.0] for _ in texts]
+        return [[1.0] + [0.0] * 383 for _ in texts]
+
 
 
 @pytest.fixture(scope="module", autouse=True)

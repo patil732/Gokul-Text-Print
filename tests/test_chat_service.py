@@ -53,7 +53,8 @@ create_app = _APP_MOD.create_app
 # Test doubles & helpers
 # --------------------------------------------------------------------------- #
 
-_DIM = 8
+_DIM = 384
+
 
 
 def _unit_vec(seed: int = 0) -> list[float]:

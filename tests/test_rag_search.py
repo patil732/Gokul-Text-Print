@@ -57,7 +57,8 @@ create_app = _APP_MOD.create_app
 # Shared constants & helpers
 # --------------------------------------------------------------------------- #
 
-_DIM = 8   # small fixed dimension for synthetic vectors
+_DIM = 384   # match sentence_transformers dimension in model_config.yaml
+
 
 
 def _unit_vec(seed: int = 0) -> list[float]:
