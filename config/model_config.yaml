@@ -216,3 +216,27 @@ rag:
     # Seconds before the in-memory index is considered stale and rebuilt.
     # 0 = never expire (only rebuilt after upload invalidation).
     cache_ttl_seconds: 300
+
+  # ----------------------------------------------------------
+  # Chat / generation configuration (Sprint 4 Step 5)
+  # ----------------------------------------------------------
+  chat:
+    # Active LLM provider.  Options: gemini | openai
+    # Switch provider here; no code changes required.
+    provider: gemini
+    # Number of retrieved chunks fed into the prompt as context
+    top_k: 5
+    # Maximum tokens in the LLM response
+    max_tokens: 1024
+    # Lower temperature = more factual / grounded answers
+    temperature: 0.2
+
+  # Per-provider LLM settings (only the active provider block is used)
+  chat_providers:
+    gemini:
+      model: gemini-1.5-flash
+      api_key_env: GEMINI_API_KEY
+
+    openai:
+      model: gpt-4o-mini
+      api_key_env: OPENAI_API_KEY

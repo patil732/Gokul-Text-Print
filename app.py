@@ -37,6 +37,10 @@ def create_app():
     from routes.rag import rag_bp
     app.register_blueprint(rag_bp)
 
+    # Sprint 4 Step 5 — RAG Knowledge Engine: chat / Q&A
+    from routes.chat import chat_bp
+    app.register_blueprint(chat_bp)
+
     @app.route('/')
     def index():
         if 'user' in session:
