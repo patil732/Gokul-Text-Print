@@ -50,10 +50,13 @@ def create_app():
         return redirect(url_for('auth.login'))
 
     # Start Automation Layer (Background Scheduler)
-    try:
-        start_scheduler()
-    except Exception as e:
-        logger.error(f"Failed to start scheduler: {e}")
+    import os
+    if not app.config.get("TESTING") and not os.environ.get("PYTEST_CURRENT_TEST"):
+        try:
+            start_scheduler()
+        except Exception as e:
+            logger.error(f"Failed to start scheduler: {e}")
+
 
     logger.info("Flask Application initialized with Automation Layer.")
     return app
