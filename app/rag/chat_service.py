@@ -57,6 +57,7 @@ from app.rag.prompt_builder import (                 # noqa: E402
     build_prompt,
     extract_sources,
 )
+from app.rag.chat_history import save_chat_turn       # noqa: E402
 
 _CONFIG_PATH = os.path.join(_PROJECT_ROOT, "config", "model_config.yaml")
 
@@ -292,9 +293,9 @@ _NO_CONTEXT_ANSWER = (
 )
 
 
-def chat(question: str) -> dict[str, Any]:
+def chat(question: str, user: str = "system") -> dict[str, Any]:
     """
-    Answer a question using retrieved document context.
+    Answer a question using retrieved document context and persist the interaction.
 
     Flow
     ----
@@ -302,17 +303,20 @@ def chat(question: str) -> dict[str, Any]:
     2. ``build_prompt(question, chunks)`` → (system, user).
     3. ``get_chat_provider().complete(system, user)`` → answer text.
     4. ``extract_sources(chunks)`` → deterministic citations.
-    5. Return ``{answer, sources}``.
+    5. ``save_chat_turn(question, answer, sources, user)`` → persist to DB.
+    6. Return ``{chat_id, answer, sources}``.
 
     Parameters
     ----------
     question : str
         The user's natural-language question.
+    user : str
+        Identity of the user asking the question (defaults to "system").
 
     Returns
     -------
     dict
-        ``{"answer": str, "sources": list[{"document": str, "page": int}]}``
+        ``{"chat_id": str, "answer": str, "sources": list[{"document": str, "page": int}]}``
 
     Raises
     ------
@@ -331,7 +335,14 @@ def chat(question: str) -> dict[str, Any]:
 
     if not chunks:
         logger.info("[chat_service] Index empty — returning fallback answer.")
+        chat_id = save_chat_turn(
+            question=question,
+            answer=_NO_CONTEXT_ANSWER,
+            sources=[],
+            user=user,
+        )
         return {
+            "chat_id": chat_id,
             "answer":  _NO_CONTEXT_ANSWER,
             "sources": [],
         }
@@ -350,12 +361,22 @@ def chat(question: str) -> dict[str, Any]:
     # ── 4. Extract sources (deterministic — from chunk metadata) ──────────── #
     sources = extract_sources(chunks)
 
+    # ── 5. Persist to chat_history ────────────────────────────────────────── #
+    chat_id = save_chat_turn(
+        question=question,
+        answer=answer,
+        sources=sources,
+        user=user,
+    )
+
     logger.info(
         f"[chat_service] Answered: '{question[:60]}' "
-        f"— {len(sources)} source(s)"
+        f"— {len(sources)} source(s) (chat_id={chat_id})"
     )
 
     return {
+        "chat_id": chat_id,
         "answer":  answer,
         "sources": sources,
     }
+

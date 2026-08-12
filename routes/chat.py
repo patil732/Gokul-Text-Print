@@ -22,7 +22,7 @@ import os
 import sys
 import time
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 
 # --------------------------------------------------------------------------- #
 # Project root on sys.path
@@ -32,8 +32,9 @@ _PROJECT_ROOT = os.path.dirname(_THIS_DIR)
 if _PROJECT_ROOT not in sys.path:
     sys.path.insert(0, _PROJECT_ROOT)
 
-from app.rag.chat_service import chat   # noqa: E402
-from utils.logger         import logger # noqa: E402
+from app.rag.chat_service import chat               # noqa: E402
+from app.rag.chat_history import get_chat_history   # noqa: E402
+from utils.logger         import logger             # noqa: E402
 
 # --------------------------------------------------------------------------- #
 # Blueprint
@@ -54,6 +55,7 @@ def ask():
     Request body (JSON)
     -------------------
     question : str  — the natural-language question (required)
+    user     : str  — identity of user asking (optional, default session/system)
 
     Response 200
     ------------
@@ -73,6 +75,7 @@ def ask():
     # ── Parse request ──────────────────────────────────────────────────────── #
     body     = request.get_json(silent=True) or {}
     question = body.get("question", "").strip()
+    user     = body.get("user") or session.get("user") or "system"
 
     if not question:
         return jsonify({
@@ -82,7 +85,7 @@ def ask():
 
     # ── Call chat service ──────────────────────────────────────────────────── #
     try:
-        result = chat(question)
+        result = chat(question, user=user)
     except ValueError as exc:
         return jsonify({"status": "error", "message": str(exc)}), 400
     except RuntimeError as exc:
@@ -121,14 +124,75 @@ def ask():
     elapsed_ms = round((time.monotonic() - t_start) * 1000, 2)
 
     logger.info(
-        f"[chat.ask] question='{question[:60]}' "
+        f"[chat.ask] question='{question[:60]}' user='{user}' "
         f"sources={len(result['sources'])} elapsed={elapsed_ms}ms"
     )
 
     return jsonify({
         "status":     "success",
+        "chat_id":    result.get("chat_id"),
         "question":   question,
         "answer":     result["answer"],
         "sources":    result["sources"],
         "elapsed_ms": elapsed_ms,
     }), 200
+
+
+# --------------------------------------------------------------------------- #
+# GET /api/chat/history
+# --------------------------------------------------------------------------- #
+
+@chat_bp.route("/chat/history", methods=["GET"])
+def history():
+    """
+    Retrieve paginated chat history ordered by timestamp descending.
+
+    Query parameters
+    ----------------
+    page  : int (optional, default 1)
+    limit : int (optional, default 20, max 100)
+    user  : str (optional, filter by user)
+
+    Response 200
+    ------------
+    {
+      "status":  "success",
+      "page":    1,
+      "limit":   20,
+      "total":   45,
+      "pages":   3,
+      "history": [
+        {
+          "chat_id": "...",
+          "user": "...",
+          "question": "...",
+          "answer": "...",
+          "retrieved_documents": [...],
+          "timestamp": "..."
+        }
+      ]
+    }
+    """
+    try:
+        page = int(request.args.get("page", 1))
+    except (ValueError, TypeError):
+        page = 1
+
+    try:
+        limit = int(request.args.get("limit", 20))
+    except (ValueError, TypeError):
+        limit = 20
+
+    user = request.args.get("user")
+
+    data = get_chat_history(page=page, limit=limit, user=user)
+
+    return jsonify({
+        "status":  "success",
+        "page":    data["page"],
+        "limit":   data["limit"],
+        "total":   data["total"],
+        "pages":   data["pages"],
+        "history": data["history"],
+    }), 200
+

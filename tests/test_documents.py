@@ -44,17 +44,50 @@ create_app = _APP_MOD.create_app
 # Helpers
 # --------------------------------------------------------------------------- #
 
-def _make_pdf_stream(content: bytes = b"%PDF-1.4 fake pdf content") -> io.BytesIO:
-    """Return a BytesIO stream that mimics a minimal PDF file."""
+def _make_pdf_bytes(text: str = "Standard test document page content.") -> bytes:
+    """Build a valid PDF byte string using pypdf."""
+    from pypdf import PdfWriter
+    from pypdf.generic import DecodedStreamObject, DictionaryObject, NameObject
+
+    writer = PdfWriter()
+    page = writer.add_blank_page(width=595, height=842)
+    safe = text.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
+    content = f"BT /F1 12 Tf 50 750 Td ({safe}) Tj ET".encode()
+    stream = DecodedStreamObject()
+    stream.set_data(content)
+    page[NameObject("/Contents")] = writer._add_object(stream)
+    font = DictionaryObject({
+        NameObject("/Type"): NameObject("/Font"),
+        NameObject("/Subtype"): NameObject("/Type1"),
+        NameObject("/BaseFont"): NameObject("/Helvetica"),
+    })
+    page[NameObject("/Resources")] = DictionaryObject({
+        NameObject("/Font"): DictionaryObject({
+            NameObject("/F1"): writer._add_object(font)
+        })
+    })
+    buf = io.BytesIO()
+    writer.write(buf)
+    buf.seek(0)
+    return buf.read()
+
+
+def _make_pdf_stream(content: bytes | None = None) -> io.BytesIO:
+    """Return a BytesIO stream that mimics a valid PDF file."""
+    if content is None:
+        content = _make_pdf_bytes()
     return io.BytesIO(content)
 
 
-def _make_werkzeug_file(filename: str, content: bytes = b"%PDF-1.4 fake pdf content"):
+def _make_werkzeug_file(filename: str, content: bytes | None = None):
     """
     Build a lightweight stand-in for werkzeug.datastructures.FileStorage
-    using only stdlib so tests run without a live HTTP request.
+    using valid PDF bytes so tests run without a live HTTP request.
     """
     from werkzeug.datastructures import FileStorage
+    if content is None or content.startswith(b"%PDF"):
+        if content is None or content == b"%PDF-1.4 fake pdf content" or len(content) < 50:
+            content = _make_pdf_bytes(f"Content for {filename}")
     stream = io.BytesIO(content)
     return FileStorage(stream=stream, filename=filename, content_type="application/pdf")
 
@@ -372,7 +405,7 @@ class TestDocumentsAPIEndpoints:
         from app.documents import storage_service
         monkeypatch.setattr(storage_service, "STORAGE_DIR", str(tmp_path))
 
-        content  = b"%PDF-1.4 api upload test " + uuid.uuid4().bytes
+        content = _make_pdf_bytes("API upload test content")
         data     = {
             "file":        (io.BytesIO(content), "api_upload_test.pdf"),
             "uploaded_by": "__test__",
@@ -412,7 +445,7 @@ class TestDocumentsAPIEndpoints:
         from app.documents import storage_service
         monkeypatch.setattr(storage_service, "STORAGE_DIR", str(tmp_path))
 
-        content  = b"%PDF-1.4 duplicate api " + uuid.uuid4().bytes
+        content  = _make_pdf_bytes("Duplicate test content")
         filename = f"dup_api_{uuid.uuid4().hex[:6]}.pdf"
 
         # First upload
@@ -451,7 +484,7 @@ class TestDocumentsAPIEndpoints:
         from app.documents import storage_service
         monkeypatch.setattr(storage_service, "STORAGE_DIR", str(tmp_path))
 
-        content  = b"%PDF-1.4 listing test " + uuid.uuid4().bytes
+        content  = _make_pdf_bytes("Listing check content")
         filename = f"list_check_{uuid.uuid4().hex[:6]}.pdf"
         flask_client.post(
             "/api/documents/upload",
@@ -469,7 +502,7 @@ class TestDocumentsAPIEndpoints:
         from app.documents import storage_service
         monkeypatch.setattr(storage_service, "STORAGE_DIR", str(tmp_path))
 
-        content  = b"%PDF-1.4 delete test " + uuid.uuid4().bytes
+        content  = _make_pdf_bytes("Delete check content")
         filename = f"delete_me_{uuid.uuid4().hex[:6]}.pdf"
         upload_resp = flask_client.post(
             "/api/documents/upload",
@@ -488,7 +521,7 @@ class TestDocumentsAPIEndpoints:
         from app.documents import storage_service
         monkeypatch.setattr(storage_service, "STORAGE_DIR", str(tmp_path))
 
-        content  = b"%PDF-1.4 del list test " + uuid.uuid4().bytes
+        content  = _make_pdf_bytes("Delete from listing content")
         filename = f"del_list_{uuid.uuid4().hex[:6]}.pdf"
         upload_resp = flask_client.post(
             "/api/documents/upload",

@@ -160,6 +160,18 @@ def init_db() -> None:
         )
     """)
 
+    # Chat history table (Sprint 4 Step 6 — conversation audit & history)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS chat_history (
+            chat_id             TEXT     PRIMARY KEY,
+            user                TEXT     NOT NULL,
+            question            TEXT     NOT NULL,
+            answer              TEXT     NOT NULL,
+            retrieved_documents TEXT     NOT NULL,
+            timestamp           DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
     conn.commit()
     conn.close()
     logger.info(f"[db] Database initialised at {DB_PATH}")

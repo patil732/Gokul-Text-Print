@@ -281,11 +281,14 @@ class TestRetriever:
         insert_chunks(doc["document_id"], doc["document_name"], chunks)
         db_chunks = get_chunks(doc["document_id"])
         chunk_ids = []
+        from app.rag.vector_store import invalidate_index
         for c in db_chunks:
             h = _sha256(c["chunk_text"])
             insert_embedding(c["chunk_id"], h, _unit_vec(0), "mock", "mock-v1")
             chunk_ids.append(c["chunk_id"])
+        invalidate_index()
         return chunk_ids
+
 
     def test_retrieve_returns_list(self):
         from app.rag import embeddings as emb_module

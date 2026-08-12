@@ -81,7 +81,18 @@ CREATE TABLE IF NOT EXISTS chunk_embeddings (
     model        VARCHAR(255) NOT NULL,
     created_at   TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Sprint 4 Step 6: Chat history
+CREATE TABLE IF NOT EXISTS chat_history (
+    chat_id             UUID         PRIMARY KEY,
+    "user"              VARCHAR(255) NOT NULL,
+    question            TEXT         NOT NULL,
+    answer              TEXT         NOT NULL,
+    retrieved_documents JSON         NOT NULL,
+    timestamp           TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
+);
 """
+
 
 
 def run_migrations():
