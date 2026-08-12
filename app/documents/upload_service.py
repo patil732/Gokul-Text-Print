@@ -55,6 +55,7 @@ from app.documents.document_metadata import (                               # no
 from app.rag.loader            import extract_pages              # noqa: E402
 from app.rag.chunker           import chunk_pages                # noqa: E402
 from app.rag.embedding_pipeline import embed_document_chunks     # noqa: E402
+from app.rag.vector_store      import invalidate_index           # noqa: E402
 from utils.logger              import logger                     # noqa: E402
 
 
@@ -192,6 +193,9 @@ def process_upload(
         update_document_status(document_id, "processed")
         record["status"]      = "processed"
         record["chunk_count"] = chunk_count
+
+        # g. Invalidate the FAISS index so the next search picks up new chunks
+        invalidate_index()
 
         logger.info(
             f"[upload_service] Pipeline complete: {document_id} — "

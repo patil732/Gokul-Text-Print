@@ -199,3 +199,20 @@ rag:
       model: models/text-embedding-004   # 768-dim
       dimension: 768
       api_key_env: GEMINI_API_KEY        # env var holding the API key
+
+  # ----------------------------------------------------------
+  # Vector search configuration (Sprint 4 Step 4)
+  # ----------------------------------------------------------
+  search:
+    # K returned by default when the caller omits top_k
+    default_top_k: 5
+    # Hard ceiling — requests above this are rejected with HTTP 400
+    max_top_k: 50
+    # FAISS index type.  FlatIP = exact cosine (dot-product after L2-norm).
+    # Switch to IVFFlat or HNSW for >500k chunks.
+    index_type: FlatIP
+    # Number of IVF cells to scan (ignored for FlatIP)
+    nprobe: 10
+    # Seconds before the in-memory index is considered stale and rebuilt.
+    # 0 = never expire (only rebuilt after upload invalidation).
+    cache_ttl_seconds: 300

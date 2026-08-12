@@ -33,6 +33,10 @@ def create_app():
     # Sprint 4 — RAG Knowledge Engine: document management
     app.register_blueprint(documents_bp)
 
+    # Sprint 4 Step 4 — RAG Knowledge Engine: semantic search
+    from routes.rag import rag_bp
+    app.register_blueprint(rag_bp)
+
     @app.route('/')
     def index():
         if 'user' in session:
