@@ -41,6 +41,11 @@ def create_app():
     from routes.chat import chat_bp
     app.register_blueprint(chat_bp)
 
+    # Multi-Agent Executive Copilot
+    from routes.agent import agent_bp
+    app.register_blueprint(agent_bp)
+
+
     @app.route('/')
     def index():
         if 'user' in session:

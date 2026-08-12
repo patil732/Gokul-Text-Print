@@ -343,14 +343,24 @@
                                     <div class="chat-container">
                                         <div class="d-flex justify-content-between align-items-center p-3 border-bottom bg-light">
                                             <div class="d-flex align-items-center gap-2">
-                                                <span class="fs-5">🤖</span>
+                                                <span class="fs-5" id="chat-mode-icon">🤖</span>
                                                 <div>
-                                                    <span class="fw-bold small text-dark d-block">Enterprise Strategy & SOP Assistant</span>
-                                                    <span class="small text-secondary" style="font-size: 0.72rem;">Grounded on indexed document embeddings</span>
+                                                    <span class="fw-bold small text-dark d-block" id="chat-mode-title">Enterprise Strategy & SOP Assistant</span>
+                                                    <span class="small text-secondary" id="chat-mode-subtitle" style="font-size: 0.72rem;">Grounded on indexed document embeddings</span>
                                                 </div>
                                             </div>
-                                            <button class="btn btn-outline-secondary btn-sm" onclick="clearChatMessages()" title="Clear conversation view">Clear</button>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="btn-group btn-group-sm" role="group" aria-label="Assistant Mode">
+                                                    <input type="radio" class="btn-check" name="chat-mode-radio" id="mode-rag-radio" value="rag" checked onchange="onChatModeToggle('rag')">
+                                                    <label class="btn btn-outline-primary" for="mode-rag-radio" title="RAG Document & SOP Search">📚 SOP/RAG</label>
+
+                                                    <input type="radio" class="btn-check" name="chat-mode-radio" id="mode-copilot-radio" value="copilot" onchange="onChatModeToggle('copilot')">
+                                                    <label class="btn btn-outline-primary" for="mode-copilot-radio" title="Multi-Agent Executive Business Copilot">✨ Copilot</label>
+                                                </div>
+                                                <button class="btn btn-outline-secondary btn-sm" onclick="clearChatMessages()" title="Clear conversation view">Clear</button>
+                                            </div>
                                         </div>
+
 
                                         <!-- Messages scroll container -->
                                         <div id="chat-messages-container" class="chat-messages">

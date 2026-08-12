@@ -697,6 +697,28 @@ async function loadChatHistory() {
     }
 }
 
+let currentChatMode = 'rag';
+
+function onChatModeToggle(mode) {
+    currentChatMode = mode;
+    const iconEl = document.getElementById('chat-mode-icon');
+    const titleEl = document.getElementById('chat-mode-title');
+    const subtitleEl = document.getElementById('chat-mode-subtitle');
+    const inputEl = document.getElementById('chat-question-input');
+
+    if (mode === 'copilot') {
+        if (iconEl) iconEl.textContent = '✨';
+        if (titleEl) titleEl.textContent = 'Executive Business Copilot (Multi-Agent)';
+        if (subtitleEl) subtitleEl.textContent = 'Orchestrating Sales, Inventory & Enterprise Policy Agents';
+        if (inputEl) inputEl.placeholder = 'Ask a cross-domain executive question (e.g. "Should we increase inventory?")...';
+    } else {
+        if (iconEl) iconEl.textContent = '🤖';
+        if (titleEl) titleEl.textContent = 'Enterprise Strategy & SOP Assistant';
+        if (subtitleEl) subtitleEl.textContent = 'Grounded on indexed document embeddings';
+        if (inputEl) inputEl.placeholder = 'Ask a question about uploaded SOPs, policies, or procedures...';
+    }
+}
+
 async function handleChatSubmit(event) {
     event.preventDefault();
     const input = document.getElementById('chat-question-input');
@@ -709,26 +731,51 @@ async function handleChatSubmit(event) {
     input.value = '';
     sendBtn.disabled = true;
 
-    const typingId = showTypingIndicator();
+    const isCopilot = (currentChatMode === 'copilot');
+    const typingMessage = isCopilot
+        ? 'Orchestrating Sales, Inventory & Knowledge agents in parallel...'
+        : 'Consulting enterprise document knowledge base...';
+
+    const typingId = showTypingIndicator(typingMessage);
 
     try {
-        const res = await fetch('/api/chat', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ question: question }),
-        });
-        const result = await res.json();
+        if (isCopilot) {
+            // Multi-Agent Copilot Endpoint
+            const res = await fetch('/api/agent/ask', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question: question }),
+            });
+            const result = await res.json();
+            removeTypingIndicator(typingId);
 
-        removeTypingIndicator(typingId);
-
-        if (res.status === 200 && result.status === 'success') {
-            appendChatMessage('assistant', result.answer, true);
-            renderSourcesPanel(result.sources || []);
-        } else if (res.status === 503) {
-            appendChatMessage('assistant', '⚠ No documents indexed yet. Please upload at least one PDF in the repository panel on the left.', true);
-            renderSourcesPanel([]);
+            if (res.status === 200 && result.status === 'success') {
+                appendChatMessage('assistant', result.answer, true, result.agents_used, 'copilot');
+                if (result.raw_data && result.raw_data.knowledge && result.raw_data.knowledge.sources) {
+                    renderSourcesPanel(result.raw_data.knowledge.sources);
+                }
+            } else {
+                appendChatMessage('assistant', `⚠ Copilot Error: ${result.message || 'Failed to synthesize response.'}`, true);
+            }
         } else {
-            appendChatMessage('assistant', `⚠ Error: ${result.message || 'Failed to generate answer.'}`, true);
+            // Standard RAG Endpoint
+            const res = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question: question }),
+            });
+            const result = await res.json();
+            removeTypingIndicator(typingId);
+
+            if (res.status === 200 && result.status === 'success') {
+                appendChatMessage('assistant', result.answer, true);
+                renderSourcesPanel(result.sources || []);
+            } else if (res.status === 503) {
+                appendChatMessage('assistant', '⚠ No documents indexed yet. Please upload at least one PDF in the repository panel on the left.', true);
+                renderSourcesPanel([]);
+            } else {
+                appendChatMessage('assistant', `⚠ Error: ${result.message || 'Failed to generate answer.'}`, true);
+            }
         }
     } catch (err) {
         console.error('Chat error:', err);
@@ -740,22 +787,39 @@ async function handleChatSubmit(event) {
     }
 }
 
-function appendChatMessage(role, text, scroll = true) {
+function appendChatMessage(role, text, scroll = true, agentsUsed = null, mode = 'rag') {
     const container = document.getElementById('chat-messages-container');
     if (!container) return;
 
     const msgDiv = document.createElement('div');
     msgDiv.className = `chat-message ${role}`;
 
-    const roleName = role === 'user' ? 'You' : 'AI Assistant';
-    const roleHeader = role === 'user'
-        ? ''
-        : `<strong class="d-block mb-1 text-primary">${roleName}</strong>`;
+    let roleHeader = '';
+    if (role === 'assistant') {
+        const titleText = mode === 'copilot' ? '✨ Business Copilot' : '🤖 SOP Assistant';
+        let badgeHtml = '';
+        if (agentsUsed && agentsUsed.length > 0) {
+            const agentBadges = agentsUsed.map(a => {
+                if (a === 'sales') return '<span class="badge bg-primary-subtle text-primary border border-primary-subtle me-1">📊 Sales Agent</span>';
+                if (a === 'inventory') return '<span class="badge bg-success-subtle text-success border border-success-subtle me-1">📦 Inventory Agent</span>';
+                if (a === 'knowledge') return '<span class="badge bg-info-subtle text-info border border-info-subtle me-1">📚 Knowledge Agent</span>';
+                return `<span class="badge bg-light text-dark border me-1">${escapeHtml(a)} Agent</span>`;
+            }).join('');
+            badgeHtml = `<div class="mt-1 mb-2 d-flex flex-wrap align-items-center gap-1"><span class="small text-muted me-1" style="font-size: 0.72rem;">Consulted:</span>${agentBadges}</div>`;
+        }
+
+        roleHeader = `
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <strong class="text-primary">${titleText}</strong>
+            </div>
+            ${badgeHtml}
+        `;
+    }
 
     msgDiv.innerHTML = `
         <div class="chat-bubble">
             ${roleHeader}
-            ${escapeHtml(text)}
+            <div style="white-space: pre-wrap;">${escapeHtml(text)}</div>
         </div>
     `;
 
@@ -765,7 +829,7 @@ function appendChatMessage(role, text, scroll = true) {
     }
 }
 
-function showTypingIndicator() {
+function showTypingIndicator(message = 'Consulting enterprise document knowledge base...') {
     const container = document.getElementById('chat-messages-container');
     if (!container) return null;
 
@@ -776,7 +840,7 @@ function showTypingIndicator() {
     typingDiv.innerHTML = `
         <div class="chat-bubble text-secondary">
             <span class="spinner-grow spinner-grow-sm me-1" role="status"></span>
-            <span class="small fst-italic">Consulting enterprise document knowledge base...</span>
+            <span class="small fst-italic">${escapeHtml(message)}</span>
         </div>
     `;
     container.appendChild(typingDiv);
@@ -785,6 +849,7 @@ function showTypingIndicator() {
 }
 
 function removeTypingIndicator(id) {
+
     if (!id) return;
     const el = document.getElementById(id);
     if (el) el.remove();
