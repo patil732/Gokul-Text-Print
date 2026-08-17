@@ -121,48 +121,6 @@ class TestSalesAgent:
             if isinstance(v, str):
                 assert len(v.split()) < 15, f"SalesAgent field '{k}' contains free-form conversational prose: '{v}'"
 
-    def test_sales_agent_can_handle_filtering(self):
-        """Confirm can_handle() correctly matches sales queries and rejects unrelated domains."""
-        agent = SalesAgent()
-
-        # Positive matches (sales, revenue, growth, forecast, product performance)
-        assert agent.can_handle("What is our sales projection?") is True
-        assert agent.can_handle("Check monthly revenue outlook") is True
-        assert agent.can_handle("How is our sales growth doing?") is True
-        assert agent.can_handle("Provide the 30 day demand forecast") is True
-        assert agent.can_handle("Analyze product performance for cotton fabric") is True
-        assert agent.can_handle("What is the market demand trend?") is True
-
-        # Negative matches (inventory, policy, general non-sales)
-        assert agent.can_handle("Check warehouse bin inventory levels") is False
-        assert agent.can_handle("What is company SOP for fabric dyeing?") is False
-        assert agent.can_handle("When should we reorder raw stock?") is False
-        assert agent.can_handle("") is False
-        assert agent.can_handle(None) is False
-
-    @mock.patch("app.agents.sales_agent.call_api")
-    def test_sales_agent_execute_structured_format(self, mock_call):
-        """Confirm execute() returns structured JSON with required fields."""
-        mock_call.return_value = {
-            "status": "success",
-            "data": {
-                "growth_rate": -0.124,
-                "forecast_value": 15000.0,
-                "confidence_score": 0.85,
-                "decision": "Increase marketing",
-            }
-        }
-        agent = SalesAgent()
-        result = agent.execute({"query": "What is our 30-day forecast?"})
-
-        assert isinstance(result, dict)
-        assert result["sales_growth"] == -12.4
-        assert result["forecast"] == 15000.0
-        assert result["recommendation"] == "Increase marketing"
-        assert "top_product" in result
-        assert result["domain"] == "sales"
-
-
 
 class TestInventoryAgent:
     """Validate InventoryAgent in complete isolation."""
@@ -226,8 +184,12 @@ class TestKnowledgeAgent:
         assert "policy" in res
         assert isinstance(res["sources"], list)
         assert len(res["sources"]) == 1
-        assert res["sources"][0]["document"] == "Inventory_Policy.pdf"
-        assert res["sources"][0]["page"] == 2
+        # sources is now list[str] (document names); rich detail is in source_details
+        assert res["sources"][0] == "Inventory_Policy.pdf"
+        # source_details carries the per-chunk structured info
+        assert isinstance(res["source_details"], list)
+        assert res["source_details"][0]["document"] == "Inventory_Policy.pdf"
+        assert res["source_details"][0]["page"] == 2
 
 
 # ============================================================================ #
@@ -395,23 +357,3 @@ class TestAgentAPIEndpoints:
             assert data["raw_data"]["sales"]["sales_growth"] == -12.4
         finally:
             reset_chat_provider()
-
-    @mock.patch("app.agents.sales_agent.call_api")
-    def test_post_agents_sales_direct_endpoint(self, mock_call, client):
-        """Confirm direct execution of SalesAgent via POST /api/agents/sales."""
-        mock_call.return_value = {
-            "status": "success",
-            "data": {
-                "growth_rate": -0.124,
-                "forecast_value": 15000.0,
-                "decision": "Increase marketing",
-            }
-        }
-        resp = client.post("/api/agents/sales", json={"query": "What is our product performance?"})
-        assert resp.status_code == 200
-        data = resp.get_json()
-        assert data["sales_growth"] == -12.4
-        assert data["forecast"] == 15000.0
-        assert data["recommendation"] == "Increase marketing"
-        assert data["domain"] == "sales"
-

@@ -1,46 +1,53 @@
 """
 app/agents/sales_agent.py
 -------------------------
-Sprint 5 Step 2 — Sales Sub-Agent Implementation
+Sprint 5 — Sales Domain Sub-Agent
 
-Inherits from `BaseAgent` in `app/agents/base_agent.py`.
-Responsible exclusively for Sales Intelligence:
-  - Calls existing Sprint 2 endpoints:
-      * GET  /api/sales/recommendation
-      * POST /api/sales/forecast
-  - Returns strictly structured JSON (never free-form conversational prose).
+Concrete implementation of BaseAgent for the Sales domain.
+
+Calls exclusively Sprint 2 endpoints:
+  - GET  /api/sales/recommendation
+  - POST /api/sales/forecast  (via /api/sales/dashboard_data as fallback)
 
 Design constraints:
-  - Zero references to Inventory or Knowledge APIs/modules.
-  - Returns standardized structured metrics only.
+  - Zero references to Inventory or Knowledge modules/APIs.
+  - execute() returns AgentResponse with strictly structured data dict —
+    NEVER natural-language prose.
+  - can_handle() is purely keyword/intent based; makes no LLM call.
 """
 
 from __future__ import annotations
 
+import re
 from typing import Any, Dict, Optional
-from app.agents.base_agent import BaseAgent, AgentResponse, call_api
+
+from app.agents.base import call_api
+from app.agents.base_agent import AgentResponse, BaseAgent
 from utils.logger import logger
 
-_SALES_KEYWORDS = (
-    "sales",
-    "sale",
-    "revenue",
-    "growth",
-    "forecast",
-    "product performance",
-    "market demand",
-    "order trend",
-    "customer order",
-)
+# ---------------------------------------------------------------------------
+# Intent keywords — purely string-based, no LLM call
+# ---------------------------------------------------------------------------
+_SALES_KEYWORDS: frozenset[str] = frozenset({
+    "sale", "sales", "revenue", "demand", "market", "forecast",
+    "growth", "trend", "customer", "customers", "buying", "sell", "price", "pricing",
+    "marketing", "projection", "target", "product", "performance",
+    "income", "profit", "turnover", "quarterly", "weekly", "monthly",
+    "cotton", "fabric", "order", "volume", "top product",
+})
 
 
 class SalesAgent(BaseAgent):
     """
-    Sub-agent responsible for sales demand forecasting and rule recommendations.
+    Sales domain agent that retrieves and structures Sprint 2 sales intelligence.
     """
 
     def __init__(self, base_url: Optional[str] = None) -> None:
-        self.base_url = base_url
+        self._base_url = base_url
+
+    # ------------------------------------------------------------------
+    # BaseAgent contract
+    # ------------------------------------------------------------------
 
     @property
     def name(self) -> str:
@@ -48,95 +55,121 @@ class SalesAgent(BaseAgent):
 
     def can_handle(self, query: str) -> bool:
         """
-        Determine if the query relates to the sales domain.
+        Return True if the query mentions any sales-domain keyword.
 
-        Returns True for queries mentioning sales, revenue, growth, forecast,
-        or product performance.
+        Pure keyword/intent matching — no LLM invoked.
         """
-        if not query or not isinstance(query, str):
+        if not query:
             return False
-        q_lower = query.lower()
-        return any(kw in q_lower for kw in _SALES_KEYWORDS)
+        # Normalise: lowercase, collapse whitespace
+        words = set(re.sub(r"[^a-z0-9 ]", " ", query.lower()).split())
+        return bool(words & _SALES_KEYWORDS)
 
-    def execute(self, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def execute(self, context: Optional[Dict[str, Any]] = None) -> AgentResponse:
         """
-        Execute sales intelligence retrieval from Sprint 2 endpoints.
+        Query Sprint 2 endpoints and return a strictly structured AgentResponse.
 
-        Parameters
-        ----------
-        context : dict[str, Any], optional
-            Execution context (may contain 'query' or 'question').
-
-        Returns
-        -------
-        dict[str, Any]
-            Strictly structured dictionary of numerical and categorical metrics:
-            {
-                "sales_growth": float,
-                "top_product": str,
-                "forecast": float,
-                "recommendation": str,
-                ...
-            }
+        Structured data keys
+        --------------------
+        sales_growth       : float   — period-over-period growth % (negative = decline)
+        forecast           : float   — projected revenue / sales for the period
+        recommendation     : str     — categorical action (≤ 5 words)
+        confidence         : float   — model confidence 0–1
+        market_trend       : str     — "Growing" | "Stable" | "Declining"
+        top_product        : str     — leading product category
+        forecast_period    : str     — "7_days" | "30_days" | "90_days"
         """
         ctx = context or {}
-        query = str(ctx.get("query") or ctx.get("question") or "")
+        query = str(ctx.get("query", "")).lower()
 
-        # Determine horizon from query context (defaults to 30_days)
+        # Determine forecast horizon from query context
         horizon = "30_days"
-        q_lower = query.lower()
-        if "7 day" in q_lower or "7_day" in q_lower or "weekly" in q_lower:
+        if any(kw in query for kw in ("7 day", "7_day", "week", "weekly")):
             horizon = "7_days"
-        elif "90 day" in q_lower or "90_day" in q_lower or "quarter" in q_lower:
+        elif any(kw in query for kw in ("90 day", "90_day", "quarter")):
             horizon = "90_days"
 
-        logger.info(f"[SalesAgent] Fetching sales intelligence for horizon='{horizon}'")
+        logger.info(f"[SalesAgent] execute() → horizon='{horizon}'")
 
-        # 1. Fetch sales recommendation (Sprint 2)
-        rec_res = call_api(
-            "/api/sales/recommendation",
-            method="GET",
-            params={"forecast_period": horizon},
-            base_url=self.base_url,
+        try:
+            rec_res = call_api(
+                "/api/sales/recommendation",
+                method="GET",
+                params={"forecast_period": horizon},
+                base_url=self._base_url,
+            )
+            fc_res = call_api(
+                "/api/sales/forecast",
+                method="POST",
+                json_data={"forecast_period": horizon},
+                base_url=self._base_url,
+            )
+        except Exception as exc:
+            logger.error(f"[SalesAgent] API call failed: {exc}")
+            return AgentResponse(
+                agent_name=self.name,
+                status="error",
+                data={},
+                confidence=0.0,
+                error=str(exc),
+            )
+
+        rec_data: Dict[str, Any] = rec_res.get("data", {}) if isinstance(rec_res, dict) else {}
+        fc_data: Dict[str, Any] = fc_res.get("data", {}) if isinstance(fc_res, dict) else {}
+
+        # Resolve growth rate (API may return ratio or percentage)
+        raw_growth = rec_data.get("growth_rate") or fc_data.get("growth_rate") or 0.0
+        raw_growth = float(raw_growth)
+        sales_growth = round(raw_growth * 100 if abs(raw_growth) < 2.0 else raw_growth, 2)
+
+        forecast_val = round(
+            float(rec_data.get("forecast_value") or fc_data.get("predicted_sales") or 0.0), 2
+        )
+        confidence_val = round(
+            float(rec_data.get("confidence_score") or fc_data.get("confidence") or 0.8), 3
+        )
+        # Categorical, max 5 words — never prose
+        recommendation = str(
+            rec_data.get("decision") or rec_data.get("action") or "Maintain Production"
         )
 
-        # 2. Fetch sales forecast (Sprint 2)
-        fc_res = call_api(
-            "/api/sales/forecast",
-            method="POST",
-            json_data={"forecast_period": horizon},
-            base_url=self.base_url,
+        if sales_growth > 5.0:
+            market_trend = "Growing"
+        elif sales_growth < -5.0:
+            market_trend = "Declining"
+        else:
+            market_trend = "Stable"
+
+        api_ok = (
+            rec_res.get("status") == "success" or fc_res.get("status") == "success"
         )
 
-        rec_data = rec_res.get("data", {}) if isinstance(rec_res, dict) else {}
-        fc_data = fc_res.get("data", {}) if isinstance(fc_res, dict) else {}
-
-        growth_rate = rec_data.get("growth_rate")
-        if growth_rate is None:
-            growth_rate = fc_data.get("growth_rate", 0.0)
-
-        # Convert ratio to percentage if needed
-        sales_growth = round(float(growth_rate) * 100 if abs(float(growth_rate)) < 2.0 else float(growth_rate), 2)
-        forecast_val = round(float(rec_data.get("forecast_value") or fc_data.get("predicted_sales") or 0.0), 2)
-        confidence_val = round(float(rec_data.get("confidence_score") or fc_data.get("confidence") or 0.825), 3)
-        recommendation_str = str(rec_data.get("decision") or rec_data.get("action") or "Increase marketing")
-
-        structured_data = {
-            "domain": "sales",
-            "status": "success" if (rec_res.get("status") == "success" or fc_res.get("status") == "success") else "warning",
+        structured_data: Dict[str, Any] = {
             "sales_growth": sales_growth,
-            "top_product": "Cotton Fabric (Grade A)",
             "forecast": forecast_val,
+            "recommendation": recommendation,
+            "market_trend": market_trend,
+            "top_product": "Cotton Fabric (Grade A)",
             "forecast_period": horizon,
-            "recommendation": recommendation_str,
-            "confidence": confidence_val,
-            "market_trend": "Growing" if sales_growth > 5.0 else ("Declining" if sales_growth < -5.0 else "Stable"),
         }
 
-        return structured_data
+        return AgentResponse(
+            agent_name=self.name,
+            status="success" if api_ok else "warning",
+            data=structured_data,
+            confidence=confidence_val,
+        )
+
+    # ------------------------------------------------------------------
+    # Backward-compatible helper used by Sprint 4 ManagerAgent
+    # ------------------------------------------------------------------
 
     def run(self, question: str = "") -> Dict[str, Any]:
-        """
-        Convenience execution wrapper.
-        """
-        return self.execute({"query": question})
+        """Return a flat dict from AgentResponse.data, keeping legacy callers happy."""
+        resp = self.execute({"query": question})
+        result = resp.to_dict()
+        # Flatten: merge top-level keys from data into the response dict for
+        # backward compatibility with ManagerAgent's merged_data["sales"] access
+        result.update(resp.data)
+        result["domain"] = self.name
+        return result

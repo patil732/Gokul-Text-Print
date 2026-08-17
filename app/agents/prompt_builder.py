@@ -73,7 +73,14 @@ def build_copilot_prompt(
     if "knowledge" in merged_data and isinstance(merged_data["knowledge"], dict):
         k = merged_data["knowledge"]
         sources = k.get("sources", [])
-        src_formatted = ", ".join([f"{s.get('document', 'Doc')} (Page {s.get('page', 1)})" for s in sources]) if sources else "Standard Operating Policy"
+        # sources may be list[str] (new shape) or list[dict] (legacy shape)
+        src_parts = []
+        for s in sources:
+            if isinstance(s, dict):
+                src_parts.append(f"{s.get('document', 'Doc')} (Page {s.get('page', 1)})")
+            else:
+                src_parts.append(str(s))
+        src_formatted = ", ".join(src_parts) if src_parts else "Standard Operating Policy"
         k_lines = [
             f"- Enterprise Policy Statement: {k.get('policy', 'N/A')}",
             f"- Verified Sources / Documents: {src_formatted}",
