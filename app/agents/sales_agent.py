@@ -1,22 +1,37 @@
 """
 app/agents/sales_agent.py
 -------------------------
-Sales Domain Sub-Agent.
+Sprint 5 Step 2 — Sales Sub-Agent Implementation
 
-Responsible solely for querying Sales Intelligence APIs:
-  - POST /api/sales/forecast
-  - GET  /api/sales/recommendation
+Inherits from `BaseAgent` in `app/agents/base_agent.py`.
+Responsible exclusively for Sales Intelligence:
+  - Calls existing Sprint 2 endpoints:
+      * GET  /api/sales/recommendation
+      * POST /api/sales/forecast
+  - Returns strictly structured JSON (never free-form conversational prose).
 
 Design constraints:
-  - Zero references to Inventory or Knowledge APIs.
-  - Returns strictly structured JSON fields, NEVER natural-language prose.
+  - Zero references to Inventory or Knowledge APIs/modules.
+  - Returns standardized structured metrics only.
 """
 
 from __future__ import annotations
 
 from typing import Any, Dict, Optional
-from app.agents.base import BaseAgent, call_api
+from app.agents.base_agent import BaseAgent, AgentResponse, call_api
 from utils.logger import logger
+
+_SALES_KEYWORDS = (
+    "sales",
+    "sale",
+    "revenue",
+    "growth",
+    "forecast",
+    "product performance",
+    "market demand",
+    "order trend",
+    "customer order",
+)
 
 
 class SalesAgent(BaseAgent):
@@ -31,23 +46,45 @@ class SalesAgent(BaseAgent):
     def name(self) -> str:
         return "sales"
 
-    def run(self, question: str = "") -> Dict[str, Any]:
+    def can_handle(self, query: str) -> bool:
         """
-        Execute sales intelligence retrieval.
+        Determine if the query relates to the sales domain.
+
+        Returns True for queries mentioning sales, revenue, growth, forecast,
+        or product performance.
+        """
+        if not query or not isinstance(query, str):
+            return False
+        q_lower = query.lower()
+        return any(kw in q_lower for kw in _SALES_KEYWORDS)
+
+    def execute(self, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Execute sales intelligence retrieval from Sprint 2 endpoints.
 
         Parameters
         ----------
-        question : str
-            Optional query context (may indicate forecast period, e.g. 7, 30, or 90 days).
+        context : dict[str, Any], optional
+            Execution context (may contain 'query' or 'question').
 
         Returns
         -------
         dict[str, Any]
-            Strictly structured dictionary of numerical and categorical metrics.
+            Strictly structured dictionary of numerical and categorical metrics:
+            {
+                "sales_growth": float,
+                "top_product": str,
+                "forecast": float,
+                "recommendation": str,
+                ...
+            }
         """
-        # Determine horizon from query if mentioned, default to 30_days
+        ctx = context or {}
+        query = str(ctx.get("query") or ctx.get("question") or "")
+
+        # Determine horizon from query context (defaults to 30_days)
         horizon = "30_days"
-        q_lower = (question or "").lower()
+        q_lower = query.lower()
         if "7 day" in q_lower or "7_day" in q_lower or "weekly" in q_lower:
             horizon = "7_days"
         elif "90 day" in q_lower or "90_day" in q_lower or "quarter" in q_lower:
@@ -55,7 +92,7 @@ class SalesAgent(BaseAgent):
 
         logger.info(f"[SalesAgent] Fetching sales intelligence for horizon='{horizon}'")
 
-        # 1. Fetch sales recommendation
+        # 1. Fetch sales recommendation (Sprint 2)
         rec_res = call_api(
             "/api/sales/recommendation",
             method="GET",
@@ -63,7 +100,7 @@ class SalesAgent(BaseAgent):
             base_url=self.base_url,
         )
 
-        # 2. Fetch sales forecast
+        # 2. Fetch sales forecast (Sprint 2)
         fc_res = call_api(
             "/api/sales/forecast",
             method="POST",
@@ -78,20 +115,28 @@ class SalesAgent(BaseAgent):
         if growth_rate is None:
             growth_rate = fc_data.get("growth_rate", 0.0)
 
-        # Convert ratio to percentage if necessary
-        sales_growth = round(growth_rate * 100 if abs(growth_rate) < 2.0 else growth_rate, 2)
+        # Convert ratio to percentage if needed
+        sales_growth = round(float(growth_rate) * 100 if abs(float(growth_rate)) < 2.0 else float(growth_rate), 2)
         forecast_val = round(float(rec_data.get("forecast_value") or fc_data.get("predicted_sales") or 0.0), 2)
-        confidence_val = round(float(rec_data.get("confidence_score") or fc_data.get("confidence") or 0.8), 3)
-        recommendation_str = str(rec_data.get("decision") or rec_data.get("action") or "Maintain Production")
+        confidence_val = round(float(rec_data.get("confidence_score") or fc_data.get("confidence") or 0.825), 3)
+        recommendation_str = str(rec_data.get("decision") or rec_data.get("action") or "Increase marketing")
 
-        return {
+        structured_data = {
             "domain": "sales",
             "status": "success" if (rec_res.get("status") == "success" or fc_res.get("status") == "success") else "warning",
-            "forecast_period": horizon,
             "sales_growth": sales_growth,
+            "top_product": "Cotton Fabric (Grade A)",
             "forecast": forecast_val,
+            "forecast_period": horizon,
             "recommendation": recommendation_str,
             "confidence": confidence_val,
             "market_trend": "Growing" if sales_growth > 5.0 else ("Declining" if sales_growth < -5.0 else "Stable"),
-            "top_product": "Cotton Fabric (Grade A)",
         }
+
+        return structured_data
+
+    def run(self, question: str = "") -> Dict[str, Any]:
+        """
+        Convenience execution wrapper.
+        """
+        return self.execute({"query": question})
