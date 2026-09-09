@@ -7,3 +7,12 @@ joblib
 shap
 apscheduler
 numpy
+pyyaml
+xgboost
+lightgbm
+pytest
+pypdf
+sentence-transformers
+openai
+google-generativeai
+faiss-cpu

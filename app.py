@@ -4,6 +4,7 @@ from utils.logger import logger
 from routes.ceo import ceo_bp
 from routes.admin import admin_bp
 from routes.auth import auth_bp
+from routes.documents import documents_bp
 from database.db import init_db
 from services.automation import start_scheduler
 
@@ -23,6 +24,28 @@ def create_app():
     app.register_blueprint(ceo_bp)
     app.register_blueprint(admin_blueprint:=admin_bp)
 
+    from app.ml.sales.routes import sales_ml_bp
+    app.register_blueprint(sales_ml_bp)
+
+    from app.ml.inventory.routes import inventory_ml_bp
+    app.register_blueprint(inventory_ml_bp)
+
+    # Sprint 4 — RAG Knowledge Engine: document management
+    app.register_blueprint(documents_bp)
+
+    # Sprint 4 Step 4 — RAG Knowledge Engine: semantic search
+    from routes.rag import rag_bp
+    app.register_blueprint(rag_bp)
+
+    # Sprint 4 Step 5 — RAG Knowledge Engine: chat / Q&A
+    from routes.chat import chat_bp
+    app.register_blueprint(chat_bp)
+
+    # Multi-Agent Executive Copilot
+    from routes.agent import agent_bp
+    app.register_blueprint(agent_bp)
+
+
     @app.route('/')
     def index():
         if 'user' in session:
@@ -32,10 +55,13 @@ def create_app():
         return redirect(url_for('auth.login'))
 
     # Start Automation Layer (Background Scheduler)
-    try:
-        start_scheduler()
-    except Exception as e:
-        logger.error(f"Failed to start scheduler: {e}")
+    import os
+    if not app.config.get("TESTING") and not os.environ.get("PYTEST_CURRENT_TEST"):
+        try:
+            start_scheduler()
+        except Exception as e:
+            logger.error(f"Failed to start scheduler: {e}")
+
 
     logger.info("Flask Application initialized with Automation Layer.")
     return app

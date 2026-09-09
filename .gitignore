@@ -21,8 +21,13 @@ dist/
 .vscode/
 .idea/
 
-# Logs
+# Logs — log files are ignored; directory is tracked via logs/.gitkeep
 *.log
+logs/*.log
+logs/*.log.*
+
+# Documents storage — uploaded PDFs are not committed to the repo
+documents/*.pdf
 
 # OS files
 Thumbs.db
