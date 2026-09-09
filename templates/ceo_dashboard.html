@@ -343,19 +343,19 @@
                                     <div class="chat-container">
                                         <div class="d-flex justify-content-between align-items-center p-3 border-bottom bg-light">
                                             <div class="d-flex align-items-center gap-2">
-                                                <span class="fs-5" id="chat-mode-icon">🤖</span>
+                                                <span class="fs-5" id="chat-mode-icon">✨</span>
                                                 <div>
-                                                    <span class="fw-bold small text-dark d-block" id="chat-mode-title">Enterprise Strategy & SOP Assistant</span>
-                                                    <span class="small text-secondary" id="chat-mode-subtitle" style="font-size: 0.72rem;">Grounded on indexed document embeddings</span>
+                                                    <span class="fw-bold small text-dark d-block" id="chat-mode-title">Executive AI Copilot (Manager Agent)</span>
+                                                    <span class="small text-secondary" id="chat-mode-subtitle" style="font-size: 0.72rem;">Orchestrates Sales, Inventory & Enterprise Knowledge</span>
                                                 </div>
                                             </div>
                                             <div class="d-flex align-items-center gap-2">
                                                 <div class="btn-group btn-group-sm" role="group" aria-label="Assistant Mode">
-                                                    <input type="radio" class="btn-check" name="chat-mode-radio" id="mode-rag-radio" value="rag" checked onchange="onChatModeToggle('rag')">
-                                                    <label class="btn btn-outline-primary" for="mode-rag-radio" title="RAG Document & SOP Search">📚 SOP/RAG</label>
+                                                    <input type="radio" class="btn-check" name="chat-mode-radio" id="mode-copilot-radio" value="copilot" checked onchange="onChatModeToggle('copilot')">
+                                                    <label class="btn btn-outline-primary" for="mode-copilot-radio" title="Multi-Agent Executive Business Copilot (Manager Agent)">✨ Copilot (Default)</label>
 
-                                                    <input type="radio" class="btn-check" name="chat-mode-radio" id="mode-copilot-radio" value="copilot" onchange="onChatModeToggle('copilot')">
-                                                    <label class="btn btn-outline-primary" for="mode-copilot-radio" title="Multi-Agent Executive Business Copilot">✨ Copilot</label>
+                                                    <input type="radio" class="btn-check" name="chat-mode-radio" id="mode-rag-radio" value="rag" onchange="onChatModeToggle('rag')">
+                                                    <label class="btn btn-outline-primary" for="mode-rag-radio" title="RAG Document & SOP Search">📚 SOP/RAG Only</label>
                                                 </div>
                                                 <button class="btn btn-outline-secondary btn-sm" onclick="clearChatMessages()" title="Clear conversation view">Clear</button>
                                             </div>
@@ -367,16 +367,25 @@
                                             <!-- Initial welcome message -->
                                             <div class="chat-message assistant">
                                                 <div class="chat-bubble">
-                                                    <strong class="d-block mb-1 text-primary">AI Assistant</strong>
-                                                    Hello! Ask me any question regarding your uploaded enterprise documents, standard operating procedures (SOPs), or inventory policies. All responses cite verified sources.
+                                                    <strong class="d-block mb-1 text-primary">✨ Executive Business Copilot</strong>
+                                                    Hello CEO! Ask me cross-domain questions spanning Sales, Inventory, and Enterprise Knowledge. I coordinate specialist AI agents to generate synthesized, policy-grounded recommendations.
                                                 </div>
                                             </div>
+                                        </div>
+
+                                        <!-- Suggested Questions Bar -->
+                                        <div class="suggested-questions-bar d-flex flex-wrap gap-1 px-3 py-2 border-top bg-light align-items-center" id="suggested-questions-container">
+                                            <span class="small text-muted me-1" style="font-size: 0.72rem;">💡 Suggested:</span>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded-pill small" onclick="applySuggestedQuestion('Which products need restocking?')">Which products need restocking?</button>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded-pill small" onclick="applySuggestedQuestion('Why did sales decrease?')">Why did sales decrease?</button>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded-pill small" onclick="applySuggestedQuestion('Should we increase inventory next quarter?')">Should we increase inventory?</button>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded-pill small" onclick="applySuggestedQuestion('What is the safety stock policy for inventory?')">What is the safety stock policy?</button>
                                         </div>
 
                                         <!-- Chat input form -->
                                         <div class="chat-input-container">
                                             <form id="chat-input-form" onsubmit="handleChatSubmit(event)" class="d-flex gap-2">
-                                                <input type="text" id="chat-question-input" class="form-control" placeholder="Ask a question about uploaded SOPs, policies, or procedures..." autocomplete="off" required>
+                                                <input type="text" id="chat-question-input" class="form-control" placeholder="Ask an executive question (e.g. Which products need restocking?)..." autocomplete="off" required>
                                                 <button type="submit" id="btn-send-chat" class="btn btn-primary px-4 fw-bold text-white">Send</button>
                                             </form>
                                         </div>

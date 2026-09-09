@@ -682,7 +682,9 @@ async function loadChatHistory() {
 
             chronological.forEach(turn => {
                 appendChatMessage('user', turn.question, false);
-                appendChatMessage('assistant', turn.answer, false);
+                const isMgr = Boolean(turn.is_manager || turn.user === 'manager');
+                const agents = isMgr ? ['manager'] : null;
+                appendChatMessage('assistant', turn.answer, false, agents, isMgr ? 'copilot' : 'rag', turn.retrieved_documents);
             });
 
             const latestTurn = data.history[0];
@@ -697,7 +699,16 @@ async function loadChatHistory() {
     }
 }
 
-let currentChatMode = 'rag';
+// Default to Multi-Agent Executive Copilot (Manager Agent)
+let currentChatMode = 'copilot';
+
+function applySuggestedQuestion(text) {
+    const input = document.getElementById('chat-question-input');
+    if (input) {
+        input.value = text;
+        input.focus();
+    }
+}
 
 function onChatModeToggle(mode) {
     currentChatMode = mode;
@@ -708,9 +719,9 @@ function onChatModeToggle(mode) {
 
     if (mode === 'copilot') {
         if (iconEl) iconEl.textContent = '✨';
-        if (titleEl) titleEl.textContent = 'Executive Business Copilot (Multi-Agent)';
-        if (subtitleEl) subtitleEl.textContent = 'Orchestrating Sales, Inventory & Enterprise Policy Agents';
-        if (inputEl) inputEl.placeholder = 'Ask a cross-domain executive question (e.g. "Should we increase inventory?")...';
+        if (titleEl) titleEl.textContent = 'Executive AI Copilot (Manager Agent)';
+        if (subtitleEl) subtitleEl.textContent = 'Orchestrating Sales, Inventory & Enterprise Knowledge';
+        if (inputEl) inputEl.placeholder = 'Ask an executive question (e.g. Which products need restocking?)...';
     } else {
         if (iconEl) iconEl.textContent = '🤖';
         if (titleEl) titleEl.textContent = 'Enterprise Strategy & SOP Assistant';
@@ -740,8 +751,8 @@ async function handleChatSubmit(event) {
 
     try {
         if (isCopilot) {
-            // Multi-Agent Copilot Endpoint
-            const res = await fetch('/api/agent/ask', {
+            // Multi-Agent Manager Agent Endpoint (Sprint 5 Orchestrator)
+            const res = await fetch('/api/agents/manager', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ question: question }),
@@ -750,9 +761,15 @@ async function handleChatSubmit(event) {
             removeTypingIndicator(typingId);
 
             if (res.status === 200 && result.status === 'success') {
-                appendChatMessage('assistant', result.answer, true, result.agents_used, 'copilot');
-                if (result.raw_data && result.raw_data.knowledge && result.raw_data.knowledge.sources) {
-                    renderSourcesPanel(result.raw_data.knowledge.sources);
+                // Extract sources from knowledge agent output if present
+                let sources = [];
+                if (result.agent_details && result.agent_details.knowledge && result.agent_details.knowledge.data) {
+                    const kData = result.agent_details.knowledge.data;
+                    sources = kData.source_details || kData.sources || [];
+                }
+                appendChatMessage('assistant', result.answer, true, result.agents_used, 'copilot', sources);
+                if (sources.length > 0) {
+                    renderSourcesPanel(sources);
                 }
             } else {
                 appendChatMessage('assistant', `⚠ Copilot Error: ${result.message || 'Failed to synthesize response.'}`, true);
@@ -768,7 +785,7 @@ async function handleChatSubmit(event) {
             removeTypingIndicator(typingId);
 
             if (res.status === 200 && result.status === 'success') {
-                appendChatMessage('assistant', result.answer, true);
+                appendChatMessage('assistant', result.answer, true, null, 'rag', result.sources || []);
                 renderSourcesPanel(result.sources || []);
             } else if (res.status === 503) {
                 appendChatMessage('assistant', '⚠ No documents indexed yet. Please upload at least one PDF in the repository panel on the left.', true);
@@ -787,7 +804,7 @@ async function handleChatSubmit(event) {
     }
 }
 
-function appendChatMessage(role, text, scroll = true, agentsUsed = null, mode = 'rag') {
+function appendChatMessage(role, text, scroll = true, agentsUsed = null, mode = 'copilot', sources = null) {
     const container = document.getElementById('chat-messages-container');
     if (!container) return;
 
@@ -795,6 +812,8 @@ function appendChatMessage(role, text, scroll = true, agentsUsed = null, mode = 
     msgDiv.className = `chat-message ${role}`;
 
     let roleHeader = '';
+    let sourcesHtml = '';
+
     if (role === 'assistant') {
         const titleText = mode === 'copilot' ? '✨ Business Copilot' : '🤖 SOP Assistant';
         let badgeHtml = '';
@@ -803,6 +822,7 @@ function appendChatMessage(role, text, scroll = true, agentsUsed = null, mode = 
                 if (a === 'sales') return '<span class="badge bg-primary-subtle text-primary border border-primary-subtle me-1">📊 Sales Agent</span>';
                 if (a === 'inventory') return '<span class="badge bg-success-subtle text-success border border-success-subtle me-1">📦 Inventory Agent</span>';
                 if (a === 'knowledge') return '<span class="badge bg-info-subtle text-info border border-info-subtle me-1">📚 Knowledge Agent</span>';
+                if (a === 'manager') return '<span class="badge bg-purple-subtle text-dark border me-1">🤖 Manager Orchestrator</span>';
                 return `<span class="badge bg-light text-dark border me-1">${escapeHtml(a)} Agent</span>`;
             }).join('');
             badgeHtml = `<div class="mt-1 mb-2 d-flex flex-wrap align-items-center gap-1"><span class="small text-muted me-1" style="font-size: 0.72rem;">Consulted:</span>${agentBadges}</div>`;
@@ -814,12 +834,29 @@ function appendChatMessage(role, text, scroll = true, agentsUsed = null, mode = 
             </div>
             ${badgeHtml}
         `;
+
+        // Render source references directly beneath the AI answer
+        if (sources && sources.length > 0) {
+            const chips = sources.map(s => {
+                const docName = typeof s === 'string' ? s : (s.document || 'Document');
+                const pageStr = (typeof s === 'object' && s.page) ? ` (p.${s.page})` : '';
+                const scoreStr = (typeof s === 'object' && s.score) ? ` [${Math.round(s.score * 100)}%]` : '';
+                return `<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle small me-1">📄 ${escapeHtml(docName)}${pageStr}${scoreStr}</span>`;
+            }).join('');
+            sourcesHtml = `
+                <div class="mt-2 pt-2 border-top border-light-subtle">
+                    <span class="small text-muted d-block mb-1" style="font-size: 0.72rem;">📚 Verified Knowledge Citations:</span>
+                    <div class="d-flex flex-wrap gap-1">${chips}</div>
+                </div>
+            `;
+        }
     }
 
     msgDiv.innerHTML = `
         <div class="chat-bubble">
             ${roleHeader}
             <div style="white-space: pre-wrap;">${escapeHtml(text)}</div>
+            ${sourcesHtml}
         </div>
     `;
 

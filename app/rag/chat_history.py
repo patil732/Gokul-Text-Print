@@ -37,6 +37,10 @@ def _row_to_dict(row) -> dict[str, Any]:
             d["retrieved_documents"] = json.loads(d["retrieved_documents"])
         except (json.JSONDecodeError, TypeError):
             d["retrieved_documents"] = []
+    if "is_manager" in d:
+        d["is_manager"] = bool(d["is_manager"])
+    else:
+        d["is_manager"] = (d.get("user") == "manager")
     return d
 
 
@@ -45,6 +49,7 @@ def save_chat_turn(
     answer: str,
     sources: list[dict[str, Any]],
     user: str = "system",
+    is_manager: bool = False,
 ) -> str:
     """
     Persist a Q&A interaction to ``chat_history``.
@@ -59,6 +64,8 @@ def save_chat_turn(
         List of source citations, e.g. ``[{"document": "...", "page": ...}]``.
     user : str
         Identity of the user / session.
+    is_manager : bool
+        Whether this turn went through the Manager Agent orchestrator.
 
     Returns
     -------
@@ -67,19 +74,26 @@ def save_chat_turn(
     """
     chat_id = str(uuid.uuid4())
     retrieved_json = json.dumps(sources or [])
+    is_mgr_int = 1 if is_manager else 0
 
     conn = get_db_connection()
+    try:
+        conn.execute("ALTER TABLE chat_history ADD COLUMN is_manager INTEGER DEFAULT 0")
+        conn.commit()
+    except Exception:
+        pass
+
     conn.execute(
         """
-        INSERT INTO chat_history (chat_id, user, question, answer, retrieved_documents)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO chat_history (chat_id, user, question, answer, retrieved_documents, is_manager)
+        VALUES (?, ?, ?, ?, ?, ?)
         """,
-        (chat_id, user or "system", question, answer, retrieved_json),
+        (chat_id, user or "system", question, answer, retrieved_json, is_mgr_int),
     )
     conn.commit()
     conn.close()
 
-    logger.info(f"[chat_history] Saved chat turn {chat_id} for user='{user}'")
+    logger.info(f"[chat_history] Saved chat turn {chat_id} (user='{user}', is_manager={is_manager})")
     return chat_id
 
 
@@ -119,7 +133,7 @@ def get_chat_history(
 
         rows = conn.execute(
             """
-            SELECT chat_id, user, question, answer, retrieved_documents, timestamp
+            SELECT chat_id, user, question, answer, retrieved_documents, timestamp, is_manager
             FROM chat_history
             WHERE user = ?
             ORDER BY timestamp DESC, rowid DESC
@@ -134,7 +148,7 @@ def get_chat_history(
 
         rows = conn.execute(
             """
-            SELECT chat_id, user, question, answer, retrieved_documents, timestamp
+            SELECT chat_id, user, question, answer, retrieved_documents, timestamp, is_manager
             FROM chat_history
             ORDER BY timestamp DESC, rowid DESC
             LIMIT ? OFFSET ?

@@ -11,6 +11,10 @@ Flask Blueprint exposing Multi-Agent Copilot API endpoints:
   - POST /api/agents/manager     : Full orchestration pipeline with confidence + agent_details.
 """
 
+from collections import deque
+from datetime import datetime
+from typing import Any, Dict, List
+
 from flask import Blueprint, jsonify, request
 from app.agents.manager_agent import ManagerAgent
 from app.agents.sales_agent import SalesAgent
@@ -23,6 +27,27 @@ _manager = ManagerAgent()
 _sales_agent = SalesAgent()
 _inventory_agent = InventoryAgent()
 _knowledge_agent = KnowledgeAgent()
+
+# Thread-safe ring buffer storing the last 10 manager orchestration outputs
+_manager_history: deque[Dict[str, Any]] = deque(maxlen=10)
+
+
+def record_manager_output(output: Dict[str, Any]) -> None:
+    """Record a manager orchestration output into the recent memory buffer."""
+    if output and output.get("status") == "success":
+        entry = {
+            "question": output.get("question", ""),
+            "answer": output.get("answer", ""),
+            "confidence": output.get("confidence", 0.8),
+            "agents_used": output.get("agents_used", []),
+            "timestamp": datetime.now().isoformat(),
+        }
+        _manager_history.appendleft(entry)
+
+
+def get_recent_manager_outputs(limit: int = 5) -> List[Dict[str, Any]]:
+    """Retrieve up to `limit` recent manager orchestration outputs."""
+    return list(_manager_history)[:limit]
 
 
 @agent_bp.route("/api/agent/status", methods=["GET"])
@@ -226,6 +251,39 @@ def manager_orchestrate():
             }), 400
 
         result = _manager.orchestrate(question)
+        if result.get("status") == "success":
+            record_manager_output(result)
+
+            # Extract source citations from knowledge agent output if present
+            knowledge_sources = []
+            try:
+                agent_details = result.get("agent_details", {})
+                k_info = agent_details.get("knowledge", {})
+                k_data = k_info.get("data", {}) if isinstance(k_info, dict) else {}
+                if isinstance(k_data, dict):
+                    if k_data.get("source_details"):
+                        knowledge_sources = k_data["source_details"]
+                    elif k_data.get("sources"):
+                        knowledge_sources = [
+                            {"document": str(s), "page": 1, "score": 0.90}
+                            for s in k_data["sources"]
+                        ]
+            except Exception as exc:
+                logger.debug(f"[agent_bp] Failed to extract knowledge sources for chat history: {exc}")
+
+            try:
+                from app.rag.chat_history import save_chat_turn
+                chat_id = save_chat_turn(
+                    question=question,
+                    answer=result.get("answer", ""),
+                    sources=knowledge_sources,
+                    user="manager",
+                    is_manager=True,
+                )
+                result["chat_id"] = chat_id
+            except Exception as exc:
+                logger.warning(f"[agent_bp] Could not save manager turn to chat_history: {exc}")
+
         http_code = 200 if result.get("status") == "success" else 500
         return jsonify(result), http_code
 
