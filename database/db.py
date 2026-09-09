@@ -27,6 +27,7 @@ To point at a different database, set DATABASE_URL in .env:
 import os
 import sys
 import sqlite3
+from typing import Optional
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -160,7 +161,7 @@ def init_db() -> None:
         )
     """)
 
-    # Chat history table (Sprint 4 Step 6 — conversation audit & history)
+    # Chat history table (Sprint 4 Step 6 & Sprint 6 — conversation audit & history)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS chat_history (
             chat_id             TEXT     PRIMARY KEY,
@@ -168,7 +169,39 @@ def init_db() -> None:
             question            TEXT     NOT NULL,
             answer              TEXT     NOT NULL,
             retrieved_documents TEXT     NOT NULL,
-            timestamp           DATETIME DEFAULT CURRENT_TIMESTAMP
+            timestamp           DATETIME DEFAULT CURRENT_TIMESTAMP,
+            is_manager          INTEGER  DEFAULT 0
+        )
+    """)
+
+    # Ensure is_manager column exists on existing databases
+    try:
+        cursor.execute("ALTER TABLE chat_history ADD COLUMN is_manager INTEGER DEFAULT 0")
+    except Exception:
+        pass
+
+    # Operational alerts table (Sprint 6 — alert engine & monitoring)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS alerts (
+            alert_id    TEXT PRIMARY KEY,
+            alert_type  VARCHAR(50) NOT NULL,
+            priority    VARCHAR(20) NOT NULL,
+            message     TEXT NOT NULL,
+            status      VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
+            created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_alerts_status_priority
+        ON alerts(status, priority, created_at)
+    """)
+
+    # Dashboard preferences table (Sprint 6 V2 — personalization & layout preferences)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS dashboard_preferences (
+            user_id     TEXT PRIMARY KEY,
+            preferences TEXT NOT NULL,
+            updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     """)
 
@@ -177,7 +210,7 @@ def init_db() -> None:
     logger.info(f"[db] Database initialised at {DB_PATH}")
 
 
-def get_db_connection() -> sqlite3.Connection:
+def get_db_connection(db_path: Optional[str] = None) -> sqlite3.Connection:
     """
     Return an open connection to the SQLite database.
 
@@ -189,12 +222,13 @@ def get_db_connection() -> sqlite3.Connection:
     RuntimeError
         If DATABASE_URL is not a SQLite URL (DB_PATH is empty).
     """
-    if not DB_PATH:
+    target_path = db_path or DB_PATH
+    if not target_path:
         raise RuntimeError(
             "[db] get_db_connection() called but DATABASE_URL is not SQLite. "
             f"Current DATABASE_URL: {cfg.DATABASE_URL}"
         )
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(target_path)
     conn.row_factory = sqlite3.Row
     return conn
 

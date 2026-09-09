@@ -45,6 +45,10 @@ def create_app():
     from routes.agent import agent_bp
     app.register_blueprint(agent_bp)
 
+    # Sprint 6 — Executive BI Dashboard: KPI Aggregation & Business Health
+    from routes.dashboard import dashboard_bp
+    app.register_blueprint(dashboard_bp)
+
 
     @app.route('/')
     def index():

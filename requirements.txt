@@ -16,3 +16,4 @@ sentence-transformers
 openai
 google-generativeai
 faiss-cpu
+reportlab
