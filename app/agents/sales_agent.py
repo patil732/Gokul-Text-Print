@@ -34,6 +34,8 @@ _SALES_KEYWORDS: frozenset[str] = frozenset({
     "marketing", "projection", "target", "product", "performance",
     "income", "profit", "turnover", "quarterly", "weekly", "monthly",
     "cotton", "fabric", "order", "volume", "top product",
+    # Strategic / executive action verbs — any scaling decision requires sales analysis
+    "increase", "decrease", "scale", "expand", "reduce", "grow", "shrink",
 })
 
 
@@ -89,7 +91,7 @@ class SalesAgent(BaseAgent):
         elif any(kw in query for kw in ("90 day", "90_day", "quarter")):
             horizon = "90_days"
 
-        logger.info(f"[SalesAgent] execute() → horizon='{horizon}'")
+        logger.info(f"[SalesAgent] execute() -> horizon='{horizon}'")
 
         try:
             rec_res = call_api(

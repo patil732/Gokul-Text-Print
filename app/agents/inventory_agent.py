@@ -97,7 +97,7 @@ class InventoryAgent(BaseAgent):
         model_accuracy     : float — training accuracy
         """
         ctx = context or {}
-        logger.info("[InventoryAgent] execute() → querying inventory prediction endpoint")
+        logger.info("[InventoryAgent] execute() -> querying inventory prediction endpoint")
 
         try:
             # Primary: GET prediction (no user features available from context)

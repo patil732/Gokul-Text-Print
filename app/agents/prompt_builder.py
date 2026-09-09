@@ -22,6 +22,143 @@ Core Guidelines:
 """
 
 
+# ─────────────────────────────────────────────────────────────────────────── #
+# Public API — primary lightweight formatter
+# ─────────────────────────────────────────────────────────────────────────── #
+
+def build_prompt(
+    agent_outputs: Dict[str, Any],
+    original_question: str,
+) -> str:
+    """
+    Merge whichever agents' JSON responses were collected (any subset of
+    'sales', 'inventory', 'knowledge') into a clearly labelled, flat
+    key-value structured prompt block and append the original question.
+
+    Each domain section is included only when its key is present in
+    ``agent_outputs``; missing sections are silently omitted.
+
+    Parameters
+    ----------
+    agent_outputs : dict[str, Any]
+        Keyed by agent name.  Each value may be either:
+        - An ``AgentResponse.data`` dict (preferred), or
+        - A full ``AgentResponse.to_dict()`` dict (the ``data`` sub-key is
+          automatically unwrapped).
+    original_question : str
+        The executive's original natural-language question.
+
+    Returns
+    -------
+    str
+        A ready-to-send prompt string.
+
+    Examples
+    --------
+    >>> prompt = build_prompt(
+    ...     {"sales": {"sales_growth": -12, "forecast": 15000,
+    ...                "recommendation": "Increase marketing",
+    ...                "market_trend": "Declining"},
+    ...      "inventory": {"stock_health": "Critical", "remaining_days": 4,
+    ...                    "recommendation": "Restock"}},
+    ...     "Should inventory be increased?"
+    ... )
+    """
+    lines: List[str] = []
+
+    # ── Helper: unwrap AgentResponse.to_dict() if needed ──────────────────── #
+    def _data(raw: Any) -> Dict[str, Any]:
+        if isinstance(raw, dict) and "data" in raw and isinstance(raw["data"], dict):
+            return raw["data"]
+        return raw if isinstance(raw, dict) else {}
+
+    # ── 1. Sales section ──────────────────────────────────────────────────── #
+    if "sales" in agent_outputs:
+        s = _data(agent_outputs["sales"])
+        lines.append("=== Sales Intelligence ===")
+
+        growth = s.get("sales_growth")
+        if growth is not None:
+            lines.append(f"Sales Growth:    {growth:+.1f}%" if isinstance(growth, (int, float))
+                         else f"Sales Growth:    {growth}")
+
+        forecast = s.get("forecast")
+        if forecast is not None:
+            lines.append(f"Forecast:        ₹{forecast:,.0f}" if isinstance(forecast, (int, float))
+                         else f"Forecast:        {forecast}")
+
+        trend = s.get("market_trend")
+        if trend:
+            lines.append(f"Market Trend:    {trend}")
+
+        top_product = s.get("top_product")
+        if top_product:
+            lines.append(f"Top Product:     {top_product}")
+
+        rec = s.get("recommendation")
+        if rec:
+            lines.append(f"Recommendation:  {rec}")
+
+        lines.append("")  # blank separator
+
+    # ── 2. Inventory section ──────────────────────────────────────────────── #
+    if "inventory" in agent_outputs:
+        inv = _data(agent_outputs["inventory"])
+        lines.append("=== Inventory Intelligence ===")
+
+        health = inv.get("stock_health")
+        if health:
+            lines.append(f"Inventory:       {health}")
+
+        days = inv.get("remaining_days")
+        if days is not None:
+            lines.append(f"Remaining Days:  {days}")
+
+        decision = inv.get("decision")
+        if decision:
+            lines.append(f"ML Decision:     {decision}")
+
+        rec = inv.get("recommendation")
+        if rec:
+            lines.append(f"Recommendation:  {rec}")
+
+        lines.append("")
+
+    # ── 3. Knowledge / Policy section ─────────────────────────────────────── #
+    if "knowledge" in agent_outputs:
+        k = _data(agent_outputs["knowledge"])
+        lines.append("=== Company Policy ===")
+
+        policy = k.get("policy")
+        if policy:
+            lines.append(f"Company Policy:  {policy}")
+
+        # sources may be list[str] or list[dict]
+        raw_sources = k.get("sources") or []
+        src_names: List[str] = []
+        for s in raw_sources:
+            src_names.append(s.get("document", str(s)) if isinstance(s, dict) else str(s))
+        if src_names:
+            lines.append(f"Sources:         {', '.join(src_names)}")
+
+        lines.append("")
+
+    # ── Fallback when no agents contributed ───────────────────────────────── #
+    if not any(k in agent_outputs for k in ("sales", "inventory", "knowledge")):
+        lines.append("(No domain intelligence was retrieved.)")
+        lines.append("")
+
+    # ── Question + directive ──────────────────────────────────────────────── #
+    lines.append(f"Question: {original_question.strip()}")
+    lines.append("Provide a business recommendation with justification.")
+
+    return "\n".join(lines)
+
+
+# ─────────────────────────────────────────────────────────────────────────── #
+# Legacy / LLM-facing detailed formatter (kept intact)
+# ─────────────────────────────────────────────────────────────────────────── #
+
 def build_copilot_prompt(
     question: str,
     merged_data: Dict[str, Any],

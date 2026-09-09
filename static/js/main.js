@@ -933,3 +933,427 @@ function escapeHtml(str) {
         .replace(/'/g, '&#039;');
 }
 
+
+// =========================================================================== //
+// Sprint 5 — AI Executive Copilot (Multi-Agent Orchestrated Panel)
+// Calls POST /api/agents/manager — completely separate from the Sprint 4 RAG UI.
+// All identifiers are prefixed "copilot-" to guarantee zero collision.
+// =========================================================================== //
+
+const COPILOT_AGENTS = ['sales', 'inventory', 'knowledge'];
+
+/**
+ * Drive the badge for one agent to a new state.
+ * state: 'pending' | 'running' | 'done' | 'skipped'
+ */
+function setCopilotAgentBadge(agentName, state) {
+    const el = document.getElementById(`copilot-badge-${agentName}`);
+    if (!el) return;
+
+    const icons = { sales: '📊', inventory: '📦', knowledge: '📚' };
+    const labels = { sales: 'Sales', inventory: 'Inventory', knowledge: 'Knowledge' };
+    const icon = icons[agentName] || '🤖';
+    const label = labels[agentName] || agentName;
+
+    el.className = `copilot-agent-badge ${state}`;
+
+    if (state === 'running') {
+        el.innerHTML = `
+            <span class="spinner-border spinner-border-sm" style="width:10px;height:10px;border-width:1.5px;" role="status"></span>
+            ${icon} ${label}
+        `;
+    } else if (state === 'done') {
+        el.innerHTML = `✓ ${icon} ${label}`;
+    } else if (state === 'skipped') {
+        el.innerHTML = `— ${icon} ${label}`;
+    } else {
+        el.innerHTML = `${icon} ${label}`;
+    }
+}
+
+/**
+ * Append a message bubble to the copilot chat window.
+ */
+function appendCopilotMessage(role, html, scroll = true) {
+    const container = document.getElementById('copilot-chat-messages');
+    if (!container) return null;
+
+    const div = document.createElement('div');
+    div.className = `copilot-msg ${role}`;
+    div.innerHTML = `<div class="copilot-bubble">${html}</div>`;
+    container.appendChild(div);
+    if (scroll) container.scrollTop = container.scrollHeight;
+    return div;
+}
+
+/**
+ * Show animated typing indicator inside the copilot chat.
+ */
+function showCopilotTyping() {
+    const container = document.getElementById('copilot-chat-messages');
+    if (!container) return null;
+
+    const id = 'copilot-typing-' + Date.now();
+    const div = document.createElement('div');
+    div.id = id;
+    div.className = 'copilot-msg assistant copilot-typing';
+    div.innerHTML = `
+        <div class="copilot-bubble" style="display:flex;align-items:center;gap:10px;">
+            <div class="copilot-typing-dots">
+                <span></span><span></span><span></span>
+            </div>
+            <span style="font-size:0.75rem;color:#64748b;font-style:italic;">Orchestrating agents…</span>
+        </div>
+    `;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+    return id;
+}
+
+function removeCopilotTyping(id) {
+    if (!id) return;
+    const el = document.getElementById(id);
+    if (el) el.remove();
+}
+
+/**
+ * Render the sales summary card from agent_details.sales.data
+ */
+function renderCopilotSalesSummary(salesDetail) {
+    const el = document.getElementById('copilot-sales-summary');
+    if (!el) return;
+
+    const data = (salesDetail && salesDetail.data) ? salesDetail.data : {};
+
+    if (!salesDetail || salesDetail.status === 'error') {
+        el.innerHTML = `<div style="color:#ef4444;font-size:0.78rem;text-align:center;padding:0.5rem 0;">Sales agent returned an error.</div>`;
+        return;
+    }
+
+    const growth = data.sales_growth !== undefined ? `${data.sales_growth >= 0 ? '+' : ''}${parseFloat(data.sales_growth).toFixed(1)}%` : '—';
+    const forecast = data.forecast ? new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(data.forecast) : '—';
+    const trend = data.market_trend || '—';
+    const recommendation = data.recommendation || '—';
+    const topProduct = data.top_product || '—';
+    const period = data.forecast_period ? data.forecast_period.replace('_', ' ') : '—';
+    const confidence = salesDetail.confidence !== undefined ? `${(salesDetail.confidence * 100).toFixed(0)}%` : '—';
+
+    const growthColor = (data.sales_growth || 0) >= 0 ? '#4ade80' : '#f87171';
+    const trendColor = trend === 'Growing' ? '#4ade80' : (trend === 'Declining' ? '#f87171' : '#fbbf24');
+
+    el.innerHTML = `
+        <div class="copilot-kv-row">
+            <span class="copilot-kv-key">Sales Growth</span>
+            <span class="copilot-kv-val" style="color:${growthColor};">${escapeHtml(growth)}</span>
+        </div>
+        <div class="copilot-kv-row">
+            <span class="copilot-kv-key">Forecast (${escapeHtml(period)})</span>
+            <span class="copilot-kv-val">${escapeHtml(forecast)}</span>
+        </div>
+        <div class="copilot-kv-row">
+            <span class="copilot-kv-key">Market Trend</span>
+            <span class="copilot-kv-val" style="color:${trendColor};">${escapeHtml(trend)}</span>
+        </div>
+        <div class="copilot-kv-row">
+            <span class="copilot-kv-key">Recommendation</span>
+            <span class="copilot-kv-val">${escapeHtml(recommendation)}</span>
+        </div>
+        <div class="copilot-kv-row">
+            <span class="copilot-kv-key">Top Product</span>
+            <span class="copilot-kv-val" style="font-size:0.72rem;">${escapeHtml(topProduct)}</span>
+        </div>
+        <div class="copilot-kv-row">
+            <span class="copilot-kv-key">Agent Confidence</span>
+            <span class="copilot-kv-val" style="color:#60a5fa;">${escapeHtml(confidence)}</span>
+        </div>
+    `;
+}
+
+/**
+ * Render the inventory summary card from agent_details.inventory.data
+ */
+function renderCopilotInventorySummary(invDetail) {
+    const el = document.getElementById('copilot-inventory-summary');
+    if (!el) return;
+
+    const data = (invDetail && invDetail.data) ? invDetail.data : {};
+
+    if (!invDetail || invDetail.status === 'error') {
+        el.innerHTML = `<div style="color:#ef4444;font-size:0.78rem;text-align:center;padding:0.5rem 0;">Inventory agent returned an error.</div>`;
+        return;
+    }
+
+    const stockHealth = data.stock_health || '—';
+    const remainingDays = data.remaining_days !== undefined ? `${data.remaining_days} days` : '—';
+    const decision = data.decision || '—';
+    const recommendation = data.recommendation || '—';
+    const modelType = (data.model_type || 'xgboost').toUpperCase();
+    const modelAccuracy = data.model_accuracy ? `${(data.model_accuracy * 100).toFixed(1)}%` : '—';
+    const confidence = invDetail.confidence !== undefined ? `${(invDetail.confidence * 100).toFixed(0)}%` : '—';
+
+    const healthColor = stockHealth === 'Critical' ? '#f87171' : (stockHealth === 'Low' ? '#fbbf24' : '#4ade80');
+    const decisionColor = decision === 'Reorder Required' ? '#f87171' : '#4ade80';
+
+    el.innerHTML = `
+        <div class="copilot-kv-row">
+            <span class="copilot-kv-key">Stock Health</span>
+            <span class="copilot-kv-val" style="color:${healthColor};">${escapeHtml(stockHealth)}</span>
+        </div>
+        <div class="copilot-kv-row">
+            <span class="copilot-kv-key">Stock Remaining</span>
+            <span class="copilot-kv-val">${escapeHtml(remainingDays)}</span>
+        </div>
+        <div class="copilot-kv-row">
+            <span class="copilot-kv-key">Decision</span>
+            <span class="copilot-kv-val" style="color:${decisionColor};">${escapeHtml(decision)}</span>
+        </div>
+        <div class="copilot-kv-row">
+            <span class="copilot-kv-key">Action</span>
+            <span class="copilot-kv-val" style="font-size:0.72rem;">${escapeHtml(recommendation)}</span>
+        </div>
+        <div class="copilot-kv-row">
+            <span class="copilot-kv-key">Model</span>
+            <span class="copilot-kv-val" style="font-size:0.72rem;">${escapeHtml(modelType)} · ${escapeHtml(modelAccuracy)}</span>
+        </div>
+        <div class="copilot-kv-row">
+            <span class="copilot-kv-key">Agent Confidence</span>
+            <span class="copilot-kv-val" style="color:#4ade80;">${escapeHtml(confidence)}</span>
+        </div>
+    `;
+}
+
+/**
+ * Render the knowledge sources from agent_details.knowledge.data.source_details
+ */
+function renderCopilotKnowledgeSources(knowledgeDetail) {
+    const listEl = document.getElementById('copilot-sources-list');
+    const badgeEl = document.getElementById('copilot-sources-badge');
+    if (!listEl) return;
+
+    const data = (knowledgeDetail && knowledgeDetail.data) ? knowledgeDetail.data : {};
+    const sourceDetails = data.source_details || [];
+    const sources = data.sources || [];
+
+    // Merge: prefer source_details (has page + score), fall back to plain sources list
+    let items = sourceDetails;
+    if (items.length === 0 && sources.length > 0) {
+        items = sources.map(s => ({ document: s, page: null, score: null }));
+    }
+
+    if (badgeEl) {
+        badgeEl.textContent = `${items.length} Source${items.length !== 1 ? 's' : ''}`;
+    }
+
+    if (items.length === 0) {
+        listEl.innerHTML = `<div style="color:#475569;font-size:0.78rem;font-style:italic;text-align:center;padding:0.5rem 0;">No enterprise documents were cited for this query.</div>`;
+        return;
+    }
+
+    listEl.innerHTML = items.map((src, idx) => {
+        const docName = escapeHtml(src.document || src.source_document || 'Document');
+        const pageText = src.page ? `Page ${src.page}` : '';
+        const scoreText = src.score !== undefined && src.score !== null
+            ? `${(src.score * 100).toFixed(0)}% relevance`
+            : 'Verified citation';
+
+        return `
+            <div class="copilot-source-card">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge" style="background:rgba(99,102,241,0.3);color:#a5b4fc;font-size:0.65rem;min-width:22px;">[${idx + 1}]</span>
+                    <div>
+                        <div style="font-size:0.78rem;font-weight:700;color:#e2e8f0;">${docName}</div>
+                        ${pageText ? `<div style="font-size:0.68rem;color:#64748b;">${pageText}</div>` : ''}
+                    </div>
+                </div>
+                <span class="badge" style="background:rgba(74,222,128,0.1);color:#4ade80;border:1px solid rgba(74,222,128,0.3);font-size:0.65rem;white-space:nowrap;">
+                    ${escapeHtml(scoreText)}
+                </span>
+            </div>
+        `;
+    }).join('');
+}
+
+/**
+ * Render the final LLM recommendation + confidence bar
+ */
+function renderCopilotRecommendation(answer, confidence) {
+    const textEl = document.getElementById('copilot-recommendation-text');
+    const barEl = document.getElementById('copilot-confidence-bar');
+    const barWrapEl = document.getElementById('copilot-confidence-bar-wrap');
+    const confDisplayEl = document.getElementById('copilot-confidence-display');
+    const confPctEl = document.getElementById('copilot-confidence-pct');
+
+    if (textEl) {
+        // Render answer with simple markdown bold (**text**) support
+        const formatted = escapeHtml(answer || '')
+            .replace(/\*\*(.+?)\*\*/g, '<strong style="color:#e2e8f0;">$1</strong>')
+            .replace(/\n/g, '<br>');
+        textEl.innerHTML = `<div style="color:#cbd5e1;font-size:0.85rem;font-style:normal;line-height:1.65;">${formatted}</div>`;
+    }
+
+    const pct = Math.round((confidence || 0) * 100);
+    const barColor = pct >= 75 ? 'linear-gradient(90deg,#4ade80,#22d3ee)'
+                   : pct >= 50 ? 'linear-gradient(90deg,#fbbf24,#f97316)'
+                   : 'linear-gradient(90deg,#f87171,#fb923c)';
+
+    if (barEl) {
+        barEl.style.background = barColor;
+        // Animate after a tiny delay so the CSS transition fires
+        setTimeout(() => { barEl.style.width = `${pct}%`; }, 60);
+    }
+    if (barWrapEl) barWrapEl.classList.remove('d-none');
+    if (confDisplayEl) confDisplayEl.classList.remove('d-none');
+    if (confPctEl) confPctEl.textContent = `${pct}%`;
+}
+
+/**
+ * Main handler: form submit → orchestrate → render everything.
+ */
+async function submitCopilotQuestion(event) {
+    event.preventDefault();
+
+    const input = document.getElementById('copilot-question-input');
+    const sendBtn = document.getElementById('copilot-send-btn');
+    const question = input.value.trim();
+    if (!question) return;
+
+    // ── 1. Render CEO question bubble ────────────────────────────────── //
+    appendCopilotMessage('user', `<span style="color:#fff;">${escapeHtml(question)}</span>`, true);
+    input.value = '';
+    sendBtn.disabled = true;
+
+    // ── 2. Set all agent badges to "running" ─────────────────────────── //
+    COPILOT_AGENTS.forEach(name => setCopilotAgentBadge(name, 'running'));
+
+    const timeEl = document.getElementById('copilot-orchestration-time');
+    if (timeEl) timeEl.textContent = '';
+
+    const typingId = showCopilotTyping();
+    const startTime = Date.now();
+
+    try {
+        // ── 3. POST /api/agents/manager ──────────────────────────────── //
+        const res = await fetch('/api/agents/manager', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question }),
+        });
+
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        removeCopilotTyping(typingId);
+
+        if (timeEl) timeEl.textContent = `⏱ ${elapsed}s`;
+
+        const result = await res.json();
+
+        if (!res.ok || result.status === 'error') {
+            // All badges → skipped on error
+            COPILOT_AGENTS.forEach(name => setCopilotAgentBadge(name, 'skipped'));
+            appendCopilotMessage('assistant', `
+                <strong style="color:#f87171;display:block;margin-bottom:4px;">⚠ Orchestration Error</strong>
+                <span style="color:#94a3b8;">${escapeHtml(result.message || 'Unknown error from the manager agent.')}</span>
+            `);
+            return;
+        }
+
+        // ── 4. Update agent badges ───────────────────────────────────── //
+        const agentsUsed = result.agents_used || [];
+        COPILOT_AGENTS.forEach(name => {
+            setCopilotAgentBadge(name, agentsUsed.includes(name) ? 'done' : 'skipped');
+        });
+
+        // ── 5. Render answer bubble ──────────────────────────────────── //
+        const usedBadges = agentsUsed.map(a => {
+            const colors = {
+                sales: 'rgba(96,165,250,0.15);color:#60a5fa;border:1px solid rgba(96,165,250,0.3)',
+                inventory: 'rgba(74,222,128,0.12);color:#4ade80;border:1px solid rgba(74,222,128,0.3)',
+                knowledge: 'rgba(196,181,253,0.15);color:#c4b5fd;border:1px solid rgba(196,181,253,0.3)',
+            };
+            const icons = { sales: '📊', inventory: '📦', knowledge: '📚' };
+            const label = a.charAt(0).toUpperCase() + a.slice(1);
+            const style = colors[a] || 'rgba(100,116,139,0.2);color:#94a3b8;border:1px solid rgba(100,116,139,0.3)';
+            return `<span class="badge me-1" style="background:${style};font-size:0.65rem;">${icons[a] || '🤖'} ${label}</span>`;
+        }).join('');
+
+        appendCopilotMessage('assistant', `
+            <strong style="color:#a5b4fc;display:block;margin-bottom:6px;font-size:0.8rem;">✨ AI Executive Copilot</strong>
+            ${usedBadges ? `<div class="mb-2">${usedBadges}</div>` : ''}
+            <div style="white-space:pre-wrap;color:#cbd5e1;">${escapeHtml(result.answer || '')}</div>
+        `);
+
+        // ── 6. Render structured summaries ───────────────────────────── //
+        const details = result.agent_details || {};
+        if (details.sales) renderCopilotSalesSummary(details.sales);
+        if (details.inventory) renderCopilotInventorySummary(details.inventory);
+        if (details.knowledge) renderCopilotKnowledgeSources(details.knowledge);
+
+        // ── 7. Final recommendation + confidence bar ─────────────────── //
+        renderCopilotRecommendation(result.answer, result.confidence);
+
+    } catch (err) {
+        console.error('[Copilot] Network error:', err);
+        removeCopilotTyping(typingId);
+        COPILOT_AGENTS.forEach(name => setCopilotAgentBadge(name, 'skipped'));
+        appendCopilotMessage('assistant', `
+            <strong style="color:#f87171;display:block;margin-bottom:4px;">⚠ Connection Error</strong>
+            <span style="color:#94a3b8;">Could not reach the orchestration engine. Please try again.</span>
+        `);
+    } finally {
+        sendBtn.disabled = false;
+        input.focus();
+    }
+}
+
+/**
+ * Reset the copilot panel to its initial idle state.
+ */
+function clearCopilotChat() {
+    // Reset chat window
+    const msgs = document.getElementById('copilot-chat-messages');
+    if (msgs) {
+        msgs.innerHTML = `
+            <div class="copilot-msg assistant">
+                <div class="copilot-bubble">
+                    <strong style="color:#a5b4fc;display:block;margin-bottom:4px;font-size:0.8rem;">✨ AI Executive Copilot</strong>
+                    Hello! Ask any cross-domain executive question — I will simultaneously consult the Sales, Inventory, and Knowledge agents to synthesize a grounded strategic recommendation.
+                </div>
+            </div>
+        `;
+    }
+
+    // Reset agent badges to pending
+    COPILOT_AGENTS.forEach(name => setCopilotAgentBadge(name, 'pending'));
+
+    const timeEl = document.getElementById('copilot-orchestration-time');
+    if (timeEl) timeEl.textContent = '';
+
+    // Reset summary cards
+    const placeholder = (text) => `<div style="color:#475569;font-size:0.78rem;font-style:italic;text-align:center;padding:1rem 0;">${text}</div>`;
+
+    const salesEl = document.getElementById('copilot-sales-summary');
+    if (salesEl) salesEl.innerHTML = placeholder('Awaiting orchestration…');
+
+    const invEl = document.getElementById('copilot-inventory-summary');
+    if (invEl) invEl.innerHTML = placeholder('Awaiting orchestration…');
+
+    const srcList = document.getElementById('copilot-sources-list');
+    if (srcList) srcList.innerHTML = `<div style="color:#475569;font-size:0.78rem;font-style:italic;text-align:center;padding:0.5rem 0;">Knowledge agent will cite enterprise documents here.</div>`;
+
+    const srcBadge = document.getElementById('copilot-sources-badge');
+    if (srcBadge) srcBadge.textContent = '0 Sources';
+
+    // Reset recommendation + confidence
+    const recEl = document.getElementById('copilot-recommendation-text');
+    if (recEl) {
+        recEl.innerHTML = `<div style="color:#94a3b8;font-size:0.85rem;font-style:italic;">The synthesized strategic recommendation will appear here after the orchestration run completes.</div>`;
+    }
+
+    const barEl = document.getElementById('copilot-confidence-bar');
+    if (barEl) barEl.style.width = '0%';
+
+    const barWrap = document.getElementById('copilot-confidence-bar-wrap');
+    if (barWrap) barWrap.classList.add('d-none');
+
+    const confDisp = document.getElementById('copilot-confidence-display');
+    if (confDisp) confDisp.classList.add('d-none');
+}

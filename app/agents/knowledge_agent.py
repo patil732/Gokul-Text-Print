@@ -129,7 +129,7 @@ class KnowledgeAgent(BaseAgent):
         if not raw_query:
             raw_query = "standard operating procedure company policy guidelines"
 
-        logger.info(f"[KnowledgeAgent] execute() → RAG search for query='{raw_query[:80]}'")
+        logger.info(f"[KnowledgeAgent] execute() -> RAG search for query='{raw_query[:80]}'")
 
         try:
             search_res = call_api(

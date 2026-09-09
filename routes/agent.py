@@ -3,11 +3,12 @@ routes/agent.py
 ---------------
 Flask Blueprint exposing Multi-Agent Copilot API endpoints:
 
-  - POST /api/agent/ask          : Orchestrated multi-agent answer.
+  - POST /api/agent/ask          : Orchestrated multi-agent answer (legacy).
   - GET  /api/agent/status       : Health check and registered sub-agent list.
   - POST /api/agents/sales       : Run SalesAgent independently (testing / direct use).
   - POST /api/agents/inventory   : Run InventoryAgent independently (testing / direct use).
   - POST /api/agents/knowledge   : Run KnowledgeAgent independently (testing / direct use).
+  - POST /api/agents/manager     : Full orchestration pipeline with confidence + agent_details.
 """
 
 from flask import Blueprint, jsonify, request
@@ -189,4 +190,45 @@ def knowledge_agent_direct():
 
     except Exception as exc:
         logger.error(f"[agent_bp] /api/agents/knowledge error: {exc}")
+        return jsonify({"status": "error", "message": str(exc)}), 500
+
+
+@agent_bp.route("/api/agents/manager", methods=["POST"])
+def manager_orchestrate():
+    """
+    Full multi-agent orchestration pipeline.
+
+    Request JSON:
+      { "question": "Should we increase inventory next week?" }
+
+    Response JSON:
+      {
+        "status": "success",
+        "question": "Should we increase inventory next week?",
+        "answer": "...",
+        "agents_used": ["sales", "inventory", "knowledge"],
+        "confidence": 0.87,
+        "agent_details": {
+          "sales":     { ...AgentResponse.to_dict()... },
+          "inventory": { ...AgentResponse.to_dict()... },
+          "knowledge": { ...AgentResponse.to_dict()... }
+        }
+      }
+    """
+    try:
+        body = request.get_json(silent=True) or {}
+        question = str(body.get("question", "")).strip()
+
+        if not question:
+            return jsonify({
+                "status": "error",
+                "message": "Field 'question' is required and cannot be empty.",
+            }), 400
+
+        result = _manager.orchestrate(question)
+        http_code = 200 if result.get("status") == "success" else 500
+        return jsonify(result), http_code
+
+    except Exception as exc:
+        logger.error(f"[agent_bp] /api/agents/manager error: {exc}")
         return jsonify({"status": "error", "message": str(exc)}), 500

@@ -252,18 +252,28 @@ class TestManagerAgent:
 
     def test_manager_extensibility_custom_agent(self):
         """Confirm adding a new domain agent requires zero changes to other agents."""
-        class FinanceAgent(BaseAgent):
+        from app.agents.base_agent import BaseAgent as NewBaseAgent, AgentResponse
+
+        class FinanceAgent(NewBaseAgent):
             @property
             def name(self) -> str:
                 return "finance"
 
-            def run(self, question: str = "") -> dict:
-                return {"domain": "finance", "operating_cashflow": 1200000.0, "status": "Healthy"}
+            def can_handle(self, query: str) -> bool:
+                return "cashflow" in query.lower() or "finance" in query.lower()
+
+            def execute(self, context=None) -> AgentResponse:
+                return AgentResponse(
+                    agent_name="finance",
+                    status="success",
+                    data={"operating_cashflow": 1200000.0, "health": "Healthy"},
+                    confidence=0.95,
+                )
 
         mgr = ManagerAgent()
         assert "finance" not in mgr.registered_agents
 
-        mgr.register_agent("finance", FinanceAgent())
+        mgr.register_agent(FinanceAgent())   # new: single-arg
         assert "finance" in mgr.registered_agents
         assert len(mgr.registered_agents) == 4
 
@@ -292,8 +302,10 @@ class TestManagerAgent:
 
             assert result["status"] == "success"
             assert "answer" in result
+            # MockChatProvider returns text containing "Sales (-12.4% growth)"
             assert "Sales (-12.4% growth)" in result["answer"]
             assert set(result["agents_used"]) == {"sales", "inventory", "knowledge"}
+            # ask() maps agent_details -> raw_data for backward compat
             assert "sales" in result["raw_data"]
             assert "inventory" in result["raw_data"]
             assert "knowledge" in result["raw_data"]

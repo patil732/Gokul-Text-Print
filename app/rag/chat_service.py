@@ -176,11 +176,26 @@ class GeminiChatProvider(ChatProvider):
             {"role": "model", "parts": ["Understood. I will answer using only the provided context and cite sources as instructed."]},
             {"role": "user",  "parts": [user_message]},
         ]
-        response = self._model.generate_content(
-            contents,
-            generation_config=generation_config,
-        )
-        return response.text.strip()
+        try:
+            response = self._model.generate_content(
+                contents,
+                generation_config=generation_config,
+            )
+            return response.text.strip()
+        except Exception as exc:
+            # If the requested model is not found or deprecated, fall back to gemini-flash-latest
+            if "404" in str(exc) or "not found" in str(exc).lower():
+                logger.warning(
+                    f"[chat_service] Model '{self._cfg.model}' not found ({exc}). "
+                    f"Falling back to 'gemini-flash-latest'."
+                )
+                self._model = genai.GenerativeModel("gemini-flash-latest")
+                response = self._model.generate_content(
+                    contents,
+                    generation_config=generation_config,
+                )
+                return response.text.strip()
+            raise
 
 
 class OpenAIChatProvider(ChatProvider):
