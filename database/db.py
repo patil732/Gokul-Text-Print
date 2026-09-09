@@ -196,6 +196,15 @@ def init_db() -> None:
         ON alerts(status, priority, created_at)
     """)
 
+    # Dashboard preferences table (Sprint 6 V2 — personalization & layout preferences)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS dashboard_preferences (
+            user_id     TEXT PRIMARY KEY,
+            preferences TEXT NOT NULL,
+            updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
     conn.commit()
     conn.close()
     logger.info(f"[db] Database initialised at {DB_PATH}")

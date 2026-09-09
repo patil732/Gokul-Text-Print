@@ -9,6 +9,11 @@ let monthlyComparisonChart = null;
 
 document.addEventListener('DOMContentLoaded', function() {
     if (document.getElementById('ceo-dashboard')) {
+        loadUserPreferences();
+        fetchV2KPIs();
+        fetchV2Alerts();
+        fetchV2Analytics();
+        fetchV2Recommendations();
         fetchCEODashboard();
         loadDocumentsList();
         loadChatHistory();
@@ -1394,3 +1399,705 @@ function clearCopilotChat() {
     const confDisp = document.getElementById('copilot-confidence-display');
     if (confDisp) confDisp.classList.add('d-none');
 }
+
+// ===========================================================================
+// Executive Dashboard V2 Controller (Sprint 6)
+// Personalization, Pinned Widgets, V2 KPIs, V2 Analytics, Recommendations, Alerts
+// ===========================================================================
+
+let v2Preferences = {
+    theme: 'light',
+    pinned_widgets: ['widget-alerts', 'widget-kpis'],
+    widget_order: [
+        'widget-alerts',
+        'widget-kpis',
+        'widget-charts',
+        'widget-recommendations',
+        'widget-chat',
+        'widget-specialist-engines',
+    ],
+    chart_filters: {
+        sales_range: 'monthly',
+        inventory_range: 'monthly',
+        start_date: '',
+        end_date: '',
+    },
+};
+
+let v2SalesAnalyticsChart = null;
+let v2InventoryAnalyticsChart = null;
+let v2RawRecommendations = [];
+let v2CurrentRecFilter = 'ALL';
+
+/**
+ * Load user preferences from backend (or localStorage cache) and apply.
+ */
+async function loadUserPreferences() {
+    const cachedTheme = localStorage.getItem('gokul_v2_theme');
+    if (cachedTheme) {
+        applyTheme(cachedTheme);
+    }
+
+    try {
+        const res = await fetch('/api/dashboard/preferences');
+        if (res.ok) {
+            const json = await res.json();
+            if (json.status === 'success' && json.data) {
+                v2Preferences = json.data;
+                applyTheme(v2Preferences.theme || 'light');
+                applyWidgetOrder(v2Preferences.widget_order || [], v2Preferences.pinned_widgets || []);
+                applyPersistedChartFilters(v2Preferences.chart_filters || {});
+            }
+        }
+    } catch (e) {
+        console.warn('[V2 Preferences] Failed to load preferences:', e);
+    }
+}
+
+/**
+ * Persist preferences to server (debounced).
+ */
+let _prefSaveTimer = null;
+function saveUserPreferences() {
+    clearTimeout(_prefSaveTimer);
+    _prefSaveTimer = setTimeout(async () => {
+        try {
+            await fetch('/api/dashboard/preferences', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ preferences: v2Preferences }),
+            });
+        } catch (e) {
+            console.warn('[V2 Preferences] Failed to save preferences:', e);
+        }
+    }, 400);
+}
+
+/**
+ * Apply theme to document and body.
+ */
+function applyTheme(theme) {
+    v2Preferences.theme = theme;
+    localStorage.setItem('gokul_v2_theme', theme);
+    const isDark = theme === 'dark';
+
+    if (isDark) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.body.classList.add('theme-dark');
+    } else {
+        document.documentElement.removeAttribute('data-theme');
+        document.body.classList.remove('theme-dark');
+    }
+
+    const icon = document.getElementById('theme-icon');
+    const label = document.getElementById('theme-label');
+    if (icon) icon.textContent = isDark ? '🌞' : '🌙';
+    if (label) label.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+
+    if (v2SalesAnalyticsChart) v2SalesAnalyticsChart.update();
+    if (v2InventoryAnalyticsChart) v2InventoryAnalyticsChart.update();
+}
+
+/**
+ * Toggle light/dark theme.
+ */
+function toggleTheme() {
+    const newTheme = v2Preferences.theme === 'dark' ? 'light' : 'dark';
+    applyTheme(newTheme);
+    saveUserPreferences();
+}
+
+/**
+ * Apply widget ordering and pinned styles to DOM.
+ */
+function applyWidgetOrder(order, pinned) {
+    const container = document.getElementById('v2-widgets-container');
+    if (!container || !order || order.length === 0) return;
+
+    const widgetMap = {};
+    order.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) widgetMap[id] = el;
+    });
+
+    order.forEach(id => {
+        const el = widgetMap[id];
+        if (el) container.appendChild(el);
+    });
+
+    const allWidgets = container.querySelectorAll('.v2-widget');
+    allWidgets.forEach(w => {
+        const wId = w.getAttribute('data-widget-id');
+        const isPinned = pinned && pinned.includes(wId);
+        w.classList.toggle('pinned', !!isPinned);
+
+        const pinBtn = w.querySelector('.btn-widget-action');
+        if (pinBtn && pinBtn.textContent.includes('Pin')) {
+            pinBtn.classList.toggle('pinned', !!isPinned);
+            pinBtn.textContent = isPinned ? '📌 Pinned' : '📌 Pin';
+        }
+    });
+}
+
+/**
+ * Toggle pin status for a widget.
+ */
+function toggleWidgetPin(widgetId) {
+    if (!v2Preferences.pinned_widgets) v2Preferences.pinned_widgets = [];
+    const idx = v2Preferences.pinned_widgets.indexOf(widgetId);
+
+    if (idx >= 0) {
+        v2Preferences.pinned_widgets.splice(idx, 1);
+    } else {
+        v2Preferences.pinned_widgets.push(widgetId);
+        const oIdx = v2Preferences.widget_order.indexOf(widgetId);
+        if (oIdx > 0) {
+            v2Preferences.widget_order.splice(oIdx, 1);
+            v2Preferences.widget_order.unshift(widgetId);
+        }
+    }
+
+    applyWidgetOrder(v2Preferences.widget_order, v2Preferences.pinned_widgets);
+    saveUserPreferences();
+}
+
+/**
+ * Move widget up or down in the DOM order.
+ */
+function moveWidget(widgetId, direction) {
+    const order = v2Preferences.widget_order || [];
+    const idx = order.indexOf(widgetId);
+    if (idx < 0) return;
+
+    const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (targetIdx < 0 || targetIdx >= order.length) return;
+
+    const temp = order[idx];
+    order[idx] = order[targetIdx];
+    order[targetIdx] = temp;
+
+    v2Preferences.widget_order = order;
+    applyWidgetOrder(order, v2Preferences.pinned_widgets);
+    saveUserPreferences();
+}
+
+/**
+ * Reset widget layout to defaults.
+ */
+function resetDashboardLayout() {
+    v2Preferences.widget_order = [
+        'widget-alerts',
+        'widget-kpis',
+        'widget-charts',
+        'widget-recommendations',
+        'widget-chat',
+        'widget-specialist-engines',
+    ];
+    v2Preferences.pinned_widgets = ['widget-alerts', 'widget-kpis'];
+    applyWidgetOrder(v2Preferences.widget_order, v2Preferences.pinned_widgets);
+    saveUserPreferences();
+}
+
+/**
+ * Toggle Fullscreen mode using HTML5 Fullscreen API.
+ */
+function toggleFullscreen() {
+    const btn = document.getElementById('fullscreen-toggle-btn');
+    const icon = document.getElementById('fullscreen-icon');
+
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+            console.warn(`Fullscreen request failed: ${err.message}`);
+        });
+        if (btn) btn.classList.add('active');
+        if (icon) icon.textContent = '🗗';
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
+        if (btn) btn.classList.remove('active');
+        if (icon) icon.textContent = '⛶';
+    }
+}
+
+/**
+ * Manual Refresh button handler.
+ */
+async function refreshDashboardV2() {
+    const icon = document.getElementById('refresh-icon');
+    if (icon) icon.classList.add('spin-anim');
+
+    try {
+        await Promise.all([
+            fetchV2KPIs(true),
+            fetchV2Alerts(),
+            fetchV2Analytics(),
+            fetchV2Recommendations(),
+            fetchCEODashboard(),
+        ]);
+        const stampEl = document.getElementById('v2-sync-timestamp');
+        if (stampEl) {
+            stampEl.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+    } catch (e) {
+        console.error('Manual refresh error:', e);
+    } finally {
+        setTimeout(() => {
+            if (icon) icon.classList.remove('spin-anim');
+        }, 600);
+    }
+}
+
+/**
+ * Fetch and display V2 Top Row KPI Cards & Composite Health Score.
+ */
+async function fetchV2KPIs(forceRefresh = false) {
+    try {
+        const url = forceRefresh ? '/api/dashboard/kpis?refresh=true' : '/api/dashboard/kpis';
+        const res = await fetch(url);
+        if (!res.ok) return;
+        const json = await res.json();
+        if (json.status !== 'success' || !json.data) return;
+
+        const d = json.data;
+
+        const revEl = document.getElementById('v2-kpi-revenue');
+        if (revEl) revEl.textContent = formatCurrency(d.revenue || 0);
+
+        const salesEl = document.getElementById('v2-kpi-sales');
+        if (salesEl) salesEl.textContent = (d.total_sales || 0).toLocaleString();
+
+        const growthEl = document.getElementById('v2-kpi-growth');
+        const trendEl = document.getElementById('v2-kpi-growth-trend');
+        const growthVal = (d.sales_growth || 0);
+        if (growthEl) {
+            growthEl.textContent = `${growthVal >= 0 ? '+' : ''}${growthVal.toFixed(1)}%`;
+            growthEl.className = `kpi-value ${growthVal >= 0 ? 'text-success' : 'text-danger'}`;
+        }
+        if (trendEl) {
+            trendEl.textContent = growthVal >= 0 ? '↑ Positive' : '↓ Negative';
+            trendEl.className = `fw-bold ${growthVal >= 0 ? 'text-success' : 'text-danger'}`;
+        }
+
+        const invValEl = document.getElementById('v2-kpi-inv-value');
+        if (invValEl) invValEl.textContent = formatCurrency(d.inventory_value || 0);
+
+        const invHealthEl = document.getElementById('v2-kpi-inv-health');
+        const invHealthPill = document.getElementById('v2-kpi-inv-health-pill');
+        if (invHealthEl) invHealthEl.textContent = d.inventory_health || 'Stable';
+        if (invHealthPill) {
+            const h = (d.inventory_health || 'Stable').toLowerCase();
+            const colorClass = h.includes('optimal') || h.includes('healthy') ? 'bg-success' : (h.includes('critical') ? 'bg-danger' : 'bg-warning text-dark');
+            invHealthPill.className = `badge ${colorClass}`;
+            invHealthPill.textContent = d.inventory_health || 'Stable';
+        }
+
+        const lowStockEl = document.getElementById('v2-kpi-low-stock');
+        const lowStockLabel = document.getElementById('v2-low-stock-count-label');
+        if (lowStockEl) lowStockEl.textContent = `${d.low_stock_products_count || 0}`;
+        if (lowStockLabel) lowStockLabel.textContent = `${d.low_stock_products_count || 0} items`;
+
+        const recCountEl = document.getElementById('v2-kpi-recs-count');
+        if (recCountEl) recCountEl.textContent = `${d.ai_recommendations_count || 0}`;
+
+        // Composite Health Score
+        const bh = d.business_health || {};
+        const score = Math.round(bh.score || 0);
+        const scoreEl = document.getElementById('v2-kpi-health-score');
+        const badgeEl = document.getElementById('v2-kpi-health-badge');
+        const barEl = document.getElementById('v2-kpi-health-bar');
+        const statusEl = document.getElementById('v2-kpi-health-status');
+        const formulaEl = document.getElementById('v2-kpi-health-formula-info');
+
+        if (scoreEl) scoreEl.textContent = `${score} / 100`;
+        if (barEl) {
+            barEl.style.width = `${Math.min(100, Math.max(0, score))}%`;
+            barEl.className = `health-score-fill ${score >= 70 ? 'bg-success' : (score >= 50 ? 'bg-warning' : 'bg-danger')}`;
+        }
+        if (badgeEl) {
+            badgeEl.textContent = bh.status || (score >= 70 ? 'Strong' : (score >= 50 ? 'Stable' : 'Warning'));
+            badgeEl.className = `health-score-badge border ${score >= 70 ? 'bg-success-subtle text-success border-success-subtle' : (score >= 50 ? 'bg-warning-subtle text-warning border-warning-subtle' : 'bg-danger-subtle text-danger border-danger-subtle')}`;
+        }
+        if (statusEl) statusEl.textContent = bh.status || 'Optimal';
+        if (formulaEl && bh.formula) {
+            formulaEl.title = bh.formula;
+        }
+
+    } catch (e) {
+        console.warn('[V2 KPIs] Failed to fetch KPIs:', e);
+    }
+}
+
+/**
+ * Fetch and display Operational Alerts Banner.
+ */
+async function fetchV2Alerts() {
+    try {
+        const res = await fetch('/api/dashboard/alerts?status=ACTIVE&limit=20');
+        if (!res.ok) return;
+        const json = await res.json();
+        if (json.status !== 'success') return;
+
+        const alerts = json.data || [];
+        const highAlerts = alerts.filter(a => a.priority === 'CRITICAL' || a.priority === 'HIGH');
+
+        const badge = document.getElementById('alerts-count-badge');
+        const counter = document.getElementById('alerts-banner-counter');
+        if (badge) badge.textContent = `${highAlerts.length} Critical/High`;
+        if (counter) counter.textContent = `${highAlerts.length}`;
+
+        const listContainer = document.getElementById('alerts-list-container');
+        if (!listContainer) return;
+
+        if (highAlerts.length === 0) {
+            listContainer.innerHTML = `
+                <div class="p-2 bg-white rounded border text-muted small d-flex justify-content-between align-items-center">
+                    <span>✅ All operating thresholds within standard boundaries. Zero active high-priority alerts.</span>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle">Normal</span>
+                </div>
+            `;
+        } else {
+            listContainer.innerHTML = highAlerts.map(a => {
+                const isCrit = a.priority === 'CRITICAL';
+                const badgeClass = isCrit ? 'bg-danger text-white' : 'bg-warning text-dark';
+                return `
+                    <div class="alert-item-card">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge ${badgeClass} text-uppercase" style="font-size: 0.68rem;">${escapeHtml(a.priority)}</span>
+                            <div>
+                                <strong class="small text-dark d-block">${escapeHtml(a.alert_type)}</strong>
+                                <span class="small text-secondary">${escapeHtml(a.message)}</span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span class="small text-muted" style="font-size: 0.72rem;">${a.created_at || 'Recent'}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+    } catch (e) {
+        console.warn('[V2 Alerts] Failed to fetch alerts:', e);
+    }
+}
+
+/**
+ * Apply persisted chart date filters.
+ */
+function applyPersistedChartFilters(filters) {
+    if (!filters) return;
+    const range = filters.sales_range || 'monthly';
+    const sInput = document.getElementById('v2-analytics-start-date');
+    const eInput = document.getElementById('v2-analytics-end-date');
+
+    if (sInput && filters.start_date) sInput.value = filters.start_date;
+    if (eInput && filters.end_date) eInput.value = filters.end_date;
+
+    setV2AnalyticsRange(range, false);
+}
+
+/**
+ * Change time-series aggregation range (daily, weekly, monthly).
+ */
+function setV2AnalyticsRange(range, triggerFetch = true) {
+    if (!v2Preferences.chart_filters) v2Preferences.chart_filters = {};
+    v2Preferences.chart_filters.sales_range = range;
+    v2Preferences.chart_filters.inventory_range = range;
+
+    ['daily', 'weekly', 'monthly'].forEach(r => {
+        const btn = document.getElementById(`btn-range-${r}`);
+        if (btn) {
+            btn.classList.toggle('active', r === range);
+            btn.classList.toggle('btn-primary', r === range);
+            btn.classList.toggle('btn-outline-primary', r !== range);
+        }
+    });
+
+    const badge = document.getElementById('sales-trend-badge');
+    if (badge) badge.textContent = `${range.charAt(0).toUpperCase() + range.slice(1)} Trend`;
+
+    if (triggerFetch) {
+        saveUserPreferences();
+        fetchV2Analytics();
+    }
+}
+
+/**
+ * Custom date picker change handler.
+ */
+function onCustomDateRangeChanged() {
+    const sInput = document.getElementById('v2-analytics-start-date');
+    const eInput = document.getElementById('v2-analytics-end-date');
+    if (!v2Preferences.chart_filters) v2Preferences.chart_filters = {};
+
+    v2Preferences.chart_filters.start_date = sInput ? sInput.value : '';
+    v2Preferences.chart_filters.end_date = eInput ? eInput.value : '';
+
+    saveUserPreferences();
+    fetchV2Analytics();
+}
+
+/**
+ * Reset custom date pickers.
+ */
+function resetCustomDateRange() {
+    const sInput = document.getElementById('v2-analytics-start-date');
+    const eInput = document.getElementById('v2-analytics-end-date');
+    if (sInput) sInput.value = '';
+    if (eInput) eInput.value = '';
+
+    if (!v2Preferences.chart_filters) v2Preferences.chart_filters = {};
+    v2Preferences.chart_filters.start_date = '';
+    v2Preferences.chart_filters.end_date = '';
+
+    saveUserPreferences();
+    fetchV2Analytics();
+}
+
+/**
+ * Fetch and render Executive Analytics dual charts (Sales & Inventory).
+ */
+async function fetchV2Analytics() {
+    const range = (v2Preferences.chart_filters && v2Preferences.chart_filters.sales_range) || 'monthly';
+    const startDate = (v2Preferences.chart_filters && v2Preferences.chart_filters.start_date) || '';
+    const endDate = (v2Preferences.chart_filters && v2Preferences.chart_filters.end_date) || '';
+
+    let urlSales = `/api/dashboard/analytics?type=sales&range=${range}`;
+    let urlInv = `/api/dashboard/analytics?type=inventory&range=${range}`;
+    if (startDate) { urlSales += `&start=${startDate}`; urlInv += `&start=${startDate}`; }
+    if (endDate) { urlSales += `&end=${endDate}`; urlInv += `&end=${endDate}`; }
+
+    try {
+        const [salesRes, invRes] = await Promise.all([
+            fetch(urlSales),
+            fetch(urlInv),
+        ]);
+
+        if (salesRes.ok) {
+            const sJson = await salesRes.json();
+            if (sJson.status === 'success' && sJson.data) {
+                renderV2SalesChart(sJson.data.sales_trend || {});
+            }
+        }
+
+        if (invRes.ok) {
+            const iJson = await invRes.json();
+            if (iJson.status === 'success' && iJson.data) {
+                renderV2InventoryChart(iJson.data.stock_trend || {}, iJson.data.turnover_ratio || 0);
+                const deadLabel = document.getElementById('v2-dead-stock-count-label');
+                if (deadLabel && iJson.data.dead_stock_analysis) {
+                    deadLabel.textContent = `${iJson.data.dead_stock_analysis.count || 0} items`;
+                }
+            }
+        }
+    } catch (e) {
+        console.warn('[V2 Analytics] Failed to fetch analytics:', e);
+    }
+}
+
+/**
+ * Render V2 Sales & Revenue Chart.
+ */
+function renderV2SalesChart(trendData) {
+    const ctx = document.getElementById('v2SalesAnalyticsChart');
+    if (!ctx) return;
+
+    const dates = trendData.dates || [];
+    const sales = trendData.sales || [];
+    const revenue = trendData.revenue || [];
+
+    if (v2SalesAnalyticsChart) v2SalesAnalyticsChart.destroy();
+
+    v2SalesAnalyticsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: dates,
+            datasets: [
+                {
+                    type: 'line',
+                    label: 'Revenue (₹)',
+                    data: revenue,
+                    borderColor: '#8cb054',
+                    backgroundColor: 'rgba(140, 176, 84, 0.15)',
+                    borderWidth: 2.5,
+                    fill: true,
+                    tension: 0.3,
+                    yAxisID: 'yRev',
+                },
+                {
+                    type: 'bar',
+                    label: 'Sales Volume (Units)',
+                    data: sales,
+                    backgroundColor: 'rgba(99, 102, 241, 0.65)',
+                    borderRadius: 4,
+                    yAxisID: 'yVol',
+                },
+            ],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: { position: 'top' },
+            },
+            scales: {
+                yRev: {
+                    type: 'linear',
+                    position: 'left',
+                    ticks: {
+                        callback: v => '₹' + Number(v).toLocaleString(),
+                    },
+                    grid: { color: 'rgba(148, 163, 184, 0.15)' },
+                },
+                yVol: {
+                    type: 'linear',
+                    position: 'right',
+                    grid: { drawOnChartArea: false },
+                },
+                x: {
+                    grid: { display: false },
+                },
+            },
+        },
+    });
+}
+
+/**
+ * Render V2 Inventory Turnover & Stock Trend Chart.
+ */
+function renderV2InventoryChart(stockData, turnoverRatio) {
+    const ctx = document.getElementById('v2InventoryAnalyticsChart');
+    if (!ctx) return;
+
+    const dates = stockData.dates || [];
+    const levels = stockData.stock_level || [];
+
+    const badge = document.getElementById('inv-turnover-badge');
+    if (badge) badge.textContent = `Turnover: ${turnoverRatio.toFixed(2)}x`;
+
+    if (v2InventoryAnalyticsChart) v2InventoryAnalyticsChart.destroy();
+
+    v2InventoryAnalyticsChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: dates,
+            datasets: [{
+                label: 'Stock Units',
+                data: levels,
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.3,
+            }],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+            },
+            scales: {
+                y: {
+                    grid: { color: 'rgba(148, 163, 184, 0.15)' },
+                },
+                x: {
+                    grid: { display: false },
+                },
+            },
+        },
+    });
+}
+
+/**
+ * Fetch and render V2 Consolidated AI Recommendations.
+ */
+async function fetchV2Recommendations() {
+    try {
+        const res = await fetch('/api/dashboard/recommendations');
+        if (!res.ok) return;
+        const json = await res.json();
+        if (json.status !== 'success') return;
+
+        v2RawRecommendations = json.data || [];
+        const totalBadge = document.getElementById('v2-recs-total-badge');
+        if (totalBadge) totalBadge.textContent = `${v2RawRecommendations.length} Insights`;
+
+        renderFilteredV2Recommendations();
+
+    } catch (e) {
+        console.warn('[V2 Recommendations] Failed to fetch recommendations:', e);
+    }
+}
+
+/**
+ * Filter recommendations by priority.
+ */
+function filterV2Recommendations(priority) {
+    v2CurrentRecFilter = priority;
+    ['all', 'critical', 'high', 'medium', 'low'].forEach(p => {
+        const btn = document.getElementById(`btn-rec-filter-${p}`);
+        if (btn) {
+            const isMatch = p.toUpperCase() === priority;
+            btn.classList.toggle('active', isMatch);
+        }
+    });
+    renderFilteredV2Recommendations();
+}
+
+/**
+ * Render recommendations based on current filter.
+ */
+function renderFilteredV2Recommendations() {
+    const container = document.getElementById('v2-recommendations-list');
+    if (!container) return;
+
+    let filtered = v2RawRecommendations;
+    if (v2CurrentRecFilter !== 'ALL') {
+        filtered = v2RawRecommendations.filter(r => (r.priority || '').toUpperCase() === v2CurrentRecFilter);
+    }
+
+    if (filtered.length === 0) {
+        container.innerHTML = `
+            <div class="text-center text-muted small py-4">
+                No recommendations matching priority "${v2CurrentRecFilter}".
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = filtered.map(item => {
+        const prio = (item.priority || 'MEDIUM').toUpperCase();
+        const confPct = Math.round((item.confidence || 0.8) * 100);
+        const sourceIcons = {
+            'sales': '📊 Sales Engine',
+            'inventory': '📦 Inventory ML',
+            'knowledge': '📚 Enterprise Policy',
+            'manager_agent': '✨ AI Copilot Orchestrator',
+        };
+        const sourceLabel = sourceIcons[item.source] || item.source || 'AI Intelligence';
+
+        return `
+            <div class="rec-card-v2 priority-${escapeHtml(prio)}">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge ${prio === 'CRITICAL' ? 'bg-danger text-white' : (prio === 'HIGH' ? 'bg-warning text-dark' : 'bg-secondary')} text-uppercase" style="font-size: 0.68rem;">
+                            ${escapeHtml(prio)}
+                        </span>
+                        <span class="badge bg-light text-dark border" style="font-size: 0.72rem;">
+                            ${escapeHtml(sourceLabel)}
+                        </span>
+                    </div>
+                    <span class="small fw-bold text-success" title="Composite recommendation confidence">
+                        ${confPct}% Confidence
+                    </span>
+                </div>
+                <h6 class="fw-bold text-dark my-1">${escapeHtml(item.recommendation || '')}</h6>
+                <div class="small text-secondary">${escapeHtml(item.reason || '')}</div>
+            </div>
+        `;
+    }).join('');
+}
+

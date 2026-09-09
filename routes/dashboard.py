@@ -14,9 +14,10 @@ executive decision layer:
 from __future__ import annotations
 
 import io
+import json
 import time
 from datetime import datetime
-from flask import Blueprint, jsonify, request, send_file, Response
+from flask import Blueprint, jsonify, request, send_file, Response, session
 
 from app.dashboard.kpi.kpi_service import aggregate_kpis
 from utils.logger import logger
@@ -444,4 +445,142 @@ def get_dashboard_alerts():
             "status": "error",
             "message": f"Failed to retrieve alerts: {str(exc)}",
         }), 500
+
+
+# --------------------------------------------------------------------------- #
+# Dashboard Personalization & User Preferences (Sprint 6 V2)
+# --------------------------------------------------------------------------- #
+
+DEFAULT_PREFERENCES = {
+    "theme": "light",
+    "pinned_widgets": ["widget-alerts", "widget-kpis"],
+    "widget_order": [
+        "widget-alerts",
+        "widget-kpis",
+        "widget-charts",
+        "widget-recommendations",
+        "widget-chat",
+        "widget-specialist-engines",
+    ],
+    "chart_filters": {
+        "sales_range": "monthly",
+        "inventory_range": "monthly",
+        "start_date": "",
+        "end_date": "",
+    },
+    "collapsed_sections": [],
+}
+
+
+@dashboard_bp.route("/api/dashboard/preferences", methods=["GET"])
+def get_dashboard_preferences():
+    """
+    Retrieve personalized dashboard preferences for a given user.
+    """
+    user_id = request.args.get("user") or session.get("user") or "ceo"
+    try:
+        from database.db import get_db_connection
+        conn = get_db_connection()
+        row = conn.execute(
+            "SELECT preferences, updated_at FROM dashboard_preferences WHERE user_id = ?",
+            (user_id,)
+        ).fetchone()
+        conn.close()
+
+        if row:
+            try:
+                prefs = json.loads(row["preferences"])
+            except Exception:
+                prefs = dict(DEFAULT_PREFERENCES)
+            return jsonify({
+                "status": "success",
+                "user": user_id,
+                "data": prefs,
+                "updated_at": row["updated_at"]
+            }), 200
+        else:
+            return jsonify({
+                "status": "success",
+                "user": user_id,
+                "data": dict(DEFAULT_PREFERENCES),
+                "is_default": True
+            }), 200
+
+    except Exception as exc:
+        logger.error(f"[dashboard_bp] Failed to get preferences for user='{user_id}': {exc}", exc_info=True)
+        return jsonify({
+            "status": "error",
+            "message": f"Failed to get preferences: {str(exc)}"
+        }), 500
+
+
+@dashboard_bp.route("/api/dashboard/preferences", methods=["POST"])
+def save_dashboard_preferences():
+    """
+    Persist personalized dashboard preferences for a user.
+    """
+    if request.data and request.get_json(silent=True) is None:
+        return jsonify({
+            "status": "error",
+            "message": "Invalid JSON payload."
+        }), 400
+
+    payload = request.get_json(silent=True) or {}
+    user_id = payload.get("user") or request.args.get("user") or session.get("user") or "ceo"
+
+    prefs_data = payload.get("preferences") if "preferences" in payload else payload
+    if isinstance(prefs_data, dict) and "user" in prefs_data and "preferences" not in payload:
+        prefs_data = {k: v for k, v in prefs_data.items() if k != "user"}
+
+    if not isinstance(prefs_data, dict):
+        return jsonify({
+            "status": "error",
+            "message": "Preferences payload must be a JSON object."
+        }), 400
+
+    try:
+        from database.db import get_db_connection
+        conn = get_db_connection()
+
+        row = conn.execute(
+            "SELECT preferences FROM dashboard_preferences WHERE user_id = ?",
+            (user_id,)
+        ).fetchone()
+
+        merged_prefs = dict(DEFAULT_PREFERENCES)
+        if row:
+            try:
+                merged_prefs.update(json.loads(row["preferences"]))
+            except Exception:
+                pass
+        merged_prefs.update(prefs_data)
+
+        prefs_json = json.dumps(merged_prefs)
+        conn.execute(
+            """
+            INSERT INTO dashboard_preferences (user_id, preferences, updated_at)
+            VALUES (?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT(user_id) DO UPDATE SET
+                preferences = excluded.preferences,
+                updated_at = CURRENT_TIMESTAMP
+            """,
+            (user_id, prefs_json)
+        )
+        conn.commit()
+        conn.close()
+
+        logger.info(f"[dashboard_bp] Saved dashboard preferences for user='{user_id}'")
+        return jsonify({
+            "status": "success",
+            "user": user_id,
+            "data": merged_prefs
+        }), 200
+
+    except Exception as exc:
+        logger.error(f"[dashboard_bp] Failed to save preferences for user='{user_id}': {exc}", exc_info=True)
+        return jsonify({
+            "status": "error",
+            "message": f"Failed to save preferences: {str(exc)}"
+        }), 500
+
 

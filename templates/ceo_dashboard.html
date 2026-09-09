@@ -3,23 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Executive Strategy Center - Gokul Tex Print</title>
+    <title>Executive Strategy Center V2 - Gokul Tex Print</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body id="ceo-dashboard">
+    <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg shadow-sm">
         <div class="container-fluid">
             <span class="logo">GOKUL TEX PRINT</span>
             <ul class="navbar-nav ms-4 d-none d-lg-flex flex-row gap-4">
-                <li class="nav-item"><a class="nav-link fw-bold text-primary" href="/ceo">Strategic Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link fw-bold text-primary" href="/ceo">Strategic Dashboard V2</a></li>
                 <li class="nav-item"><a class="nav-link fw-bold text-secondary" href="/ceo/analytics">Data Visualization</a></li>
             </ul>
             <div class="ms-auto d-flex align-items-center">
                 <div class="me-4 d-none d-md-block">
                     <span class="status-dot me-2"></span>
-                    <span class="small text-secondary fw-bold">Live Data Active</span>
+                    <span class="small text-secondary fw-bold">Live Enterprise Sync</span>
                 </div>
                 <div class="me-4">
                     <span class="text-secondary small me-2">👤 {{ session['user'] }}</span>
@@ -30,292 +31,676 @@
         </div>
     </nav>
 
-    <div class="container py-4">
+    <div class="container py-4" id="dashboard-main-container">
+        <!-- Hero Section -->
         <div class="hero">
             <h1>GOKUL TEX PRINT</h1>
-            <p class="mb-2">25 Years of Excellence in Global Textile & Fashion Industry</p>
+            <p class="mb-2">Executive Business Intelligence & Multi-Agent AI Strategy Center</p>
             <div class="d-flex justify-content-center gap-3">
                 <span class="badge bg-primary text-dark fw-bold">EST. 1993</span>
-                <span class="badge border border-primary text-primary">Team of 750+ Experts</span>
+                <span class="badge border border-primary text-primary">Global Textile Logistics</span>
+                <span class="badge bg-success-subtle text-success border border-success-subtle">Sprint 6 Executive BI V2</span>
             </div>
         </div>
 
-        <!-- Metric Grid -->
-        <div class="row g-4 mb-4">
-            <div class="col-md-3"><div class="card"><div class="metric-label">Latest Sales</div><div id="metric-sales" class="metric-value">₹0</div><div id="metric-sales-sub" class="small text-secondary">...</div></div></div>
-            <div class="col-md-3"><div class="card"><div class="metric-label">Growth Rate</div><div id="metric-growth" class="metric-value">0%</div><div id="metric-growth-trend" class="metric-trend">...</div></div></div>
-            <div class="col-md-3"><div class="card"><div class="metric-label">Market Demand</div><div id="metric-demand" class="metric-value" style="font-size: 1.25rem;">...</div><div class="small text-secondary">Real-time Analysis</div></div></div>
-            <div class="col-md-3"><div class="card"><div class="metric-label">Records Analyzed</div><div id="metric-records" class="metric-value">0</div><div class="small text-secondary">API Sync Active</div></div></div>
+        <!-- ── Personalization Toolbar ────────────────────────────────────── -->
+        <div class="dashboard-toolbar" id="dashboard-personalization-bar">
+            <div class="d-flex align-items-center gap-3">
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle fw-bold px-3 py-2">
+                    👑 Executive Cockpit V2
+                </span>
+                <span class="small text-secondary" id="v2-last-updated">
+                    ⏱ Synced: <span id="v2-sync-timestamp">Just now</span>
+                </span>
+            </div>
+            <div class="toolbar-actions">
+                <!-- Theme Toggle Button -->
+                <button type="button" class="btn-tool" id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Dark/Light Theme">
+                    <span id="theme-icon">🌙</span> <span id="theme-label">Dark Mode</span>
+                </button>
+                <!-- Fullscreen Mode Button -->
+                <button type="button" class="btn-tool" id="fullscreen-toggle-btn" onclick="toggleFullscreen()" title="Toggle Fullscreen View">
+                    <span id="fullscreen-icon">⛶</span> Fullscreen
+                </button>
+                <!-- Manual Refresh Button -->
+                <button type="button" class="btn-tool" id="refresh-btn" onclick="refreshDashboardV2()" title="Refresh Dashboard KPIs, Analytics, and Alerts">
+                    <span id="refresh-icon">↻</span> Refresh Data
+                </button>
+                <!-- Reset Layout Button -->
+                <button type="button" class="btn-tool text-muted" onclick="resetDashboardLayout()" title="Reset Widget Layout to Defaults">
+                    ↺ Reset Layout
+                </button>
+            </div>
         </div>
 
-        <div class="row g-4">
-            <!-- Strategic Intelligence Panels (Left) -->
-            <div class="col-lg-5">
-                <!-- ==================================================================== -->
-                <!-- Sales Intelligence Engine Panel (Sprint 2 Extended) -->
-                <!-- ==================================================================== -->
-                <div class="card mb-4 border-primary shadow-sm">
-                    <!-- Header & Horizon Controls -->
-                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 pb-2 border-bottom">
-                        <div>
-                            <div class="metric-label text-primary fw-bold h5 mb-0">📊 Sales Intelligence Engine</div>
-                            <span class="small text-secondary">Multi-model forecast, rules-based business recommendations, and SHAP feature attributions</span>
+        <!-- ── Reorderable V2 Widgets Container ────────────────────────────── -->
+        <div id="v2-widgets-container" class="d-flex flex-column gap-3">
+
+            <!-- ================================================================ -->
+            <!-- WIDGET 1: Prominent Operational Alerts Banner (Step 6)          -->
+            <!-- ================================================================ -->
+            <div class="v2-widget" id="widget-alerts" data-widget-id="widget-alerts">
+                <div class="widget-control-bar">
+                    <div class="widget-title-area">
+                        <span class="fw-bold small text-dark">🚨 Operational Early-Warning & Anomaly Alerts</span>
+                        <span class="badge bg-danger text-white rounded-pill px-2" id="alerts-count-badge">0 Critical/High</span>
+                    </div>
+                    <div class="widget-actions-btns">
+                        <button type="button" class="btn-widget-action" onclick="toggleWidgetPin('widget-alerts')" title="Pin Widget">📌 Pin</button>
+                        <button type="button" class="btn-widget-action" onclick="moveWidget('widget-alerts', 'up')" title="Move Up">▲</button>
+                        <button type="button" class="btn-widget-action" onclick="moveWidget('widget-alerts', 'down')" title="Move Down">▼</button>
+                    </div>
+                </div>
+
+                <div class="alert-banner-v2" id="active-alerts-banner">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <span class="alert-banner-pulse"></span>
+                            <div>
+                                <strong class="text-danger" id="alerts-banner-heading">Active Anomaly Alerts Requiring Attention</strong>
+                                <div class="small text-muted" id="alerts-banner-sub">Monitoring Sales drop/spike, stockout thresholds, ETL, ML models & data sanity.</div>
+                            </div>
                         </div>
-                        <div class="d-flex align-items-center gap-2 mt-2 mt-sm-0">
-                            <span class="small text-secondary fw-bold">Horizon:</span>
-                            <div class="btn-group btn-group-sm" role="group" id="sales-period-selector">
-                                <button type="button" class="btn btn-outline-primary" onclick="setForecastPeriod('7_days')">7 Days</button>
-                                <button type="button" class="btn btn-primary active" id="btn-period-30_days" onclick="setForecastPeriod('30_days')">30 Days</button>
-                                <button type="button" class="btn btn-outline-primary" onclick="setForecastPeriod('90_days')">90 Days</button>
+                        <button class="btn btn-sm btn-outline-danger" type="button" data-bs-toggle="collapse" data-bs-target="#alerts-collapse-list" aria-expanded="true">
+                            View Alerts (<span id="alerts-banner-counter">0</span>)
+                        </button>
+                    </div>
+                    <div class="collapse show mt-3" id="alerts-collapse-list">
+                        <div id="alerts-list-container" class="d-flex flex-column gap-2">
+                            <div class="text-muted small p-2 bg-white rounded border">Checking active system alerts...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================================================================ -->
+            <!-- WIDGET 2: Top Row Executive KPI Cards & Health Score (Step 1)     -->
+            <!-- ================================================================ -->
+            <div class="v2-widget" id="widget-kpis" data-widget-id="widget-kpis">
+                <div class="widget-control-bar">
+                    <div class="widget-title-area">
+                        <span class="fw-bold small text-dark">📊 Executive Performance Indicators & Business Health</span>
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle small">SLA &lt; 2s Cached</span>
+                    </div>
+                    <div class="widget-actions-btns">
+                        <button type="button" class="btn-widget-action" onclick="toggleWidgetPin('widget-kpis')" title="Pin Widget">📌 Pin</button>
+                        <button type="button" class="btn-widget-action" onclick="moveWidget('widget-kpis', 'up')" title="Move Up">▲</button>
+                        <button type="button" class="btn-widget-action" onclick="moveWidget('widget-kpis', 'down')" title="Move Down">▼</button>
+                    </div>
+                </div>
+
+                <div class="row g-3" id="v2-kpi-cards-grid">
+                    <!-- 1. Revenue -->
+                    <div class="col-xl-3 col-md-6">
+                        <div class="kpi-card-v2">
+                            <div class="kpi-label">💰 Total Revenue</div>
+                            <div class="kpi-value text-primary" id="v2-kpi-revenue">₹0</div>
+                            <div class="kpi-sub d-flex justify-content-between">
+                                <span>Historical Net</span>
+                                <span class="badge bg-light text-dark border" id="v2-kpi-revenue-tag">Aggregated</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Sales Intelligence KPI Cards -->
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-3 col-sm-6">
-                            <div class="p-3 rounded bg-light border">
-                                <div class="metric-label">Total Revenue</div>
-                                <div id="sales-kpi-total-revenue" class="metric-value text-primary fs-4">₹0</div>
-                                <div class="small text-secondary">Historical Total</div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-sm-6">
-                            <div class="p-3 rounded bg-light border">
-                                <div class="metric-label">Growth Rate</div>
-                                <div id="sales-kpi-growth-rate" class="metric-value fs-4">0%</div>
-                                <div id="sales-kpi-growth-sub" class="small text-secondary">Period-over-Period</div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-sm-6">
-                            <div class="p-3 rounded bg-light border">
-                                <div class="metric-label">Forecasted Revenue</div>
-                                <div id="sales-kpi-forecast" class="metric-value text-success fs-4">₹0</div>
-                                <div id="sales-kpi-forecast-sub" class="small text-secondary">Projected for 30 Days</div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 col-sm-6">
-                            <div class="p-3 rounded bg-light border">
-                                <div class="metric-label">AI Recommendation</div>
-                                <div id="sales-kpi-recommendation" class="metric-value fs-5 text-truncate">Loading...</div>
-                                <div id="sales-kpi-confidence" class="small text-secondary">Confidence: 0%</div>
+                    <!-- 2. Total Sales Volume -->
+                    <div class="col-xl-3 col-md-6">
+                        <div class="kpi-card-v2">
+                            <div class="kpi-label">📦 Total Sales Volume</div>
+                            <div class="kpi-value text-dark" id="v2-kpi-sales">0</div>
+                            <div class="kpi-sub d-flex justify-content-between">
+                                <span>Units Sold</span>
+                                <span class="badge bg-light text-dark border" id="v2-kpi-sales-sub">Live Sync</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- AI Panel (Recommendation, Reason & SHAP Top Features) -->
-                    <div class="row g-3 mb-4">
-                        <div class="col-lg-6">
-                            <div class="p-3 rounded border border-primary-subtle bg-light h-100">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="fw-bold text-primary">🤖 Executive AI Decision Engine</span>
-                                    <span id="sales-ai-confidence-badge" class="badge bg-success">Confidence: 0%</span>
-                                </div>
-                                <h4 id="sales-ai-decision" class="fw-bold my-2 text-success">...</h4>
-                                <div class="small text-secondary mb-2">
-                                    <span>Model: <strong id="sales-ai-model-type">...</strong> (<span id="sales-ai-version">...</span>)</span> |
-                                    <span>Accuracy: <strong id="sales-model-accuracy">N/A</strong></span>
-                                </div>
-                                <div class="small text-muted mb-2">Last Predicted: <span id="sales-predict-timestamp">Just now</span></div>
-                                <div class="metric-label mb-1">Executive Reasoning (Step 4 Rules Engine)</div>
-                                <div id="sales-ai-reason" class="p-2 rounded bg-white border small text-dark mb-2" style="min-height: 60px;">
-                                    Loading AI reasoning...
-                                </div>
-                                <div id="sales-reasons-container" class="d-none"></div>
-                                <span id="sales-confidence" class="d-none"></span>
-                                <h3 id="sales-decision-text" class="d-none"></h3>
-                                <strong id="sales-model-type" class="d-none"></strong>
-                                <span id="sales-model-version" class="d-none"></span>
-                            </div>
-                        </div>
-
-                        <div class="col-lg-6">
-                            <div class="p-3 rounded border border-info-subtle bg-light h-100">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="fw-bold text-dark">🔍 SHAP Top Feature Drivers (Step 5)</span>
-                                    <span class="badge bg-secondary">Feature Attribution</span>
-                                </div>
-                                <p class="small text-secondary mb-2">Top 3 contributing features driving the current sales forecast:</p>
-                                <div id="sales-shap-features-list" class="small">
-                                    <div class="text-muted">Loading SHAP explanations...</div>
-                                </div>
+                    <!-- 3. Sales Growth Rate -->
+                    <div class="col-xl-3 col-md-6">
+                        <div class="kpi-card-v2">
+                            <div class="kpi-label">📈 Sales Growth Rate</div>
+                            <div class="kpi-value text-success" id="v2-kpi-growth">0.0%</div>
+                            <div class="kpi-sub d-flex justify-content-between">
+                                <span>Period-over-Period</span>
+                                <span id="v2-kpi-growth-trend" class="fw-bold text-success">↑ Stable</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Sales Charts Grid -->
+                    <!-- 4. Composite Business Health Score -->
+                    <div class="col-xl-3 col-md-6">
+                        <div class="kpi-card-v2 border-primary-subtle">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="kpi-label mb-0">🛡️ Business Health</span>
+                                <span class="health-score-badge bg-success-subtle text-success border border-success-subtle" id="v2-kpi-health-badge">Strong</span>
+                            </div>
+                            <div class="kpi-value text-success" id="v2-kpi-health-score">0 / 100</div>
+                            <div class="health-score-progress">
+                                <div class="health-score-fill bg-success" id="v2-kpi-health-bar" style="width: 0%;"></div>
+                            </div>
+                            <div class="kpi-sub mt-2 d-flex justify-content-between">
+                                <span id="v2-kpi-health-formula-info" title="Transparent formula weighting Sales Growth, Inventory Health, and Active Alerts">Weighted Index</span>
+                                <span class="text-muted small" id="v2-kpi-health-status">Optimal</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5. Inventory Valuation -->
+                    <div class="col-xl-3 col-md-6">
+                        <div class="kpi-card-v2">
+                            <div class="kpi-label">🏭 Inventory Valuation</div>
+                            <div class="kpi-value text-primary" id="v2-kpi-inv-value">₹0</div>
+                            <div class="kpi-sub d-flex justify-content-between">
+                                <span>Warehouse Value</span>
+                                <span class="badge bg-light text-dark border">Sprint 3 Model</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 6. Inventory Health Status -->
+                    <div class="col-xl-3 col-md-6">
+                        <div class="kpi-card-v2">
+                            <div class="kpi-label">🏥 Stock Health Status</div>
+                            <div class="kpi-value fs-3" id="v2-kpi-inv-health">Optimal</div>
+                            <div class="kpi-sub d-flex justify-content-between">
+                                <span>Replenishment Risk</span>
+                                <span class="badge bg-success text-white" id="v2-kpi-inv-health-pill">Healthy</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 7. Low Stock Products -->
+                    <div class="col-xl-3 col-md-6">
+                        <div class="kpi-card-v2">
+                            <div class="kpi-label">⚠️ Low Stock Alerts</div>
+                            <div class="kpi-value text-warning" id="v2-kpi-low-stock">0</div>
+                            <div class="kpi-sub d-flex justify-content-between">
+                                <span>Threshold &lt; 50 units</span>
+                                <span class="badge bg-warning-subtle text-dark border" id="v2-kpi-low-stock-sub">Monitoring</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 8. AI Recommendations Count -->
+                    <div class="col-xl-3 col-md-6">
+                        <div class="kpi-card-v2">
+                            <div class="kpi-label">🎯 Active AI Insights</div>
+                            <div class="kpi-value text-info" id="v2-kpi-recs-count">0</div>
+                            <div class="kpi-sub d-flex justify-content-between">
+                                <span>Cross-Engine Recs</span>
+                                <span class="badge bg-info-subtle text-dark border">Step 3 Engine</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Legacy Metric Grid Mirror (Maintains backward compatibility for legacy JS without duplication) -->
+                <div class="d-none">
+                    <div id="metric-sales">₹0</div>
+                    <div id="metric-sales-sub">...</div>
+                    <div id="metric-growth">0%</div>
+                    <div id="metric-growth-trend">...</div>
+                    <div id="metric-demand">...</div>
+                    <div id="metric-records">0</div>
+                </div>
+            </div>
+
+            <!-- ================================================================ -->
+            <!-- WIDGET 3: Executive Analytics Charts with Date Filters (Step 2)   -->
+            <!-- ================================================================ -->
+            <div class="v2-widget" id="widget-charts" data-widget-id="widget-charts">
+                <div class="widget-control-bar">
+                    <div class="widget-title-area">
+                        <span class="fw-bold small text-dark">📈 Executive Analytics & Time-Series Trends</span>
+                        <span class="badge bg-light text-secondary border">Interactive Date Filtering</span>
+                    </div>
+                    <div class="widget-actions-btns">
+                        <button type="button" class="btn-widget-action" onclick="toggleWidgetPin('widget-charts')" title="Pin Widget">📌 Pin</button>
+                        <button type="button" class="btn-widget-action" onclick="moveWidget('widget-charts', 'up')" title="Move Up">▲</button>
+                        <button type="button" class="btn-widget-action" onclick="moveWidget('widget-charts', 'down')" title="Move Down">▼</button>
+                    </div>
+                </div>
+
+                <div class="card mb-3 p-3">
+                    <!-- Date Filter Control Bar -->
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 pb-2 border-bottom gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="small text-secondary fw-bold">Aggregate Range:</span>
+                            <div class="btn-group btn-group-sm" role="group" id="v2-range-selector">
+                                <button type="button" class="btn btn-outline-primary" id="btn-range-daily" onclick="setV2AnalyticsRange('daily')">Daily</button>
+                                <button type="button" class="btn btn-outline-primary" id="btn-range-weekly" onclick="setV2AnalyticsRange('weekly')">Weekly</button>
+                                <button type="button" class="btn btn-primary active" id="btn-range-monthly" onclick="setV2AnalyticsRange('monthly')">Monthly</button>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="small text-secondary">Start:</span>
+                                <input type="date" id="v2-analytics-start-date" class="form-control form-control-sm" style="width: 140px;" onchange="onCustomDateRangeChanged()">
+                            </div>
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="small text-secondary">End:</span>
+                                <input type="date" id="v2-analytics-end-date" class="form-control form-control-sm" style="width: 140px;" onchange="onCustomDateRangeChanged()">
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="resetCustomDateRange()" title="Clear date filter">Reset</button>
+                        </div>
+                    </div>
+
+                    <!-- Dual Analytics Charts Grid -->
                     <div class="row g-3">
-                        <!-- Forecast Projection Chart -->
-                        <div class="col-lg-12 mb-2">
-                            <div class="p-3 rounded bg-white border">
+                        <!-- Sales Volume & Revenue Trend -->
+                        <div class="col-lg-8">
+                            <div class="p-3 rounded bg-light border h-100">
                                 <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="metric-label text-primary">📈 Revenue Forecast & Historical Projection</span>
-                                    <span id="forecast-period-badge" class="badge bg-primary">30 Days Projection</span>
+                                    <span class="metric-label text-primary fw-bold">📊 Sales Trend & Revenue Trajectory</span>
+                                    <span class="badge bg-primary text-white" id="sales-trend-badge">Monthly Trend</span>
                                 </div>
-                                <div class="chart-container" style="height: 260px;">
-                                    <canvas id="salesForecastChart"></canvas>
+                                <div class="chart-container" style="height: 280px;">
+                                    <canvas id="v2SalesAnalyticsChart"></canvas>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Sales Trend & Revenue Trend -->
-                        <div class="col-md-6">
-                            <div class="p-3 rounded bg-white border">
-                                <div class="metric-label mb-2">📊 Daily Sales Volume Trend</div>
+                        <!-- Inventory Trend & Turnover Ratio -->
+                        <div class="col-lg-4">
+                            <div class="p-3 rounded bg-light border h-100">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="metric-label text-success fw-bold">📦 Inventory Health & Turnover</span>
+                                    <span class="badge bg-success text-white" id="inv-turnover-badge">Turnover: 0.0x</span>
+                                </div>
                                 <div class="chart-container" style="height: 200px;">
-                                    <canvas id="salesVolumeTrendChart"></canvas>
+                                    <canvas id="v2InventoryAnalyticsChart"></canvas>
                                 </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="p-3 rounded bg-white border">
-                                <div class="metric-label mb-2">💰 Revenue Trend</div>
-                                <div class="chart-container" style="height: 200px;">
-                                    <canvas id="revenueTrendChart"></canvas>
+                                <div class="d-flex justify-content-between mt-3 pt-2 border-top small">
+                                    <div>
+                                        <span class="text-muted d-block" style="font-size: 0.72rem;">Low Stock Products:</span>
+                                        <strong class="text-warning" id="v2-low-stock-count-label">0 items</strong>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="text-muted d-block" style="font-size: 0.72rem;">Dead Stock (&gt;90d):</span>
+                                        <strong class="text-danger" id="v2-dead-stock-count-label">0 items</strong>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-
-                        <!-- Product Performance & Monthly Comparison -->
-                        <div class="col-md-6">
-                            <div class="p-3 rounded bg-white border">
-                                <div class="metric-label mb-2">🏷️ Product Performance</div>
-                                <div class="chart-container" style="height: 220px;">
-                                    <canvas id="productPerformanceChart"></canvas>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="p-3 rounded bg-white border">
-                                <div class="metric-label mb-2">📅 Monthly Comparison</div>
-                                <div class="chart-container" style="height: 220px;">
-                                    <canvas id="monthlyComparisonChart"></canvas>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Static SHAP Plots -->
-                        <div class="col-md-6">
-                            <div class="p-3 rounded bg-white border text-center">
-                                <div class="metric-label mb-2">🔬 SHAP Feature Summary Plot</div>
-                                <img src="/static/sales_explanations/shap_summary.png" class="img-fluid rounded border shadow-sm" alt="SHAP Summary Plot" style="max-height: 240px; object-fit: contain;">
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="p-3 rounded bg-white border text-center">
-                                <div class="metric-label mb-2">🏆 Feature Importance Ranking</div>
-                                <img src="/static/sales_explanations/feature_importance.png" class="img-fluid rounded border shadow-sm" alt="Feature Importance Plot" style="max-height: 240px; object-fit: contain;">
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Inventory Intelligence Panel -->
-                <div class="card decision-card mb-4 border-success shadow-sm">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <div class="metric-label text-success fw-bold">Inventory Intelligence</div>
-                        <span id="inventory-confidence" class="badge rounded-pill bg-success text-white">Confidence: ...</span>
-                    </div>
-                    <h3 id="inventory-decision-text" class="my-2 text-primary">...</h3>
-                    <div class="small text-secondary mb-2">
-                        <span>Model: <strong id="inventory-model-type">...</strong> (v<span id="inventory-model-version">...</span>)</span> |
-                        <span>Accuracy: <strong id="inventory-model-accuracy">...</strong></span>
-                    </div>
-                    <div class="small text-muted mb-2">Last Predicted: <span id="inventory-predict-timestamp">...</span></div>
-                    <div id="inventory-reasons-container" class="small text-secondary pt-2 border-top"></div>
-                </div>
-
-                <div class="card mb-4">
-                    <div class="metric-label mb-3">Actionable Recommendations</div>
-                    <ul id="recommendations-list" class="list-unstyled small text-secondary"></ul>
-                </div>
-
-                <div class="card">
-                    <div class="metric-label mb-3 text-danger">Early Warning Alerts</div>
-                    <div id="warnings-container"></div>
                 </div>
             </div>
 
-            <!-- Analytics & Simulator (Right) -->
-            <div class="col-lg-7">
-                <!-- What-if Simulation -->
-                <div class="card mb-4 shadow-lg border-primary">
-                    <div class="metric-label mb-3 text-primary">Strategic What-if Simulator</div>
-                    <div class="row g-3 align-items-end">
-                        <div class="col-md-4">
-                            <label class="small text-secondary mb-1">Projected Sales Change (%)</label>
-                            <input type="number" id="sim-sales" class="form-control" value="10">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="small text-secondary mb-1">Inventory Adjustment (%)</label>
-                            <input type="number" id="sim-stock" class="form-control" value="-5">
-                        </div>
-                        <div class="col-md-4">
-                            <button onclick="runSimulation()" class="btn btn-primary w-100 py-2 fw-bold text-dark">Simulate Impact</button>
-                        </div>
+            <!-- ================================================================ -->
+            <!-- WIDGET 4: Consolidated AI Recommendations Panel (Step 3)          -->
+            <!-- ================================================================ -->
+            <div class="v2-widget" id="widget-recommendations" data-widget-id="widget-recommendations">
+                <div class="widget-control-bar">
+                    <div class="widget-title-area">
+                        <span class="fw-bold small text-dark">🎯 Consolidated Executive AI Recommendations</span>
+                        <span class="badge bg-info text-dark rounded-pill" id="v2-recs-total-badge">0 Insights</span>
                     </div>
-                    <div id="sim-result" class="mt-3 p-4 rounded bg-light d-none border-start border-primary border-4 shadow-sm">
-                        <div class="d-flex justify-content-between">
-                            <span class="small text-secondary">Simulation Outcome:</span>
-                            <span id="sim-decision" class="fw-bold h5">...</span>
-                        </div>
-                        <div class="small text-secondary mt-1">Strategic Insight: <span id="sim-impact" class="text-light">...</span></div>
+                    <div class="widget-actions-btns">
+                        <button type="button" class="btn-widget-action" onclick="toggleWidgetPin('widget-recommendations')" title="Pin Widget">📌 Pin</button>
+                        <button type="button" class="btn-widget-action" onclick="moveWidget('widget-recommendations', 'up')" title="Move Up">▲</button>
+                        <button type="button" class="btn-widget-action" onclick="moveWidget('widget-recommendations', 'down')" title="Move Down">▼</button>
                     </div>
                 </div>
 
-                <div class="card mb-4">
-                    <div class="metric-label mb-3">Revenue Performance Trend</div>
-                    <div class="chart-container"><canvas id="salesPerformanceChart"></canvas></div>
+                <div class="card p-3 mb-3">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 pb-2 border-bottom gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="small text-secondary fw-bold">Filter Priority:</span>
+                            <div class="btn-group btn-group-sm" role="group" id="v2-rec-filter-group">
+                                <button type="button" class="btn btn-primary active" id="btn-rec-filter-all" onclick="filterV2Recommendations('ALL')">All</button>
+                                <button type="button" class="btn btn-outline-danger" id="btn-rec-filter-critical" onclick="filterV2Recommendations('CRITICAL')">Critical</button>
+                                <button type="button" class="btn btn-outline-warning" id="btn-rec-filter-high" onclick="filterV2Recommendations('HIGH')">High</button>
+                                <button type="button" class="btn btn-outline-secondary" id="btn-rec-filter-medium" onclick="filterV2Recommendations('MEDIUM')">Medium</button>
+                                <button type="button" class="btn btn-outline-info" id="btn-rec-filter-low" onclick="filterV2Recommendations('LOW')">Low</button>
+                            </div>
+                        </div>
+                        <span class="small text-secondary">
+                            Sources: 📊 Sales · 📦 Inventory · 📚 Policies · ✨ Manager Agent
+                        </span>
+                    </div>
+
+                    <div id="v2-recommendations-list" class="d-flex flex-column gap-2" style="max-height: 480px; overflow-y: auto;">
+                        <div class="text-center text-muted small py-4">Aggregating cross-engine recommendations...</div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- ==================================================================== -->
-        <!-- Enterprise Knowledge Management & AI Assistant (Sprint 4) -->
-        <!-- ==================================================================== -->
-        <div class="row g-4 mt-1">
-            <div class="col-12">
-                <div class="card border-primary shadow-sm">
-                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 pb-2 border-bottom">
-                        <div>
-                            <div class="metric-label text-primary fw-bold h5 mb-0">📚 Enterprise Knowledge Management & RAG Assistant</div>
-                            <span class="small text-secondary">Upload enterprise PDFs, policies, and SOPs, and query the grounded AI knowledge engine in real-time</span>
+            <!-- ================================================================ -->
+            <!-- WIDGET 5: Executive AI Copilot & Knowledge Chat (Step 4 & 5)      -->
+            <!-- ================================================================ -->
+            <div class="v2-widget" id="widget-chat" data-widget-id="widget-chat">
+                <div class="widget-control-bar">
+                    <div class="widget-title-area">
+                        <span class="fw-bold small text-dark">✨ Executive AI Copilot (Manager Agent Orchestration)</span>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle small">Default Backend</span>
+                    </div>
+                    <div class="widget-actions-btns">
+                        <button type="button" class="btn-widget-action" onclick="toggleWidgetPin('widget-chat')" title="Pin Widget">📌 Pin</button>
+                        <button type="button" class="btn-widget-action" onclick="moveWidget('widget-chat', 'up')" title="Move Up">▲</button>
+                        <button type="button" class="btn-widget-action" onclick="moveWidget('widget-chat', 'down')" title="Move Down">▼</button>
+                    </div>
+                </div>
+
+                <div class="card p-0 overflow-hidden border-primary shadow-sm mb-3">
+                    <div class="chat-container">
+                        <div class="d-flex justify-content-between align-items-center p-3 border-bottom bg-light">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="fs-5" id="chat-mode-icon">✨</span>
+                                <div>
+                                    <span class="fw-bold small text-dark d-block" id="chat-mode-title">Executive AI Copilot (Manager Agent)</span>
+                                    <span class="small text-secondary" id="chat-mode-subtitle" style="font-size: 0.72rem;">Orchestrates Sales, Inventory & Enterprise Knowledge</span>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="btn-group btn-group-sm" role="group" aria-label="Assistant Mode">
+                                    <input type="radio" class="btn-check" name="chat-mode-radio" id="mode-copilot-radio" value="copilot" checked onchange="onChatModeToggle('copilot')">
+                                    <label class="btn btn-outline-primary" for="mode-copilot-radio" title="Multi-Agent Executive Business Copilot (Manager Agent)">✨ Copilot (Default)</label>
+
+                                    <input type="radio" class="btn-check" name="chat-mode-radio" id="mode-rag-radio" value="rag" onchange="onChatModeToggle('rag')">
+                                    <label class="btn btn-outline-primary" for="mode-rag-radio" title="RAG Document & SOP Search">📚 SOP/RAG Only</label>
+                                </div>
+                                <button class="btn btn-outline-secondary btn-sm" onclick="clearChatMessages()" title="Clear conversation view">Clear</button>
+                            </div>
                         </div>
-                        <div class="d-flex align-items-center gap-2 mt-2 mt-sm-0">
-                            <span class="badge bg-success text-white px-3 py-2">
-                                <span class="status-dot me-1"></span> RAG Engine Active
-                            </span>
+
+                        <!-- Messages scroll container -->
+                        <div id="chat-messages-container" class="chat-messages">
+                            <!-- Initial welcome message -->
+                            <div class="chat-message assistant">
+                                <div class="chat-bubble">
+                                    <strong class="d-block mb-1 text-primary">✨ Executive Business Copilot</strong>
+                                    Hello CEO! Ask me cross-domain questions spanning Sales, Inventory, and Enterprise Knowledge. I coordinate specialist AI agents to generate synthesized, policy-grounded recommendations.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Suggested Questions Bar -->
+                        <div class="suggested-questions-bar d-flex flex-wrap gap-1 px-3 py-2 border-top bg-light align-items-center" id="suggested-questions-container">
+                            <span class="small text-muted me-1" style="font-size: 0.72rem;">💡 Suggested:</span>
+                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded-pill small" onclick="applySuggestedQuestion('Which products need restocking?')">Which products need restocking?</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded-pill small" onclick="applySuggestedQuestion('Why did sales decrease?')">Why did sales decrease?</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded-pill small" onclick="applySuggestedQuestion('Should we increase inventory next quarter?')">Should we increase inventory?</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded-pill small" onclick="applySuggestedQuestion('What is the safety stock policy for inventory?')">What is the safety stock policy?</button>
+                        </div>
+
+                        <!-- Chat input form -->
+                        <div class="chat-input-container">
+                            <form id="chat-input-form" onsubmit="handleChatSubmit(event)" class="d-flex gap-2">
+                                <input type="text" id="chat-question-input" class="form-control" placeholder="Ask an executive question (e.g. Which products need restocking?)..." autocomplete="off" required>
+                                <button type="submit" id="btn-send-chat" class="btn btn-primary px-4 fw-bold text-white">Send</button>
+                            </form>
                         </div>
                     </div>
 
+                    <!-- Current Answer Sources Panel -->
+                    <div class="p-3 bg-light border-top">
+                        <div class="sources-panel">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="metric-label text-dark fw-bold">🔍 Grounded Sources & Provenance for Current Answer</span>
+                                <span id="sources-count-badge" class="badge bg-light text-secondary border">0 Sources Cited</span>
+                            </div>
+                            <div id="sources-list-container" class="d-flex flex-column gap-2">
+                                <div class="text-secondary small fst-italic p-2 bg-white rounded text-center">
+                                    No query executed yet. Ask a question above to inspect cited sources with page numbers and confidence.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================================================================ -->
+            <!-- WIDGET 6: Preserved Deep-Dive Specialist Intelligence Engines     -->
+            <!-- Houses Sprint 2 Sales, Sprint 3 Inventory, Sprint 4 Docs & Sim  -->
+            <!-- ================================================================ -->
+            <div class="v2-widget" id="widget-specialist-engines" data-widget-id="widget-specialist-engines">
+                <div class="widget-control-bar">
+                    <div class="widget-title-area">
+                        <span class="fw-bold small text-dark">🔬 Deep-Dive Specialist Intelligence Engines (Sprints 1–5)</span>
+                        <span class="badge bg-secondary text-white small">Detailed Model Breakdowns</span>
+                    </div>
+                    <div class="widget-actions-btns">
+                        <button class="btn btn-sm btn-outline-secondary py-0 px-2" type="button" data-bs-toggle="collapse" data-bs-target="#specialist-engines-collapse" aria-expanded="true">
+                            Toggle Specialist View
+                        </button>
+                        <button type="button" class="btn-widget-action" onclick="toggleWidgetPin('widget-specialist-engines')" title="Pin Widget">📌 Pin</button>
+                        <button type="button" class="btn-widget-action" onclick="moveWidget('widget-specialist-engines', 'up')" title="Move Up">▲</button>
+                        <button type="button" class="btn-widget-action" onclick="moveWidget('widget-specialist-engines', 'down')" title="Move Down">▼</button>
+                    </div>
+                </div>
+
+                <div class="collapse show" id="specialist-engines-collapse">
                     <div class="row g-4">
-                        <!-- Left Column: Document Upload & Knowledge Repository -->
-                        <div class="col-lg-5">
-                            <!-- Document Upload Card -->
-                            <div class="p-3 rounded bg-light border mb-3">
-                                <div class="metric-label text-dark fw-bold mb-2">📤 Upload Enterprise Document (PDF)</div>
-                                <form id="document-upload-form" onsubmit="handleDocumentUpload(event)">
-                                    <div class="mb-3">
+                        <!-- Left Column: Sales & Inventory Engines -->
+                        <div class="col-lg-6">
+                            <!-- Sprint 2 Sales Intelligence Panel -->
+                            <div class="card mb-4 border-primary shadow-sm">
+                                <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                                    <div>
+                                        <div class="metric-label text-primary fw-bold h5 mb-0">📊 Sales Intelligence Engine</div>
+                                        <span class="small text-secondary">Multi-model forecast, rules-based business recommendations, and SHAP feature attributions</span>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2 mt-2 mt-sm-0">
+                                        <span class="small text-secondary fw-bold">Horizon:</span>
+                                        <div class="btn-group btn-group-sm" role="group" id="sales-period-selector">
+                                            <button type="button" class="btn btn-outline-primary" onclick="setForecastPeriod('7_days')">7 Days</button>
+                                            <button type="button" class="btn btn-primary active" id="btn-period-30_days" onclick="setForecastPeriod('30_days')">30 Days</button>
+                                            <button type="button" class="btn btn-outline-primary" onclick="setForecastPeriod('90_days')">90 Days</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Sales Intelligence KPI Cards -->
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-3 col-sm-6">
+                                        <div class="p-3 rounded bg-light border">
+                                            <div class="metric-label">Total Revenue</div>
+                                            <div id="sales-kpi-total-revenue" class="metric-value text-primary fs-4">₹0</div>
+                                            <div class="small text-secondary">Historical Total</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-sm-6">
+                                        <div class="p-3 rounded bg-light border">
+                                            <div class="metric-label">Growth Rate</div>
+                                            <div id="sales-kpi-growth-rate" class="metric-value fs-4">0%</div>
+                                            <div id="sales-kpi-growth-sub" class="small text-secondary">Period-over-Period</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-sm-6">
+                                        <div class="p-3 rounded bg-light border">
+                                            <div class="metric-label">Forecasted Revenue</div>
+                                            <div id="sales-kpi-forecast" class="metric-value text-success fs-4">₹0</div>
+                                            <div id="sales-kpi-forecast-sub" class="small text-secondary">Projected for 30 Days</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 col-sm-6">
+                                        <div class="p-3 rounded bg-light border">
+                                            <div class="metric-label">AI Recommendation</div>
+                                            <div id="sales-kpi-recommendation" class="metric-value fs-5 text-truncate">Loading...</div>
+                                            <div id="sales-kpi-confidence" class="small text-secondary">Confidence: 0%</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- AI Panel -->
+                                <div class="row g-3 mb-4">
+                                    <div class="col-lg-6">
+                                        <div class="p-3 rounded border border-primary-subtle bg-light h-100">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <span class="fw-bold text-primary">🤖 Executive AI Decision Engine</span>
+                                                <span id="sales-ai-confidence-badge" class="badge bg-success">Confidence: 0%</span>
+                                            </div>
+                                            <h4 id="sales-ai-decision" class="fw-bold my-2 text-success">...</h4>
+                                            <div class="small text-secondary mb-2">
+                                                <span>Model: <strong id="sales-ai-model-type">...</strong> (<span id="sales-ai-version">...</span>)</span> |
+                                                <span>Accuracy: <strong id="sales-model-accuracy">N/A</strong></span>
+                                            </div>
+                                            <div class="small text-muted mb-2">Last Predicted: <span id="sales-predict-timestamp">Just now</span></div>
+                                            <div class="metric-label mb-1">Executive Reasoning</div>
+                                            <div id="sales-ai-reason" class="p-2 rounded bg-white border small text-dark mb-2" style="min-height: 60px;">
+                                                Loading AI reasoning...
+                                            </div>
+                                            <div id="sales-reasons-container" class="d-none"></div>
+                                            <span id="sales-confidence" class="d-none"></span>
+                                            <h3 id="sales-decision-text" class="d-none"></h3>
+                                            <strong id="sales-model-type" class="d-none"></strong>
+                                            <span id="sales-model-version" class="d-none"></span>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-6">
+                                        <div class="p-3 rounded border border-info-subtle bg-light h-100">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <span class="fw-bold text-dark">🔍 SHAP Top Feature Drivers</span>
+                                                <span class="badge bg-secondary">Feature Attribution</span>
+                                            </div>
+                                            <p class="small text-secondary mb-2">Top contributing features driving the sales forecast:</p>
+                                            <div id="sales-shap-features-list" class="small">
+                                                <div class="text-muted">Loading SHAP explanations...</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Sales Charts Grid -->
+                                <div class="row g-3">
+                                    <div class="col-12 mb-2">
+                                        <div class="p-3 rounded bg-white border">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <span class="metric-label text-primary">📈 Revenue Forecast & Historical Projection</span>
+                                                <span id="forecast-period-badge" class="badge bg-primary">30 Days Projection</span>
+                                            </div>
+                                            <div class="chart-container" style="height: 240px;">
+                                                <canvas id="salesForecastChart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="p-3 rounded bg-white border">
+                                            <div class="metric-label mb-2">📊 Daily Sales Volume Trend</div>
+                                            <div class="chart-container" style="height: 180px;">
+                                                <canvas id="salesVolumeTrendChart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="p-3 rounded bg-white border">
+                                            <div class="metric-label mb-2">💰 Revenue Trend</div>
+                                            <div class="chart-container" style="height: 180px;">
+                                                <canvas id="revenueTrendChart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="p-3 rounded bg-white border">
+                                            <div class="metric-label mb-2">🏷️ Product Performance</div>
+                                            <div class="chart-container" style="height: 180px;">
+                                                <canvas id="productPerformanceChart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="p-3 rounded bg-white border">
+                                            <div class="metric-label mb-2">📅 Monthly Comparison</div>
+                                            <div class="chart-container" style="height: 180px;">
+                                                <canvas id="monthlyComparisonChart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Static SHAP Plots -->
+                                    <div class="col-md-6">
+                                        <div class="p-3 rounded bg-white border text-center">
+                                            <div class="metric-label mb-2">🔬 SHAP Feature Summary Plot</div>
+                                            <img src="/static/sales_explanations/shap_summary.png" class="img-fluid rounded border shadow-sm" alt="SHAP Summary Plot" style="max-height: 200px; object-fit: contain;">
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="p-3 rounded bg-white border text-center">
+                                            <div class="metric-label mb-2">🏆 Feature Importance Ranking</div>
+                                            <img src="/static/sales_explanations/feature_importance.png" class="img-fluid rounded border shadow-sm" alt="Feature Importance Plot" style="max-height: 200px; object-fit: contain;">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: Inventory & Document Management -->
+                        <div class="col-lg-6">
+                            <!-- Sprint 3 Inventory Intelligence Panel -->
+                            <div class="card decision-card mb-4 border-success shadow-sm">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div class="metric-label text-success fw-bold">Inventory Intelligence (Sprint 3)</div>
+                                    <span id="inventory-confidence" class="badge rounded-pill bg-success text-white">Confidence: ...</span>
+                                </div>
+                                <h3 id="inventory-decision-text" class="my-2 text-primary">...</h3>
+                                <div class="small text-secondary mb-2">
+                                    <span>Model: <strong id="inventory-model-type">...</strong> (v<span id="inventory-model-version">...</span>)</span> |
+                                    <span>Accuracy: <strong id="inventory-model-accuracy">...</strong></span>
+                                </div>
+                                <div class="small text-muted mb-2">Last Predicted: <span id="inventory-predict-timestamp">...</span></div>
+                                <div id="inventory-reasons-container" class="small text-secondary pt-2 border-top"></div>
+                            </div>
+
+                            <!-- Sprint 1 Recommendations & Alerts -->
+                            <div class="card mb-4">
+                                <div class="metric-label mb-3">Legacy Actionable Recommendations</div>
+                                <ul id="recommendations-list" class="list-unstyled small text-secondary"></ul>
+                            </div>
+
+                            <div class="card mb-4">
+                                <div class="metric-label mb-3 text-danger">Legacy Early Warning Alerts</div>
+                                <div id="warnings-container"></div>
+                            </div>
+
+                            <!-- What-if Simulation -->
+                            <div class="card mb-4 shadow-sm border-primary">
+                                <div class="metric-label mb-3 text-primary">Strategic What-if Simulator</div>
+                                <div class="row g-3 align-items-end">
+                                    <div class="col-md-4">
+                                        <label class="small text-secondary mb-1">Sales Change (%)</label>
+                                        <input type="number" id="sim-sales" class="form-control" value="10">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="small text-secondary mb-1">Inventory Adjustment (%)</label>
+                                        <input type="number" id="sim-stock" class="form-control" value="-5">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <button onclick="runSimulation()" class="btn btn-primary w-100 py-2 fw-bold text-dark">Simulate Impact</button>
+                                    </div>
+                                </div>
+                                <div id="sim-result" class="mt-3 p-3 rounded bg-light d-none border-start border-primary border-4 shadow-sm">
+                                    <div class="d-flex justify-content-between">
+                                        <span class="small text-secondary">Simulation Outcome:</span>
+                                        <span id="sim-decision" class="fw-bold h6 mb-0">...</span>
+                                    </div>
+                                    <div class="small text-secondary mt-1">Strategic Insight: <span id="sim-impact" class="text-dark">...</span></div>
+                                </div>
+                            </div>
+
+                            <div class="card mb-4">
+                                <div class="metric-label mb-3">Revenue Performance Trend</div>
+                                <div class="chart-container" style="height: 200px;"><canvas id="salesPerformanceChart"></canvas></div>
+                            </div>
+
+                            <!-- Document Upload & Repository (Sprint 4) -->
+                            <div class="card mb-4 border-info shadow-sm">
+                                <div class="metric-label text-info fw-bold mb-2">📑 Enterprise Document Repository (PDF / SOPs)</div>
+                                <form id="document-upload-form" onsubmit="handleDocumentUpload(event)" class="mb-3">
+                                    <div class="mb-2">
                                         <input type="file" id="doc-file-input" class="form-control form-control-sm" accept=".pdf" required>
-                                        <div class="form-text small text-secondary">Accepted format: PDF only (stored, chunked, and embedded automatically)</div>
                                     </div>
                                     <button type="submit" id="btn-upload-doc" class="btn btn-primary btn-sm w-100 fw-bold text-white">
                                         Upload & Index Document
                                     </button>
                                 </form>
                                 <div id="upload-status-alert" class="mt-2 d-none"></div>
-                            </div>
 
-                            <!-- Document Repository Table -->
-                            <div class="p-3 rounded bg-white border">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <div class="metric-label text-dark fw-bold mb-0">📑 Indexed Document Repository</div>
-                                    <button class="btn btn-outline-secondary btn-sm" onclick="loadDocumentsList()" title="Refresh List">↻</button>
-                                </div>
-                                <div class="table-responsive" style="max-height: 320px; overflow-y: auto;">
+                                <div class="table-responsive" style="max-height: 240px; overflow-y: auto;">
                                     <table class="table table-hover table-sm doc-table align-middle mb-0">
                                         <thead class="table-light">
                                             <tr>
@@ -333,279 +718,16 @@
                                     </table>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Right Column: RAG Chat Assistant & Sources Panel -->
-                        <div class="col-lg-7">
-                            <div class="row g-3">
-                                <!-- Chat Conversation Stream -->
-                                <div class="col-12">
-                                    <div class="chat-container">
-                                        <div class="d-flex justify-content-between align-items-center p-3 border-bottom bg-light">
-                                            <div class="d-flex align-items-center gap-2">
-                                                <span class="fs-5" id="chat-mode-icon">✨</span>
-                                                <div>
-                                                    <span class="fw-bold small text-dark d-block" id="chat-mode-title">Executive AI Copilot (Manager Agent)</span>
-                                                    <span class="small text-secondary" id="chat-mode-subtitle" style="font-size: 0.72rem;">Orchestrates Sales, Inventory & Enterprise Knowledge</span>
-                                                </div>
-                                            </div>
-                                            <div class="d-flex align-items-center gap-2">
-                                                <div class="btn-group btn-group-sm" role="group" aria-label="Assistant Mode">
-                                                    <input type="radio" class="btn-check" name="chat-mode-radio" id="mode-copilot-radio" value="copilot" checked onchange="onChatModeToggle('copilot')">
-                                                    <label class="btn btn-outline-primary" for="mode-copilot-radio" title="Multi-Agent Executive Business Copilot (Manager Agent)">✨ Copilot (Default)</label>
-
-                                                    <input type="radio" class="btn-check" name="chat-mode-radio" id="mode-rag-radio" value="rag" onchange="onChatModeToggle('rag')">
-                                                    <label class="btn btn-outline-primary" for="mode-rag-radio" title="RAG Document & SOP Search">📚 SOP/RAG Only</label>
-                                                </div>
-                                                <button class="btn btn-outline-secondary btn-sm" onclick="clearChatMessages()" title="Clear conversation view">Clear</button>
-                                            </div>
-                                        </div>
-
-
-                                        <!-- Messages scroll container -->
-                                        <div id="chat-messages-container" class="chat-messages">
-                                            <!-- Initial welcome message -->
-                                            <div class="chat-message assistant">
-                                                <div class="chat-bubble">
-                                                    <strong class="d-block mb-1 text-primary">✨ Executive Business Copilot</strong>
-                                                    Hello CEO! Ask me cross-domain questions spanning Sales, Inventory, and Enterprise Knowledge. I coordinate specialist AI agents to generate synthesized, policy-grounded recommendations.
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Suggested Questions Bar -->
-                                        <div class="suggested-questions-bar d-flex flex-wrap gap-1 px-3 py-2 border-top bg-light align-items-center" id="suggested-questions-container">
-                                            <span class="small text-muted me-1" style="font-size: 0.72rem;">💡 Suggested:</span>
-                                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded-pill small" onclick="applySuggestedQuestion('Which products need restocking?')">Which products need restocking?</button>
-                                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded-pill small" onclick="applySuggestedQuestion('Why did sales decrease?')">Why did sales decrease?</button>
-                                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded-pill small" onclick="applySuggestedQuestion('Should we increase inventory next quarter?')">Should we increase inventory?</button>
-                                            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 rounded-pill small" onclick="applySuggestedQuestion('What is the safety stock policy for inventory?')">What is the safety stock policy?</button>
-                                        </div>
-
-                                        <!-- Chat input form -->
-                                        <div class="chat-input-container">
-                                            <form id="chat-input-form" onsubmit="handleChatSubmit(event)" class="d-flex gap-2">
-                                                <input type="text" id="chat-question-input" class="form-control" placeholder="Ask an executive question (e.g. Which products need restocking?)..." autocomplete="off" required>
-                                                <button type="submit" id="btn-send-chat" class="btn btn-primary px-4 fw-bold text-white">Send</button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Current Answer Sources Panel -->
-                                <div class="col-12">
-                                    <div class="sources-panel">
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <span class="metric-label text-dark fw-bold">🔍 Grounded Sources & Provenance for Current Answer</span>
-                                            <span id="sources-count-badge" class="badge bg-light text-secondary border">0 Sources Cited</span>
-                                        </div>
-                                        <div id="sources-list-container" class="d-flex flex-column gap-2">
-                                            <div class="text-secondary small fst-italic p-2 bg-light rounded text-center">
-                                                No query executed yet. Ask a question above to inspect cited sources with page numbers and confidence.
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-        <!-- ==================================================================== -->
-        <!-- AI Copilot Panel (Sprint 5) — Multi-Agent Orchestrated View         -->
-        <!-- Visually distinct from Sprint 4 plain RAG chat.                      -->
-        <!-- Calls POST /api/agents/manager — uses agent_details + confidence.    -->
-        <!-- ==================================================================== -->
-        <div class="row g-4 mt-2">
-            <div class="col-12">
-                <div class="copilot-panel">
+        </div><!-- /v2-widgets-container -->
+    </div><!-- /container -->
 
-                    <!-- ── Panel Header ─────────────────────────────────────────── -->
-                    <div class="d-flex flex-wrap justify-content-between align-items-start mb-4 pb-3" style="border-bottom: 1px solid rgba(99,102,241,0.25);">
-                        <div>
-                            <div class="copilot-header-title">✨ AI Executive Copilot</div>
-                            <div class="copilot-header-sub">
-                                Multi-Agent Orchestration — Sales · Inventory · Knowledge running in parallel
-                            </div>
-                        </div>
-                        <div class="d-flex align-items-center gap-2 mt-2 mt-md-0">
-                            <span class="badge" style="background: rgba(16,185,129,0.15); color:#34d399; border: 1px solid rgba(16,185,129,0.4); font-size:0.68rem; padding: 5px 9px;">
-                                ⚡ Gemini 2.5 Flash API
-                            </span>
-                            <span class="copilot-live-badge">
-                                <span class="copilot-live-dot"></span>
-                                Live Orchestration Engine
-                            </span>
-                            <span class="badge" style="background: rgba(99,102,241,0.25); color:#a5b4fc; border: 1px solid rgba(99,102,241,0.4); font-size:0.68rem;">
-                                POST /api/agents/manager
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- ── Agent Execution Status Strip ─────────────────────────── -->
-                    <div class="mb-4">
-                        <div class="mb-2" style="font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#64748b;">
-                            Agent Execution Status
-                        </div>
-                        <div class="copilot-agent-strip" id="copilot-agent-strip">
-                            <span style="font-size:0.72rem; color:#475569; font-weight:600;">Agents:</span>
-                            <span class="copilot-agent-badge pending" id="copilot-badge-sales">
-                                📊 Sales
-                            </span>
-                            <span class="copilot-agent-badge pending" id="copilot-badge-inventory">
-                                📦 Inventory
-                            </span>
-                            <span class="copilot-agent-badge pending" id="copilot-badge-knowledge">
-                                📚 Knowledge
-                            </span>
-                            <span class="ms-auto" id="copilot-orchestration-time" style="font-size:0.7rem; color:#475569;"></span>
-                        </div>
-                    </div>
-
-                    <!-- ── Main Content Grid ─────────────────────────────────────── -->
-                    <div class="row g-4">
-
-                        <!-- Left column: Chat Window -->
-                        <div class="col-lg-5">
-                            <div class="copilot-chat-container">
-                                <!-- Chat header -->
-                                <div class="copilot-chat-header">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <span>✨</span>
-                                        <div>
-                                            <div style="font-size:0.82rem; font-weight:700; color:#a5b4fc;">Executive Business Copilot</div>
-                                            <div style="font-size:0.68rem; color:#64748b;">Orchestrating Sales · Inventory · Knowledge</div>
-                                        </div>
-                                    </div>
-                                    <button
-                                        class="btn btn-sm"
-                                        style="background:rgba(99,102,241,0.15); border:1px solid rgba(99,102,241,0.3); color:#a5b4fc; font-size:0.72rem;"
-                                        onclick="clearCopilotChat()"
-                                        title="Clear conversation"
-                                        id="copilot-clear-btn">
-                                        Clear
-                                    </button>
-                                </div>
-
-                                <!-- Messages -->
-                                <div class="copilot-chat-messages" id="copilot-chat-messages">
-                                    <div class="copilot-msg assistant">
-                                        <div class="copilot-bubble">
-                                            <strong style="color:#a5b4fc; display:block; margin-bottom:4px; font-size:0.8rem;">✨ AI Executive Copilot</strong>
-                                            Hello! Ask any cross-domain executive question — I will simultaneously consult the Sales, Inventory, and Knowledge agents to synthesize a grounded strategic recommendation.
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Input -->
-                                <div class="copilot-chat-input-area">
-                                    <form id="copilot-chat-form" onsubmit="submitCopilotQuestion(event)" class="d-flex gap-2">
-                                        <input
-                                            type="text"
-                                            id="copilot-question-input"
-                                            class="form-control copilot-input"
-                                            placeholder="e.g. Should we increase production next month?"
-                                            autocomplete="off"
-                                            required>
-                                        <button type="submit" id="copilot-send-btn" class="btn copilot-send-btn">
-                                            Ask
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Right column: Summaries + Sources + Recommendation -->
-                        <div class="col-lg-7">
-                            <div class="row g-3">
-
-                                <!-- Sales & Inventory Summary Cards -->
-                                <div class="col-md-6">
-                                    <div class="copilot-summary-card">
-                                        <div class="card-title" style="color:#60a5fa;">
-                                            📊 Sales Summary
-                                        </div>
-                                        <div id="copilot-sales-summary">
-                                            <div style="color:#475569; font-size:0.78rem; font-style:italic; text-align:center; padding:1rem 0;">
-                                                Awaiting orchestration…
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6">
-                                    <div class="copilot-summary-card">
-                                        <div class="card-title" style="color:#4ade80;">
-                                            📦 Inventory Summary
-                                        </div>
-                                        <div id="copilot-inventory-summary">
-                                            <div style="color:#475569; font-size:0.78rem; font-style:italic; text-align:center; padding:1rem 0;">
-                                                Awaiting orchestration…
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Knowledge Sources -->
-                                <div class="col-12">
-                                    <div class="copilot-summary-card">
-                                        <div class="d-flex justify-content-between align-items-center mb-3">
-                                            <div class="card-title mb-0" style="color:#c4b5fd;">
-                                                📚 Retrieved Document Sources
-                                            </div>
-                                            <span id="copilot-sources-badge" class="badge" style="background:rgba(99,102,241,0.2); color:#a5b4fc; border:1px solid rgba(99,102,241,0.3); font-size:0.68rem;">
-                                                0 Sources
-                                            </span>
-                                        </div>
-                                        <div id="copilot-sources-list" class="d-flex flex-column gap-2">
-                                            <div style="color:#475569; font-size:0.78rem; font-style:italic; text-align:center; padding:0.5rem 0;">
-                                                Knowledge agent will cite enterprise documents here.
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Final Recommendation + Confidence -->
-                                <div class="col-12">
-                                    <div class="copilot-recommendation-box">
-                                        <div class="d-flex justify-content-between align-items-center mb-3">
-                                            <div style="font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:#94a3b8;">
-                                                🎯 Final Recommendation
-                                            </div>
-                                            <div id="copilot-confidence-display" class="d-none">
-                                                <span style="font-size:0.7rem; color:#94a3b8;">Confidence</span>
-                                                <span id="copilot-confidence-pct" style="font-size:0.9rem; font-weight:800; color:#4ade80; margin-left:6px;">—</span>
-                                            </div>
-                                        </div>
-
-                                        <!-- Confidence bar (hidden until response) -->
-                                        <div id="copilot-confidence-bar-wrap" class="d-none mb-3">
-                                            <div class="copilot-confidence-bar-track">
-                                                <div class="copilot-confidence-bar-fill" id="copilot-confidence-bar" style="width: 0%;"></div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Recommendation text -->
-                                        <div id="copilot-recommendation-text" style="color:#94a3b8; font-size:0.85rem; font-style:italic;">
-                                            The synthesized strategic recommendation will appear here after the orchestration run completes.
-                                        </div>
-                                    </div>
-                                </div>
-
-                            </div><!-- /row g-3 -->
-                        </div><!-- /col-lg-7 -->
-
-                    </div><!-- /row g-4 main content -->
-                </div><!-- /copilot-panel -->
-            </div>
-        </div>
-    </div><!-- /container py-4 -->
-
-
-    <footer class="footer">
+    <footer class="footer mt-5">
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
@@ -620,11 +742,12 @@
                 </div>
             </div>
             <div class="mt-4 pt-3 border-top border-secondary small text-secondary">
-                © 2026 Gokul Tex Print. All Rights Reserved. AI Strategy Dashboard.
+                © 2026 Gokul Tex Print. All Rights Reserved. Executive Strategy Center V2.
             </div>
         </div>
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
