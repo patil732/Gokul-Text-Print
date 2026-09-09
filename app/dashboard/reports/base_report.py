@@ -289,8 +289,8 @@ def export_pdf(report: ReportData) -> bytes:
             Paragraph(f"<font size='11' color='#16a34a'><b>{report.sales_summary.get('growth_rate', 0.0):+.1f}%</b></font>", cell_style),
             Paragraph(f"<font size='11' color='#475569'><b>₹{report.inventory_summary.get('valuation', 0.0):,.2f}</b></font>", cell_style),
             Paragraph(
-                f"<font size='11' color='#2563eb'><b>{report.business_health.get('score', 0.0):.1f}/100</b> "
-                f"({report.business_health.get('status', 'Healthy')})</font>",
+                f"<font size='11' color='#2563eb'><b>{(report.business_health.to_dict() if hasattr(report.business_health, 'to_dict') else (report.business_health or {})).get('score', 0.0):.1f}/100</b> "
+                f"({(report.business_health.to_dict() if hasattr(report.business_health, 'to_dict') else (report.business_health or {})).get('status', 'Healthy')})</font>",
                 cell_style,
             ),
         ],

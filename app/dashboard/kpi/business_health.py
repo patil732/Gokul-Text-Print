@@ -112,17 +112,21 @@ def calculate_alert_score(recommendations_count: int = 0) -> float:
 
 
 def compute_business_health(
-    sales_growth: float,
-    inventory_health: str,
+    sales_growth: float = 0.0,
+    inventory_health: Optional[str] = None,
     low_stock_count: int = 0,
     recommendations_count: int = 0,
+    **kwargs: Any,
 ) -> HealthScoreBreakdown:
     """
     Compute composite Business Health Score and categorical status.
     """
+    resolved_inv_health = inventory_health or kwargs.get("stock_health") or "Healthy"
+    resolved_recs_count = recommendations_count or kwargs.get("alerts_count") or 0
+
     sales_score = calculate_sales_score(sales_growth)
-    inv_score = calculate_inventory_score(inventory_health, low_stock_count)
-    alert_score = calculate_alert_score(recommendations_count)
+    inv_score = calculate_inventory_score(resolved_inv_health, low_stock_count)
+    alert_score = calculate_alert_score(resolved_recs_count)
 
     # Transparent weighted formula
     composite = (0.40 * sales_score) + (0.40 * inv_score) + (0.20 * alert_score)

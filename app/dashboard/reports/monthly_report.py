@@ -114,7 +114,7 @@ def build_monthly_report(
             low_stock_count=inv_summary["low_stock_count"],
             alerts_count=len(fetch_active_alerts()),
         )
-        health_data = health_res
+        health_data = health_res.to_dict() if hasattr(health_res, "to_dict") else dict(health_res)
     except Exception as exc:
         logger.warning(f"[monthly_report] Business health calculation failed: {exc}")
 
