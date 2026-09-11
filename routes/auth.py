@@ -23,51 +23,87 @@ ROLE_MAP = {
 
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
+@auth_bp.route('/api/auth/register', methods=['POST'])
 def register():
     if request.method == 'POST':
+        is_api = request.is_json or request.path.startswith('/api/auth')
         if request.is_json:
             data = request.get_json(silent=True) or {}
-            username = data.get('username')
-            password = data.get('password')
+            username = (data.get('username') or '').strip()
+            password = data.get('password') or ''
             role = data.get('role', 'Employee')
-            email = data.get('email', '')
+            email = (data.get('email') or '').strip()
+            company = (data.get('company') or '').strip()
         else:
-            username = request.form.get('username')
-            password = request.form.get('password')
+            username = (request.form.get('username') or '').strip()
+            password = request.form.get('password') or ''
             role = request.form.get('role', 'Employee')
-            email = request.form.get('email', '')
+            email = (request.form.get('email') or '').strip()
+            company = (request.form.get('company') or '').strip()
 
         if not username or not password:
-            if request.is_json:
-                return jsonify({"success": False, "error": "Username and password required"}), 400
+            if is_api:
+                return jsonify({"success": False, "error": "Username and password are required"}), 400
             flash('Username and password required', 'danger')
             return render_template('register.html')
 
+        if len(password) < 8:
+            if is_api:
+                return jsonify({"success": False, "error": "Password must be at least 8 characters long for enterprise security."}), 400
+            flash('Password must be at least 8 characters long.', 'danger')
+            return render_template('register.html')
+
+        if email and ('@' not in email or '.' not in email):
+            if is_api:
+                return jsonify({"success": False, "error": "Please provide a valid work email address."}), 400
+            flash('Please provide a valid work email address.', 'danger')
+            return render_template('register.html')
+
         role_norm = ROLE_MAP.get(role, "Employee")
+
+        conn = get_db_connection()
+        # Check if username or email already exists
+        existing = conn.execute(
+            'SELECT username FROM users WHERE username = ? OR (email != "" AND email = ?)',
+            (username, email)
+        ).fetchone()
+
+        if existing:
+            conn.close()
+            if is_api:
+                return jsonify({"success": False, "error": "An account with this username or email already exists."}), 409
+            flash('An account with this username or email already exists.', 'danger')
+            return render_template('register.html')
+
         hashed_password = generate_password_hash(password)
 
         try:
-            conn = get_db_connection()
             conn.execute(
-                'INSERT INTO users (username, password, role, email) VALUES (?, ?, ?, ?)',
-                (username, hashed_password, role_norm, email)
+                'INSERT INTO users (username, password, role, email, company) VALUES (?, ?, ?, ?, ?)',
+                (username, hashed_password, role_norm, email, company)
             )
             conn.commit()
             conn.close()
 
-            if request.is_json:
+            if is_api:
                 return jsonify({
                     "success": True,
-                    "message": "Registration successful! You may now log in.",
-                    "user": {"username": username, "role": role_norm, "email": email}
+                    "message": "Enterprise account registered successfully! You may now sign in.",
+                    "user": {
+                        "username": username,
+                        "role": role_norm,
+                        "email": email,
+                        "company": company,
+                    }
                 }), 201
 
             flash('Registration successful! Please login.', 'success')
             return redirect(url_for('auth.login'))
-        except sqlite3.IntegrityError:
-            if request.is_json:
-                return jsonify({"success": False, "error": "Username already exists"}), 409
-            flash('Username already exists.', 'danger')
+        except Exception as e:
+            conn.close()
+            if is_api:
+                return jsonify({"success": False, "error": f"Registration failed: {str(e)}"}), 500
+            flash('Registration failed. Please try again.', 'danger')
 
     return render_template('register.html')
 

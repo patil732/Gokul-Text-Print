@@ -93,6 +93,10 @@ def init_db() -> None:
                 cursor.execute("ALTER TABLE users ADD COLUMN email TEXT DEFAULT ''")
             except Exception:
                 pass
+            try:
+                cursor.execute("ALTER TABLE users ADD COLUMN company TEXT DEFAULT ''")
+            except Exception:
+                pass
     except Exception as e:
         logger.warning(f"[db] Users table migration check exception: {e}")
 

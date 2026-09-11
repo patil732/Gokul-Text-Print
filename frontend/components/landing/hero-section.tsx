@@ -12,6 +12,7 @@ import {
   BarChart3,
   ShieldCheck,
   Zap,
+  LogIn,
 } from "lucide-react";
 
 export function HeroSection() {
@@ -52,31 +53,32 @@ export function HeroSection() {
 
           {/* Call-to-Action Group */}
           <div className="flex flex-wrap items-center justify-center gap-3.5 pt-2">
-            <Link href="/dashboard">
+            <Link href="/register">
               <Button size="lg" className="h-12 px-6 text-base font-semibold shadow-md gap-2">
-                <span>Launch Live Demo</span>
+                <span>Register Your Mill</span>
                 <ArrowRight className="w-4 h-4" />
               </Button>
             </Link>
 
-            <Link href="/#architecture">
+            <Link href="/login">
               <Button
                 variant="outline"
                 size="lg"
                 className="h-12 px-6 text-base font-medium gap-2 border-border hover:bg-muted"
               >
-                <Layers className="w-4 h-4 text-brand" />
-                <span>Explore Architecture</span>
+                <LogIn className="w-4 h-4 text-brand" />
+                <span>Sign In</span>
               </Button>
             </Link>
 
-            <Link href="/contact">
+            <Link href="/dashboard">
               <Button
                 variant="ghost"
                 size="lg"
-                className="h-12 px-5 text-base font-medium text-muted-foreground hover:text-foreground"
+                className="h-12 px-5 text-base font-medium text-muted-foreground hover:text-foreground gap-2"
               >
-                <span>Book Mill Assessment</span>
+                <Sparkles className="w-4 h-4 text-amber-500" />
+                <span>Live Demo</span>
               </Button>
             </Link>
           </div>

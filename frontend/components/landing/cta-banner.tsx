@@ -2,7 +2,7 @@ import * as React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Sparkles, Layers, ShieldCheck, PhoneCall } from "lucide-react";
+import { ArrowRight, Sparkles, Layers, ShieldCheck, PhoneCall, LogIn } from "lucide-react";
 
 export function CtaBanner() {
   return (
@@ -27,40 +27,39 @@ export function CtaBanner() {
             </h2>
 
             <p className="text-base sm:text-lg text-indigo-100 max-w-2xl mx-auto leading-relaxed">
-              Explore the live executive dashboard now or speak directly with our engineering team
-              to customize the multi-agent swarm for your factory's specific machinery and dye formulations.
+              Register your mill account in seconds or sign in to configure the multi-agent swarm for your factory's specific machinery and dye formulations.
             </p>
 
             {/* CTAs */}
             <div className="flex flex-wrap items-center justify-center gap-3.5 pt-2">
-              <Link href="/dashboard">
+              <Link href="/register">
                 <Button
                   size="lg"
                   className="h-12 px-6 text-base font-semibold bg-white text-indigo-950 hover:bg-white/90 shadow-md gap-2"
                 >
-                  <span>Launch Live Demo</span>
+                  <span>Register Mill Account</span>
                   <ArrowRight className="w-4 h-4 text-brand" />
                 </Button>
               </Link>
 
-              <Link href="/contact">
+              <Link href="/login">
                 <Button
                   size="lg"
                   variant="outline"
                   className="h-12 px-6 text-base font-semibold text-white border-white/30 hover:bg-white/10 gap-2"
                 >
-                  <PhoneCall className="w-4 h-4" />
-                  <span>Request Factory Assessment</span>
+                  <LogIn className="w-4 h-4" />
+                  <span>Sign In</span>
                 </Button>
               </Link>
 
-              <Link href="/pricing">
+              <Link href="/dashboard">
                 <Button
                   size="lg"
                   variant="ghost"
                   className="h-12 px-5 text-base font-medium text-indigo-200 hover:text-white hover:bg-white/10"
                 >
-                  <span>View Mill Tiers</span>
+                  <span>Explore Demo</span>
                 </Button>
               </Link>
             </div>

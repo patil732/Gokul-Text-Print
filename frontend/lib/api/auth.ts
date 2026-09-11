@@ -16,6 +16,26 @@ export interface User {
   email: string;
 }
 
+export interface RegisterRequest {
+  username: string;
+  email: string;
+  password: string;
+  company?: string;
+  role?: UserRole;
+}
+
+export interface RegisterResponse {
+  success: boolean;
+  message: string;
+  user?: {
+    username: string;
+    email: string;
+    role: UserRole;
+    company?: string;
+  };
+  error?: string;
+}
+
 export interface LoginRequest {
   username?: string;
   email?: string;
@@ -80,6 +100,13 @@ export interface ProfileUpdateResponse {
 // ---------------------------------------------------------------------------
 // API methods
 // ---------------------------------------------------------------------------
+
+/**
+ * Register a new enterprise user account.
+ */
+export async function registerUser(payload: RegisterRequest): Promise<RegisterResponse> {
+  return apiPost<RegisterResponse>("/api/auth/register", payload);
+}
 
 /**
  * Authenticate against Flask /api/auth/login.

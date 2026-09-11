@@ -115,36 +115,58 @@ export function PublicNav() {
         </nav>
 
         {/* Right Actions */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           <ThemeToggle />
 
           {isAuthenticated && user ? (
-            <Link
-              href="/profile"
-              className="hidden sm:inline-flex items-center gap-2 px-2.5 py-1 text-xs font-medium text-foreground bg-card hover:bg-muted border border-border rounded-full shadow-2xs transition-colors"
-            >
-              <div className="w-5 h-5 rounded-full bg-brand text-brand-fg flex items-center justify-center text-[10px] font-bold">
-                {user.username.slice(0, 1).toUpperCase()}
-              </div>
-              <span className="font-semibold max-w-[90px] truncate">{user.username}</span>
-              <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-brand-muted text-brand-muted-fg uppercase tracking-wider">
-                {user.role}
-              </span>
-            </Link>
+            <div className="hidden sm:flex items-center gap-2">
+              <Link
+                href="/profile"
+                className="inline-flex items-center gap-2 px-2.5 py-1 text-xs font-medium text-foreground bg-card hover:bg-muted border border-border rounded-full shadow-2xs transition-colors"
+                title="View Profile & RBAC Role"
+              >
+                <div className="w-5 h-5 rounded-full bg-brand text-brand-fg flex items-center justify-center text-[10px] font-bold">
+                  {user.username.slice(0, 1).toUpperCase()}
+                </div>
+                <span className="font-semibold max-w-[90px] truncate">{user.username}</span>
+                <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-brand-muted text-brand-muted-fg uppercase tracking-wider">
+                  {user.role}
+                </span>
+              </Link>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => logout()}
+                className="h-8 px-2 text-xs text-muted-foreground hover:text-rose-500 gap-1"
+                title="Sign Out"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </Button>
+            </div>
           ) : (
-            <Link
-              href="/login"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
-            >
-              <LogIn className="w-4 h-4" />
-              <span>Sign In</span>
-            </Link>
+            <div className="hidden sm:flex items-center gap-2">
+              <Link href="/login">
+                <Button variant="ghost" size="sm" className="h-9 px-3 text-sm font-medium gap-1.5">
+                  <LogIn className="w-4 h-4" />
+                  <span>Sign In</span>
+                </Button>
+              </Link>
+              <Link href="/register">
+                <Button size="sm" className="h-9 px-3.5 text-sm font-semibold gap-1.5 shadow-xs">
+                  <span>Register</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Button>
+              </Link>
+            </div>
           )}
 
-          <Link href="/dashboard">
-            <Button size="sm" className="hidden sm:inline-flex items-center gap-1.5 font-medium">
-              <span>Launch Demo</span>
-              <ArrowRight className="w-4 h-4" />
+          <Link href="/dashboard" className="hidden md:inline-flex">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 px-3 text-xs font-medium text-muted-foreground hover:text-foreground gap-1.5 border-border"
+            >
+              <span>Demo</span>
             </Button>
           </Link>
 
@@ -235,19 +257,31 @@ export function PublicNav() {
                 </div>
               </div>
             ) : (
-              <Link
-                href="/login"
-                className="flex items-center justify-center gap-2 w-full py-2 text-sm font-medium rounded-md border border-border hover:bg-muted text-foreground"
-              >
-                <LogIn className="w-4 h-4" />
-                <span>Sign In (Portal)</span>
-              </Link>
+              <div className="space-y-2">
+                <Link href="/register" className="w-full block">
+                  <Button className="w-full flex items-center justify-center gap-2 font-semibold">
+                    <span>Register Account</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </Link>
+                <Link href="/login" className="w-full block">
+                  <Button
+                    variant="outline"
+                    className="w-full flex items-center justify-center gap-2"
+                  >
+                    <LogIn className="w-4 h-4" />
+                    <span>Sign In (Portal)</span>
+                  </Button>
+                </Link>
+              </div>
             )}
 
-            <Link href="/dashboard" className="w-full">
-              <Button className="w-full flex items-center justify-center gap-2">
+            <Link href="/dashboard" className="w-full block">
+              <Button
+                variant="ghost"
+                className="w-full flex items-center justify-center gap-2 text-muted-foreground"
+              >
                 <span>Launch Executive Demo</span>
-                <ArrowRight className="w-4 h-4" />
               </Button>
             </Link>
           </div>
