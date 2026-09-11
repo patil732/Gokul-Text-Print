@@ -1,4 +1,6 @@
+import os
 from flask import Flask, jsonify, redirect, url_for, session
+from flask_cors import CORS
 from config.settings import Config
 from utils.logger import logger
 from routes.ceo import ceo_bp
@@ -15,6 +17,22 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
     app.secret_key = "super_secret_key"
+
+    # ── Sprint 7: CORS — allow Next.js frontend (dev + prod) ────────────── #
+    # Only the allowed origins are configured here; no route logic is changed.
+    _frontend_origin = os.environ.get("FRONTEND_ORIGIN", "http://localhost:3000")
+    _cors_origins = [
+        "http://localhost:3000",   # Next.js dev default
+        "http://localhost:3001",   # alternate dev port
+        _frontend_origin,          # env-override for prod
+    ]
+    CORS(
+        app,
+        origins=list(dict.fromkeys(_cors_origins)),  # deduplicate
+        supports_credentials=True,
+    )
+    logger.info(f"[CORS] Allowed origins: {list(dict.fromkeys(_cors_origins))}")
+    # ──────────────────────────────────────────────────────────────────────── #
 
     # Initialize Database
     init_db()
@@ -59,7 +77,6 @@ def create_app():
         return redirect(url_for('auth.login'))
 
     # Start Automation Layer (Background Scheduler)
-    import os
     if not app.config.get("TESTING") and not os.environ.get("PYTEST_CURRENT_TEST"):
         try:
             start_scheduler()

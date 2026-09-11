@@ -32,3 +32,12 @@ documents/*.pdf
 # OS files
 Thumbs.db
 .DS_Store
+
+# ---------------------------------------------------------------------------
+# Sprint 7 — Next.js Frontend (frontend/)
+# ---------------------------------------------------------------------------
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+# Secrets — .env.local contains NEXT_PUBLIC_API_BASE_URL; never commit it
+frontend/.env.local
