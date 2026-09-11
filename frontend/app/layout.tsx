@@ -19,7 +19,11 @@ export const metadata: Metadata = {
     "Executive BI Dashboard powered by multi-agent AI, sales intelligence, inventory analytics, and RAG-powered Q&A.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html
       lang="en"
