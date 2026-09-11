@@ -1,32 +1,31 @@
-/**
+/*
  * app/dashboard/page.tsx
  * ----------------------
- * Sprint 7 Smoke Test — GET /api/dashboard/kpis
+ * Sprint 7 -- Design System Showcase + KPI Smoke Test
  *
- * This server component fetches the KPI endpoint at render time and
- * renders the raw JSON response so we can confirm:
- *   1. The Flask server is reachable from Next.js
- *   2. CORS is configured correctly (no browser-side errors in dev)
- *   3. The typed API client (lib/api/dashboard.ts) returns the right shape
- *
- * Once smoke test passes, this page evolves into the full dashboard UI.
+ * Server Component that:
+ *   1. Fetches GET /api/dashboard/kpis (confirms API client + CORS)
+ *   2. Renders all design-system primitives as a visual showcase:
+ *      Card, PriorityBadge, SkeletonCard, ThemeToggle, SectionReveal
+ *   3. Delegates the sortable DataTable to <DemoTable> (client component)
  */
 
 import type { Metadata } from "next";
 import { getDashboardKpis, type KpiResponse } from "@/lib/api/dashboard";
 import { API_BASE_URL } from "@/lib/api/client";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { PriorityBadge } from "@/components/ui/badge";
+import { SkeletonCard } from "@/components/ui/skeleton";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { SectionReveal } from "@/components/ui/page-transition";
+import { DemoTable } from "./_components/demo-table";
 
 export const metadata: Metadata = {
-  title: "Dashboard KPI Smoke Test | Gokul Text Print",
-  description: "Sprint 7 smoke test — verifies the typed API client can call GET /api/dashboard/kpis.",
+  title: "Dashboard | Gokul Text Print",
+  description: "Sprint 7 design system showcase and KPI smoke test.",
 };
 
-// Disable Next.js caching so every page load hits Flask fresh
 export const dynamic = "force-dynamic";
-
-// ---------------------------------------------------------------------------
-// Smoke-test component
-// ---------------------------------------------------------------------------
 
 export default async function DashboardPage() {
   let kpiData: KpiResponse | null = null;
@@ -34,140 +33,222 @@ export default async function DashboardPage() {
   let durationMs: number | null = null;
 
   const t0 = Date.now();
-
   try {
     kpiData = await getDashboardKpis();
     durationMs = Date.now() - t0;
   } catch (err: unknown) {
     durationMs = Date.now() - t0;
-    if (err instanceof Error) {
-      errorMessage = err.message;
-    } else {
-      errorMessage = "Unknown error occurred while fetching KPIs.";
-    }
+    errorMessage = err instanceof Error ? err.message : "Unknown error";
   }
 
   const isSuccess = kpiData?.status === "success";
+  const kpi = kpiData?.data;
 
   return (
-    <main className="min-h-screen bg-gray-950 text-gray-100 p-8 font-mono">
-      {/* ── Header ─────────────────────────────────────────────────────── */}
-      <div className="max-w-5xl mx-auto">
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-2xl">🏭</span>
-            <h1 className="text-2xl font-bold tracking-tight text-white">
-              Gokul Text Print — Enterprise AI Platform
-            </h1>
-          </div>
-          <p className="text-gray-400 text-sm">
-            Sprint 7 · API Client Smoke Test
-          </p>
-        </div>
+    <main className="min-h-screen bg-background text-foreground">
 
-        {/* ── Test Target Info ───────────────────────────────────────────── */}
-        <div className="mb-6 rounded-xl border border-gray-800 bg-gray-900 p-5">
-          <h2 className="text-base font-semibold text-gray-200 mb-3">
-            🔬 Smoke Test: <code className="text-emerald-400">GET /api/dashboard/kpis</code>
-          </h2>
-          <div className="grid grid-cols-2 gap-4 text-sm">
+      {/* Sticky top bar with ThemeToggle */}
+      <header className="sticky top-0 z-10 border-b border-[var(--surface-border)] bg-[var(--surface-1)] backdrop-blur-sm">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
+          <div className="flex items-center gap-2.5">
+            <span className="text-lg" aria-hidden="true">🏭</span>
             <div>
-              <span className="text-gray-500">Base URL</span>
-              <div className="text-blue-400 mt-0.5">{API_BASE_URL}</div>
-            </div>
-            <div>
-              <span className="text-gray-500">Full endpoint</span>
-              <div className="text-blue-400 mt-0.5">{API_BASE_URL}/api/dashboard/kpis</div>
-            </div>
-            <div>
-              <span className="text-gray-500">Response time</span>
-              <div className="text-purple-400 mt-0.5">
-                {durationMs !== null ? `${durationMs} ms` : "—"}
-              </div>
-            </div>
-            <div>
-              <span className="text-gray-500">Status</span>
-              <div className="mt-0.5">
-                {isSuccess ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-900/60 px-3 py-0.5 text-emerald-300 text-xs font-semibold ring-1 ring-emerald-700">
-                    ✅ SUCCESS
-                  </span>
-                ) : errorMessage ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-red-900/60 px-3 py-0.5 text-red-300 text-xs font-semibold ring-1 ring-red-700">
-                    ❌ ERROR
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-800 px-3 py-0.5 text-gray-400 text-xs font-semibold ring-1 ring-gray-700">
-                    ⏳ PENDING
-                  </span>
-                )}
-              </div>
+              <h1 className="text-sm font-semibold text-foreground leading-tight">
+                Gokul Text Print
+              </h1>
+              <p className="text-xs text-muted-foreground">Enterprise AI Platform</p>
             </div>
           </div>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-muted-foreground hidden sm:block">Sprint 7</span>
+            <ThemeToggle />
+          </div>
         </div>
+      </header>
 
-        {/* ── Error Panel ────────────────────────────────────────────────── */}
-        {errorMessage && (
-          <div className="mb-6 rounded-xl border border-red-800 bg-red-950/50 p-5">
-            <h2 className="text-sm font-semibold text-red-400 mb-2">⚠️ Error Details</h2>
-            <p className="text-red-300 text-sm">{errorMessage}</p>
-            <p className="mt-3 text-gray-500 text-xs">
-              Common causes: Flask not running on port 5001, CORS misconfiguration, or
-              NEXT_PUBLIC_API_BASE_URL not set in frontend/.env.local
+      <div className="mx-auto max-w-7xl px-6 py-8 space-y-10">
+
+        {/* Section 1: API Smoke Test */}
+        <SectionReveal delay={0}>
+          <div className="mb-6">
+            <h2 className="text-xl font-bold tracking-tight text-foreground">
+              API Client Smoke Test
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Verifies{" "}
+              <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground">
+                GET /api/dashboard/kpis
+              </code>{" "}
+              is reachable from Next.js with CORS configured correctly.
             </p>
           </div>
-        )}
 
-        {/* ── KPI Quick Summary ──────────────────────────────────────────── */}
-        {isSuccess && kpiData?.data && (
-          <div className="mb-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { label: "Total Sales", value: kpiData.data.total_sales.toLocaleString() },
-              {
-                label: "Revenue",
-                value: `₹${Number(kpiData.data.revenue).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`,
-              },
-              {
-                label: "Sales Growth",
-                value: `${kpiData.data.sales_growth > 0 ? "+" : ""}${kpiData.data.sales_growth.toFixed(1)}%`,
-              },
-              {
-                label: "Business Health",
-                value: `${kpiData.data.business_health.score.toFixed(1)} — ${kpiData.data.business_health.status}`,
-              },
-            ].map(({ label, value }) => (
-              <div
-                key={label}
-                className="rounded-xl border border-gray-800 bg-gray-900 p-4"
-              >
-                <div className="text-gray-500 text-xs mb-1">{label}</div>
-                <div className="text-white font-semibold text-sm">{value}</div>
-              </div>
-            ))}
+          <Card variant="default">
+            <CardHeader
+              action={
+                isSuccess ? (
+                  <PriorityBadge priority="SUCCESS" label="Success" />
+                ) : (
+                  <PriorityBadge priority="CRITICAL" label="Error" />
+                )
+              }
+            >
+              <CardTitle>{API_BASE_URL}/api/dashboard/kpis</CardTitle>
+              <CardDescription>
+                Response time: {durationMs !== null ? `${durationMs} ms` : "--"}
+                {kpi?.cached ? " · cached" : " · live"}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {errorMessage ? (
+                <p className="text-sm text-destructive">{errorMessage}</p>
+              ) : (
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                  {[
+                    { label: "Total Sales", value: kpi?.total_sales?.toLocaleString() ?? "-" },
+                    {
+                      label: "Revenue",
+                      value: kpi
+                        ? `INR ${Number(kpi.revenue).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`
+                        : "-",
+                    },
+                    {
+                      label: "Sales Growth",
+                      value: kpi
+                        ? `${kpi.sales_growth > 0 ? "+" : ""}${kpi.sales_growth.toFixed(1)}%`
+                        : "-",
+                    },
+                    {
+                      label: "Business Health",
+                      value: kpi
+                        ? `${kpi.business_health.score.toFixed(0)} -- ${kpi.business_health.status}`
+                        : "-",
+                    },
+                  ].map(({ label, value }) => (
+                    <div
+                      key={label}
+                      className="rounded-lg bg-[var(--surface-2)] p-3 border border-[var(--surface-border)]"
+                    >
+                      <p className="text-xs font-medium text-muted-foreground mb-1">{label}</p>
+                      <p className="text-base font-semibold tabular-nums text-foreground">{value}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </SectionReveal>
+
+        {/* Section 2: Component Showcase */}
+        <SectionReveal delay={0.08}>
+          <h2 className="text-xl font-bold tracking-tight text-foreground mb-6">
+            Design System Components
+          </h2>
+
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+
+            {/* Priority Badges */}
+            <Card variant="default">
+              <CardHeader>
+                <CardTitle>Priority Badges</CardTitle>
+                <CardDescription>
+                  Maps directly to Flask alert / recommendation priority strings
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex flex-wrap gap-2">
+                    {(["CRITICAL", "HIGH", "MEDIUM", "LOW", "SUCCESS"] as const).map((p) => (
+                      <PriorityBadge key={p} priority={p} />
+                    ))}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {(["CRITICAL", "HIGH", "MEDIUM", "LOW", "SUCCESS"] as const).map((p) => (
+                      <PriorityBadge key={p} priority={p} showDot={false} />
+                    ))}
+                  </div>
+                  <div className="flex flex-wrap gap-2 items-center">
+                    {(["CRITICAL", "HIGH", "MEDIUM", "LOW"] as const).map((p) => (
+                      <PriorityBadge key={p} priority={p} label={`Alert: ${p}`} />
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Card variants */}
+            <Card variant="default">
+              <CardHeader>
+                <CardTitle>Card Variants</CardTitle>
+                <CardDescription>default · elevated · outline · ghost</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {(["default", "elevated", "outline", "ghost"] as const).map((v) => (
+                    <Card key={v} variant={v} padding="sm">
+                      <span className="text-xs font-mono text-muted-foreground">
+                        variant=&quot;{v}&quot;
+                      </span>
+                    </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Skeleton loaders */}
+            <Card variant="default">
+              <CardHeader>
+                <CardTitle>Skeleton Loaders</CardTitle>
+                <CardDescription>
+                  Displayed while data is fetching -- also used inside DataTable rows
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <SkeletonCard bodyLines={2} showFooter />
+              </CardContent>
+            </Card>
+
+            {/* Typography */}
+            <Card variant="default">
+              <CardHeader>
+                <CardTitle>Typography Scale</CardTitle>
+                <CardDescription>Named type constants from lib/design-system</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <p className="text-2xl font-bold tracking-tight text-foreground">Page Title -- 2xl bold</p>
+                  <p className="text-lg font-semibold tracking-tight text-foreground">Section Title -- lg semibold</p>
+                  <p className="text-sm font-semibold text-foreground">Card Title -- sm semibold</p>
+                  <p className="text-sm text-foreground">Body -- sm regular</p>
+                  <p className="text-sm text-muted-foreground">Body Muted -- sm muted</p>
+                  <p className="text-xs text-muted-foreground">Caption -- xs muted</p>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Label -- xs upper tracked
+                  </p>
+                  <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground">
+                    code -- mono xs
+                  </code>
+                </div>
+              </CardContent>
+            </Card>
+
           </div>
-        )}
+        </SectionReveal>
 
-        {/* ── Raw JSON ───────────────────────────────────────────────────── */}
-        <div className="rounded-xl border border-gray-800 bg-gray-900 overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-3 border-b border-gray-800">
-            <h2 className="text-sm font-semibold text-gray-300">
-              📦 Raw API Response
-            </h2>
-            <span className="text-xs text-gray-600">JSON</span>
-          </div>
-          <pre className="overflow-auto p-5 text-xs leading-relaxed text-gray-300 max-h-[60vh]">
-            {kpiData
-              ? JSON.stringify(kpiData, null, 2)
-              : errorMessage
-                ? `Error: ${errorMessage}`
-                : "No data received."}
-          </pre>
-        </div>
+        {/* Section 3: DataTable demo (client component) */}
+        <SectionReveal delay={0.16}>
+          <h2 className="text-xl font-bold tracking-tight text-foreground mb-4">
+            DataTable -- Sortable Demo
+          </h2>
+          <DemoTable kpi={kpi} />
+        </SectionReveal>
 
-        {/* ── Footer ─────────────────────────────────────────────────────── */}
-        <p className="mt-6 text-center text-gray-700 text-xs">
-          Sprint 7 — Enterprise UI Platform · Next.js {"{"}App Router{"}"} + Tailwind CSS + Shadcn UI + Framer Motion + Recharts
-        </p>
+        <footer className="pt-4 border-t border-[var(--surface-border)] text-center">
+          <p className="text-xs text-muted-foreground">
+            Sprint 7 · Next.js App Router · Tailwind CSS v4 · Shadcn UI · Framer Motion · Recharts
+          </p>
+        </footer>
+
       </div>
     </main>
   );

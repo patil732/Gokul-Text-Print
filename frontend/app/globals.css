@@ -67,11 +67,11 @@
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --chart-1: oklch(0.487 0.243 264.376); /* indigo */
+  --chart-2: oklch(0.627 0.194 149.214); /* emerald */
+  --chart-3: oklch(0.769 0.188 85.871);  /* amber */
+  --chart-4: oklch(0.637 0.237 25.331);  /* rose */
+  --chart-5: oklch(0.556 0.195 293.541); /* violet */
   --radius: 0.625rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
@@ -81,6 +81,64 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* ── GTP Platform: Semantic surfaces ─────────────────────────────────── */
+  --surface-0: oklch(0.985 0 0);   /* page bg — near white */
+  --surface-1: oklch(1 0 0);       /* card bg — white */
+  --surface-2: oklch(0.97 0 0);    /* elevated card — gray-50 */
+  --surface-border: oklch(0.922 0 0);
+
+  /* ── GTP Platform: Brand (indigo) ────────────────────────────────────── */
+  --brand:       oklch(0.487 0.243 264.376);   /* indigo-600 */
+  --brand-fg:    oklch(0.985 0 0);             /* white */
+  --brand-muted: oklch(0.929 0.073 264.376);   /* indigo-100 */
+  --brand-muted-fg: oklch(0.367 0.196 264.376); /* indigo-800 */
+
+  /* ── GTP Platform: Priority tokens ─────────────────────────────────────
+     Maps directly to Flask alert/recommendation priority strings.
+     CRITICAL → red-950 bg / red-400 fg
+     HIGH     → orange-950 bg / orange-400 fg
+     MEDIUM   → amber-950 bg / amber-400 fg
+     LOW      → sky-950 bg / sky-400 fg
+     SUCCESS  → green-950 bg / green-400 fg
+  ───────────────────────────────────────────────────────────────────────── */
+  --priority-critical:    oklch(0.955 0.030 27.325);  /* red-50 */
+  --priority-critical-fg: oklch(0.505 0.230 27.325);  /* red-600 */
+  --priority-critical-border: oklch(0.880 0.080 27.325); /* red-200 */
+
+  --priority-high:    oklch(0.960 0.035 50.000);   /* orange-50 */
+  --priority-high-fg: oklch(0.550 0.195 50.000);   /* orange-600 */
+  --priority-high-border: oklch(0.890 0.090 50.000);
+
+  --priority-medium:    oklch(0.965 0.040 85.871);  /* amber-50 */
+  --priority-medium-fg: oklch(0.555 0.170 85.871);  /* amber-600 */
+  --priority-medium-border: oklch(0.895 0.100 85.871);
+
+  --priority-low:    oklch(0.960 0.025 230.000);   /* sky-50 */
+  --priority-low-fg: oklch(0.490 0.180 230.000);   /* sky-600 */
+  --priority-low-border: oklch(0.880 0.070 230.000);
+
+  --priority-success:    oklch(0.955 0.030 149.214);  /* green-50 */
+  --priority-success-fg: oklch(0.500 0.175 149.214);  /* green-600 */
+  --priority-success-border: oklch(0.880 0.080 149.214);
+
+  /* ── GTP Platform: Typography scale ─────────────────────────────────── */
+  --text-2xs: 0.625rem;   /* 10px */
+  --text-xs:  0.75rem;    /* 12px */
+  --text-sm:  0.875rem;   /* 14px */
+  --text-base: 1rem;      /* 16px */
+  --text-lg:  1.125rem;   /* 18px */
+  --text-xl:  1.25rem;    /* 20px */
+  --text-2xl: 1.5rem;     /* 24px */
+  --text-3xl: 1.875rem;   /* 30px */
+  --text-4xl: 2.25rem;    /* 36px */
+  --leading-tight: 1.25;
+  --leading-snug:  1.375;
+  --leading-normal: 1.5;
+  --tracking-tight: -0.025em;
+  --tracking-normal: 0em;
+  --tracking-wide:  0.025em;
+  --tracking-wider: 0.05em;
 }
 
 .dark {
@@ -102,11 +160,11 @@
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --chart-1: oklch(0.637 0.243 264.376); /* indigo-400 */
+  --chart-2: oklch(0.742 0.194 149.214); /* emerald-400 */
+  --chart-3: oklch(0.869 0.188 85.871);  /* amber-300 */
+  --chart-4: oklch(0.756 0.237 25.331);  /* rose-400 */
+  --chart-5: oklch(0.714 0.195 293.541); /* violet-400 */
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.488 0.243 264.376);
@@ -115,6 +173,39 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+
+  /* ── GTP Platform: Semantic surfaces (dark) ─────────────────────────── */
+  --surface-0: oklch(0.145 0 0);   /* page bg — gray-950 */
+  --surface-1: oklch(0.205 0 0);   /* card bg — gray-900 */
+  --surface-2: oklch(0.250 0 0);   /* elevated card — gray-850 */
+  --surface-border: oklch(1 0 0 / 10%);
+
+  /* ── GTP Platform: Brand (dark) ──────────────────────────────────────── */
+  --brand:       oklch(0.637 0.243 264.376);   /* indigo-400 */
+  --brand-fg:    oklch(0.145 0 0);             /* near-black */
+  --brand-muted: oklch(0.280 0.073 264.376);   /* indigo-950 */
+  --brand-muted-fg: oklch(0.714 0.190 264.376); /* indigo-300 */
+
+  /* ── GTP Platform: Priority tokens (dark) ────────────────────────────── */
+  --priority-critical:    oklch(0.220 0.040 27.325);  /* red-950 */
+  --priority-critical-fg: oklch(0.714 0.191 27.325);  /* red-400 */
+  --priority-critical-border: oklch(0.380 0.120 27.325);
+
+  --priority-high:    oklch(0.225 0.040 50.000);   /* orange-950 */
+  --priority-high-fg: oklch(0.750 0.175 50.000);   /* orange-400 */
+  --priority-high-border: oklch(0.380 0.120 50.000);
+
+  --priority-medium:    oklch(0.230 0.040 85.871);  /* amber-950 */
+  --priority-medium-fg: oklch(0.820 0.165 85.871);  /* amber-400 */
+  --priority-medium-border: oklch(0.390 0.120 85.871);
+
+  --priority-low:    oklch(0.215 0.025 230.000);   /* sky-950 */
+  --priority-low-fg: oklch(0.680 0.175 230.000);   /* sky-400 */
+  --priority-low-border: oklch(0.370 0.090 230.000);
+
+  --priority-success:    oklch(0.215 0.030 149.214);  /* green-950 */
+  --priority-success-fg: oklch(0.696 0.170 149.214);  /* green-400 */
+  --priority-success-border: oklch(0.370 0.100 149.214);
 }
 
 @layer base {
