@@ -37,6 +37,7 @@ export interface ChatHistoryEntry {
   answer: string;
   retrieved_documents: ChatSource[];
   timestamp: string;
+  is_manager?: boolean;
 }
 
 export interface ChatHistoryResponse {
