@@ -110,9 +110,9 @@ export default function AboutPage() {
               valuable formulation wisdom remained locked in the heads of senior technicians.
             </p>
             <p>
-              In 2024, we initiated the <strong>Enterprise AI Platform</strong> (Sprints 1 through 7):
-              unifying deep predictive sales modeling, automated inventory buffer calculations, RAG-grounded
-              formula retrieval, and an autonomous multi-agent supervisor swarm. Today, Gokul Text Print
+              In 2024, we launched the <strong>Enterprise Mill Intelligence Platform</strong>:
+              unifying deep predictive sales demand modeling, automated inventory buffer calculations, certified
+              color recipe retrieval, and an autonomous operational copilot. Today, Gokul Text Print
               operates as one of India's most advanced autonomous smart mills.
             </p>
           </div>
@@ -141,8 +141,8 @@ export default function AboutPage() {
                   <span className="font-bold text-foreground">Rotary Screen, Digital Pigment</span>
                 </div>
                 <div className="flex items-center justify-between py-2 border-b border-border/60">
-                  <span className="text-muted-foreground">AI Platform Sprint</span>
-                  <span className="font-bold text-brand">Sprint 7 Enterprise UI</span>
+                  <span className="text-muted-foreground">Platform Edition</span>
+                  <span className="font-bold text-brand">Enterprise Release Candidate</span>
                 </div>
                 <div className="flex items-center justify-between py-2">
                   <span className="text-muted-foreground">Air-Gapped Security</span>

@@ -106,7 +106,7 @@ function ResetPasswordForm() {
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError("Network error while connecting to Flask auth server.");
+        setError("Network error while connecting to authorization service.");
       }
     } finally {
       setSubmitting(false);
@@ -162,7 +162,7 @@ function ResetPasswordForm() {
             {verifying && (
               <div className="p-3 rounded-lg bg-muted/60 text-xs text-muted-foreground flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-brand animate-ping" />
-                <span>Verifying reset token with Flask auth engine...</span>
+                <span>Verifying reset token with authorization service...</span>
               </div>
             )}
 

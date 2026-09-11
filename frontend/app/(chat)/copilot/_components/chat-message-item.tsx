@@ -304,7 +304,7 @@ export function ChatMessageItem({ message }: ChatMessageItemProps) {
                         )}
                         {message.agent_details.inventory.data?.decision && (
                           <div className="flex justify-between">
-                            <span>ML Reorder Decision:</span>
+                            <span>Reorder Recommendation:</span>
                             <span className="font-semibold text-foreground">
                               {message.agent_details.inventory.data.decision}
                             </span>
@@ -312,7 +312,7 @@ export function ChatMessageItem({ message }: ChatMessageItemProps) {
                         )}
                         {message.agent_details.inventory.data?.model_accuracy !== undefined && (
                           <div className="pt-1 text-[10px] text-muted-foreground border-t border-border/40">
-                            Model: {message.agent_details.inventory.data.model_type || "XGBoost"} (
+                            Engine: {message.agent_details.inventory.data.model_type || "Supply Optimizer"} (
                             {(message.agent_details.inventory.data.model_accuracy * 100).toFixed(1)}% acc)
                           </div>
                         )}

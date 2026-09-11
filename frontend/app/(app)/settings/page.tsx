@@ -326,7 +326,7 @@ export default function SettingsPage() {
               </button>
             </div>
             <p className="text-[11px] text-muted-foreground pt-1">
-              Active mode is automatically synced with your local workstation and persisted in SQLite preferences.
+              Active mode is automatically synced with your local workstation and persisted in your user preferences.
             </p>
           </CardContent>
         </Card>
@@ -419,7 +419,7 @@ export default function SettingsPage() {
               </div>
             </div>
             <CardDescription className="text-xs">
-              Credentials are never displayed in full plain text. Stored encrypted in SQLite preferences.
+              Credentials are never displayed in full plain text and are stored securely encrypted.
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-5 space-y-4 flex-1">

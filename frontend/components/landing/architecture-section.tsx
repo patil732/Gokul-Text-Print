@@ -10,165 +10,157 @@ import {
   Boxes,
   BookOpen,
   Bot,
-  Layers,
   ArrowRight,
-  Cpu,
-  Database,
-  Workflow,
   CheckCircle2,
   Sparkles,
+  Activity,
 } from "lucide-react";
 
-interface ArchLayer {
+interface MillSolution {
   id: string;
-  sprint: string;
   name: string;
   badge: string;
   icon: React.ComponentType<{ className?: string }>;
   tagline: string;
   description: string;
   capabilities: string[];
-  algorithms: string;
-  inputs: string;
-  outputs: string;
-  sampleTelemetry: {
+  businessChallenge: string;
+  operationalApproach: string;
+  measurableImpact: string;
+  sampleMetrics: {
     metric: string;
     value: string;
     status: "SUCCESS" | "HIGH" | "MEDIUM" | "LOW";
   }[];
 }
 
-const ARCH_LAYERS: ArchLayer[] = [
+const MILL_SOLUTIONS: MillSolution[] = [
   {
-    id: "layer-sales",
-    sprint: "Sprint 2",
-    name: "Sales Intelligence Layer",
-    badge: "Demand Prediction",
+    id: "solution-sales",
+    name: "Sales & Demand Planning",
+    badge: "Predictive Growth",
     icon: TrendingUp,
-    tagline: "Predictive order pipelines and seasonal fabric surges",
+    tagline: "Forecast seasonal fabric demand and prevent lost order opportunities",
     description:
-      "Analyzes historical client purchase cycles, regional festive surges, and fabric pattern trends to forecast upcoming SKU demand with over 99% accuracy.",
+      "Replaces spreadsheet guesswork with automated demand intelligence. Analyzes multi-year client buying cadences, regional wedding seasons, and festive surge patterns so your mill knows exactly what fabric blends to prepare weeks in advance.",
     capabilities: [
-      "SKU-level 30/60/90-day order demand forecasting",
-      "Festive seasonality curve modeling (Diwali, Wedding seasons)",
-      "High-value client churn detection & repeat order timing",
-      "Dynamic price and discount elasticity recommendations",
+      "30/60/90-day SKU-level demand forecasting",
+      "Festive and wedding season fabric surge projections",
+      "Client repeat ordering cycle indicators & churn detection",
+      "Profitable order pricing and volume discount recommendations",
     ],
-    algorithms: "Gradient Boosted Regressors + Seasonality Decomposition",
-    inputs: "Historical order books, client CRM transactions, seasonal calendars",
-    outputs: "Projected meter demands, pipeline risk scores, revenue estimates",
-    sampleTelemetry: [
-      { metric: "Order Forecast Accuracy", value: "99.4%", status: "SUCCESS" },
+    businessChallenge: "Unpredictable order volumes causing stockouts and missed delivery dates",
+    operationalApproach: "Proactive demand visibility across all active wholesale accounts",
+    measurableImpact: "99.4% Order Demand Precision · +28% Timely Delivery Rate",
+    sampleMetrics: [
+      { metric: "Order Forecast Precision", value: "99.4%", status: "SUCCESS" },
       { metric: "Festive Demand Surge (Jacquard)", value: "+38.2%", status: "HIGH" },
-      { metric: "Client Churn Risk Index", value: "2.1% (Low)", status: "SUCCESS" },
+      { metric: "Client Retention Rate", value: "97.9%", status: "SUCCESS" },
     ],
   },
   {
-    id: "layer-inventory",
-    sprint: "Sprint 3",
-    name: "Inventory Optimization Layer",
-    badge: "Deadstock Prevention",
+    id: "solution-inventory",
+    name: "Inventory & Buffer Optimization",
+    badge: "Working Capital Protection",
     icon: Boxes,
-    tagline: "Dynamic grey cloth, yarn, and chemical dye buffer management",
+    tagline: "Keep grey cloth and reactive dyes in balance without tying up capital",
     description:
-      "Continuously monitors grey cloth yardage, reactive dye pigment batches, and auxiliary chemicals to minimize deadstock while preventing expensive production line stalls.",
+      "Maintains live visibility across unprinted greige fabric rolls, yarn reserve, reactive dyes, and auxiliary chemicals. Automatically flags aging batches before they degrade and alerts purchasing managers when safety buffers run low.",
     capabilities: [
-      "Real-time stock turnover velocity tracking across warehouse bays",
-      "Deadstock early-warning engine for aging dyes and unprinted cotton",
-      "Dynamic safety stock recalculation based on supplier lead times",
-      "Automated replenishment purchase order generation",
+      "Real-time stock turnover tracking across warehouse bays",
+      "Early warning alerts for slow-moving fabric and aging dyes",
+      "Dynamic safety stock buffers adjusted for supplier lead times",
+      "One-click automated replenishment recommendations",
     ],
-    algorithms: "Dynamic Buffer Inventory Modeling + Reorder Threshold Optimization",
-    inputs: "WMS ledger, batch expiration dates, yarn consumption rates",
-    outputs: "Reorder triggers, deadstock mitigation flags, supplier allocations",
-    sampleTelemetry: [
-      { metric: "Active Deadstock Cut", value: "-34.1%", status: "SUCCESS" },
-      { metric: "Reactive Cyan Dye Reserve", value: "18 Days (Critical)", status: "HIGH" },
-      { metric: "Stock Turnover Rate", value: "6.8x / year", status: "SUCCESS" },
+    businessChallenge: "Capital locked in stagnant fabric while urgent jobs halt for dye",
+    operationalApproach: "Continuous automated balance between floor usage and lead times",
+    measurableImpact: "34% Average Working Capital Freed · 0 Unplanned Halts",
+    sampleMetrics: [
+      { metric: "Working Capital Freed", value: "34.1%", status: "SUCCESS" },
+      { metric: "Stock Turnover Velocity", value: "6.8x / year", status: "SUCCESS" },
+      { metric: "Active Chemical Buffer Health", value: "Optimal", status: "SUCCESS" },
     ],
   },
   {
-    id: "layer-rag",
-    sprint: "Sprint 4",
-    name: "Knowledge & Domain RAG Layer",
-    badge: "Vector Retrieval",
+    id: "solution-recipes",
+    name: "Color Kitchen & SOP Intelligence",
+    badge: "Color Repeatability",
     icon: BookOpen,
-    tagline: "Hybrid semantic search across textile formulations and mill SOPs",
+    tagline: "Certified dye recipes and operating procedures at operator fingertips",
     description:
-      "Converts unstructured mill manuals, chemical dye mixing recipes, GSM standards, and machine operating procedures into high-dimensional vector embeddings for instant retrieval.",
+      "Brings all mill knowledge—textile color mixing formulations, exact dye ratios, GSM fabric standards, and machine error troubleshooting—into an instant, searchable knowledge base for zero-error color consistency.",
     capabilities: [
-      "Hybrid dense vector + BM25 keyword semantic retrieval",
-      "Textile color recipe formulation lookups with exact dye ratios",
-      "Rotary screen & digital printer error code troubleshooting",
-      "Safety Data Sheet (MSDS) compliance and operator guidance",
+      "Instant formula lookups with certified dye and chemical ratios",
+      "Sub-0.5 Delta-E color repeatability across repeated print runs",
+      "Rotary screen and digital printer troubleshooting playbooks",
+      "Standard operating procedure (SOP) compliance and operator guidance",
     ],
-    algorithms: "HuggingFace Embeddings + Vector Store + Cosine Reranking",
-    inputs: "PDF recipe books, rotary printing machine manuals, textile SOPs",
-    outputs: "Ground-truth cited technical answers, color adjustment formulas",
-    sampleTelemetry: [
-      { metric: "Vector Chunks Indexed", value: "14,820 docs", status: "SUCCESS" },
-      { metric: "Mean Retrieval Latency", value: "48ms", status: "SUCCESS" },
-      { metric: "Recipe Verification Rate", value: "100%", status: "SUCCESS" },
+    businessChallenge: "Tribal knowledge lost with staff turnover; high batch color variance",
+    operationalApproach: "Centralized verified digital formulations and step-by-step SOPs",
+    measurableImpact: "Sub-0.5 Delta-E Precision · 100% Formulation Retention",
+    sampleMetrics: [
+      { metric: "Batch Color Variance (ΔE)", value: "0.32 ΔE", status: "SUCCESS" },
+      { metric: "Recipe Lookup Speed", value: "Instant", status: "SUCCESS" },
+      { metric: "Formulation Retention", value: "100%", status: "SUCCESS" },
     ],
   },
   {
-    id: "layer-agents",
-    sprint: "Sprint 5",
-    name: "Autonomous Multi-Agent Swarm",
-    badge: "Supervisor Swarm",
+    id: "solution-copilot",
+    name: "Executive Operational Copilot",
+    badge: "Autonomous Coordination",
     icon: Bot,
-    tagline: "Collaborative agent consensus across sales, inventory, and knowledge",
+    tagline: "Instant cross-department coordination for high-stakes mill decisions",
     description:
-      "A supervisor orchestrator dispatches complex mill operational decisions to domain specialist agents, synthesizing cross-functional trade-offs into actionable executive briefs.",
+      "Acts as an executive co-pilot that instantly checks sales commitments against floor inventory and machine schedules. Get clear feasibility assessments, order confirmations, and urgent anomaly alerts without chasing supervisors.",
     capabilities: [
-      "Supervisor agent orchestrating Sales, Inventory, and Knowledge agents",
-      "Automated cross-agent consensus and trade-off synthesis",
-      "Natural language business queries converted into multi-step tool calls",
-      "Autonomous exception handling and executive escalation triggers",
+      "Instant feasibility checks for rush wholesale fabric orders",
+      "Cross-department trade-off analysis between sales and production",
+      "Executive summaries and automated daily shift briefings",
+      "One-click escalation and priority anomaly alert management",
     ],
-    algorithms: "Hierarchical Supervisor-Worker Swarm + Multi-Turn Agent Consensus",
-    inputs: "Executive inquiries, automated anomaly alerts, mill event stream",
-    outputs: "Multi-agent synthesized decisions, verified action plans, alerts",
-    sampleTelemetry: [
-      { metric: "Active Agent Workers", value: "4 Specialists", status: "SUCCESS" },
-      { metric: "Consensus Confidence", value: "98.7%", status: "SUCCESS" },
-      { metric: "Mean Swarm Resolution", value: "1.4s", status: "SUCCESS" },
+    businessChallenge: "Communication gaps between sales team and mill production managers",
+    operationalApproach: "Unified operational intelligence evaluating order feasibility instantly",
+    measurableImpact: "4.2x Faster Order Quoting · Automated Shift Oversight",
+    sampleMetrics: [
+      { metric: "Order Quoting Turnaround", value: "4.2x Faster", status: "SUCCESS" },
+      { metric: "Feasibility Assessment Confidence", value: "99.1%", status: "SUCCESS" },
+      { metric: "Cross-Department Alignment", value: "Real-Time", status: "SUCCESS" },
     ],
   },
 ];
 
 export function ArchitectureSection() {
-  const [activeLayerId, setActiveLayerId] = React.useState<string>("layer-agents");
-  const activeLayer = ARCH_LAYERS.find((l) => l.id === activeLayerId) || ARCH_LAYERS[0];
-  const ActiveIcon = activeLayer.icon;
+  const [activeSolutionId, setActiveSolutionId] = React.useState<string>("solution-sales");
+  const activeSolution = MILL_SOLUTIONS.find((s) => s.id === activeSolutionId) || MILL_SOLUTIONS[0];
+  const ActiveIcon = activeSolution.icon;
 
   return (
-    <section id="architecture" className="py-16 lg:py-24 bg-muted/30 border-y border-border">
+    <section id="how-it-works" className="py-16 lg:py-24 bg-muted/30 border-y border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto space-y-4 mb-14">
           <Badge variant="outline" className="text-xs font-semibold px-3 py-1 text-brand border-brand/30">
-            System Architecture · Sprints 2–5
+            Operational Excellence · Core Pillars
           </Badge>
           <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground">
-            A Unified 4-Layer Autonomous Intelligence Stack
+            How Autonomous AI Powers Your Mill Operations
           </h2>
           <p className="text-base sm:text-lg text-muted-foreground">
-            Explore how data flows from predictive sales pipelines and mill floor inventory ledgers
-            through domain RAG retrieval into our autonomous multi-agent consensus swarm.
+            Designed specifically around the daily reality of industrial textile printing: from sales pipeline
+            commitments and warehouse inventory balance to color kitchen formulations and executive decision making.
           </p>
         </div>
 
-        {/* 4 Layer Navigators */}
+        {/* 4 Solution Navigators */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {ARCH_LAYERS.map((layer) => {
-            const Icon = layer.icon;
-            const isSelected = layer.id === activeLayerId;
+          {MILL_SOLUTIONS.map((solution) => {
+            const Icon = solution.icon;
+            const isSelected = solution.id === activeSolutionId;
             return (
               <button
-                key={layer.id}
+                key={solution.id}
                 type="button"
-                onClick={() => setActiveLayerId(layer.id)}
+                onClick={() => setActiveSolutionId(solution.id)}
                 className={`text-left p-4 rounded-xl border transition-all duration-200 cursor-pointer ${
                   isSelected
                     ? "bg-card border-brand shadow-sm ring-1 ring-brand/50"
@@ -176,9 +168,6 @@ export function ArchitectureSection() {
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                    {layer.sprint}
-                  </span>
                   <span
                     className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
                       isSelected
@@ -186,7 +175,7 @@ export function ArchitectureSection() {
                         : "bg-muted text-muted-foreground"
                     }`}
                   >
-                    {layer.badge}
+                    {solution.badge}
                   </span>
                 </div>
                 <div className="flex items-center gap-2.5">
@@ -198,7 +187,7 @@ export function ArchitectureSection() {
                     <Icon className="w-4 h-4" />
                   </div>
                   <div className="text-sm font-bold text-foreground truncate">
-                    {layer.name}
+                    {solution.name}
                   </div>
                 </div>
               </button>
@@ -206,7 +195,7 @@ export function ArchitectureSection() {
           })}
         </div>
 
-        {/* Active Layer Deep Dive Card */}
+        {/* Active Solution Deep Dive Card */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
           {/* Main Description */}
           <div className="lg:col-span-7">
@@ -218,13 +207,13 @@ export function ArchitectureSection() {
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <CardTitle className="text-xl font-bold">{activeLayer.name}</CardTitle>
+                      <CardTitle className="text-xl font-bold">{activeSolution.name}</CardTitle>
                       <Badge variant="secondary" className="text-xs">
-                        {activeLayer.sprint}
+                        {activeSolution.badge}
                       </Badge>
                     </div>
                     <CardDescription className="text-sm font-medium text-brand">
-                      {activeLayer.tagline}
+                      {activeSolution.tagline}
                     </CardDescription>
                   </div>
                 </div>
@@ -232,16 +221,16 @@ export function ArchitectureSection() {
 
               <CardContent className="space-y-5 text-sm">
                 <p className="text-muted-foreground leading-relaxed">
-                  {activeLayer.description}
+                  {activeSolution.description}
                 </p>
 
                 {/* Core Capabilities */}
                 <div className="space-y-2.5">
                   <span className="text-xs font-semibold uppercase tracking-wider text-foreground">
-                    Core Capabilities:
+                    Key Operational Capabilities:
                   </span>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {activeLayer.capabilities.map((cap, idx) => (
+                    {activeSolution.capabilities.map((cap, idx) => (
                       <div key={idx} className="flex items-start gap-2 text-xs text-foreground">
                         <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
                         <span>{cap}</span>
@@ -250,19 +239,25 @@ export function ArchitectureSection() {
                   </div>
                 </div>
 
-                {/* Algorithmic Pipeline Specs */}
+                {/* Business Value Breakdown */}
                 <div className="pt-3 border-t border-border/80 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                  <div className="p-2.5 rounded-lg bg-muted/50">
-                    <span className="font-semibold text-muted-foreground block mb-0.5">Algorithm:</span>
-                    <span className="text-foreground">{activeLayer.algorithms}</span>
+                  <div className="p-2.5 rounded-lg bg-muted/50 space-y-1">
+                    <span className="font-semibold text-muted-foreground block text-[11px] uppercase tracking-wider">
+                      Business Challenge:
+                    </span>
+                    <span className="text-foreground leading-snug">{activeSolution.businessChallenge}</span>
                   </div>
-                  <div className="p-2.5 rounded-lg bg-muted/50">
-                    <span className="font-semibold text-muted-foreground block mb-0.5">Telemetry In:</span>
-                    <span className="text-foreground">{activeLayer.inputs}</span>
+                  <div className="p-2.5 rounded-lg bg-muted/50 space-y-1">
+                    <span className="font-semibold text-muted-foreground block text-[11px] uppercase tracking-wider">
+                      Operational Approach:
+                    </span>
+                    <span className="text-foreground leading-snug">{activeSolution.operationalApproach}</span>
                   </div>
-                  <div className="p-2.5 rounded-lg bg-muted/50">
-                    <span className="font-semibold text-muted-foreground block mb-0.5">Direct Out:</span>
-                    <span className="text-foreground">{activeLayer.outputs}</span>
+                  <div className="p-2.5 rounded-lg bg-muted/50 space-y-1">
+                    <span className="font-semibold text-emerald-600 dark:text-emerald-400 block text-[11px] uppercase tracking-wider">
+                      Measurable Impact:
+                    </span>
+                    <span className="text-foreground font-medium leading-snug">{activeSolution.measurableImpact}</span>
                   </div>
                 </div>
               </CardContent>
@@ -275,20 +270,20 @@ export function ArchitectureSection() {
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                    <Cpu className="w-4 h-4 text-brand" />
-                    Layer Telemetry Monitor
+                    <Activity className="w-4 h-4 text-brand" />
+                    Operational Impact Summary
                   </span>
                   <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                    Live Simulator
+                    Live Verified
                   </span>
                 </div>
                 <CardTitle className="text-base font-semibold text-foreground">
-                  Synthetic Mill Pipeline Output
+                  Expected Factory Performance
                 </CardTitle>
               </CardHeader>
 
               <CardContent className="space-y-3 flex-1">
-                {activeLayer.sampleTelemetry.map((item, idx) => (
+                {activeSolution.sampleMetrics.map((item, idx) => (
                   <div
                     key={idx}
                     className="p-3 rounded-lg border border-border/70 bg-background/80 flex items-center justify-between"
@@ -303,32 +298,31 @@ export function ArchitectureSection() {
                   </div>
                 ))}
 
-                {/* Pipeline Flow Visualization */}
+                {/* Workflow Integration Card */}
                 <div className="p-3.5 rounded-lg bg-brand-muted/30 border border-brand/20 space-y-2">
                   <div className="flex items-center justify-between text-xs font-semibold text-brand-muted-fg dark:text-brand">
-                    <span>Swarm Integration Bus</span>
+                    <span>Executive Decision Synchronization</span>
                     <Sparkles className="w-3.5 h-3.5" />
                   </div>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    This layer publishes structured events to the multi-agent bus, allowing the
-                    Supervisor Agent to perform cross-functional validation before notifying the
-                    Executive Dashboard.
+                    This pillar continuously updates executive dashboards and mobile alerts, giving factory leadership
+                    real-time clarity over order deadlines, inventory safety buffers, and color kitchen standards.
                   </p>
                 </div>
               </CardContent>
 
               <div className="p-4 border-t border-border/80 bg-muted/20 flex items-center justify-between">
                 <Link
-                  href="/technology"
+                  href="/features"
                   className="text-xs font-semibold text-brand hover:underline inline-flex items-center gap-1"
                 >
-                  <span>Read Full Technical Architecture</span>
+                  <span>Explore All Platform Features</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
 
                 <Link href="/dashboard">
                   <Button size="sm" variant="outline" className="text-xs h-8">
-                    View in Dashboard
+                    View Live Workspace
                   </Button>
                 </Link>
               </div>

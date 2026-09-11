@@ -189,10 +189,10 @@ export default function ContactPage() {
                         onChange={(e) => setFormData({ ...formData, interest: e.target.value })}
                         className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-hidden focus:ring-2 focus:ring-brand"
                       >
-                        <option value="swarm">Autonomous Multi-Agent Swarm (Sprint 5)</option>
-                        <option value="inventory">Grey Cloth & Chemical Dye Buffer Optimization (Sprint 3)</option>
-                        <option value="sales">Sales Demand & Seasonal Festive Forecasting (Sprint 2)</option>
-                        <option value="rag">Color Kitchen Formula RAG Copilot (Sprint 4)</option>
+                        <option value="swarm">Autonomous Operational Copilot</option>
+                        <option value="inventory">Grey Cloth & Chemical Dye Buffer Optimization</option>
+                        <option value="sales">Sales Demand & Seasonal Festive Forecasting</option>
+                        <option value="rag">Color Kitchen Formula & Recipe Assistant</option>
                         <option value="full">Complete Turnkey Mill Modernization</option>
                       </select>
                     </div>

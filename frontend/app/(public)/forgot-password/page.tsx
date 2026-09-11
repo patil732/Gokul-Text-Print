@@ -45,7 +45,7 @@ export default function ForgotPasswordPage() {
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError("Network error while connecting to Flask auth server.");
+        setError("Network error while connecting to authorization service.");
       }
     } finally {
       setLoading(false);
@@ -60,37 +60,50 @@ export default function ForgotPasswordPage() {
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-brand-muted text-brand-muted-fg mb-2 shadow-2xs">
             <KeyRound className="w-6 h-6 text-brand" />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
-            Forgot Your Password?
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            Reset Mill Access
           </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-            Enter your username or email address and we'll generate an authenticated reset token.
+          <p className="text-xs text-muted-foreground">
+            Enter your verified mill email or username to generate a secure recovery token.
           </p>
         </div>
 
         {/* Card */}
         <Card className="bg-card border-border shadow-md">
-          <CardContent className="pt-6">
-            {result ? (
-              <div className="space-y-6 text-center animate-in fade-in zoom-in-95 duration-200">
-                <div className="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 mx-auto flex items-center justify-center border border-emerald-500/20">
-                  <CheckCircle2 className="w-6 h-6" />
-                </div>
+          <CardHeader className="space-y-1 pb-4">
+            <CardTitle className="text-lg font-bold text-foreground">
+              Request Reset Token
+            </CardTitle>
+            <CardDescription className="text-xs text-muted-foreground">
+              Tokens expire after 1 hour for security compliance.
+            </CardDescription>
+          </CardHeader>
 
-                <div className="space-y-2">
-                  <h3 className="text-lg font-bold text-foreground">
-                    Reset Token Generated!
-                  </h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
+          <CardContent className="space-y-4">
+            {error && (
+              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            {result ? (
+              <div className="space-y-4">
+                <div className="p-3.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs space-y-2">
+                  <div className="flex items-center gap-2 font-semibold">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span>Token Generated Successfully</span>
+                  </div>
+                  <p className="text-[11px] leading-relaxed opacity-90">
                     {result.message}
                   </p>
                 </div>
 
                 {result.reset_token && (
-                  <div className="p-3.5 rounded-lg bg-muted/60 border border-border/80 text-left space-y-2">
-                    <div className="flex items-center justify-between text-[11px] font-semibold text-muted-foreground">
-                      <span>Generated Token:</span>
-                      <span className="flex items-center gap-1 text-brand">
+                  <div className="p-3 rounded-lg bg-muted/60 border border-border space-y-1.5">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span className="font-semibold text-foreground">Reset Token</span>
+                      <span className="flex items-center gap-1 text-[10px] text-amber-600 dark:text-amber-400">
                         <Clock className="w-3 h-3" />
                         <span>Valid for 1 Hour</span>
                       </span>
@@ -99,7 +112,7 @@ export default function ForgotPasswordPage() {
                       {result.reset_token}
                     </div>
                     <p className="text-[10px] text-muted-foreground">
-                      In this sprint environment, click below to immediately test the reset form.
+                      For immediate testing, click below to proceed directly to the reset password form.
                     </p>
                   </div>
                 )}

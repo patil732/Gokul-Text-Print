@@ -160,9 +160,9 @@ export function AppMobileDrawer() {
               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <div className="flex flex-col">
                 <span className="text-xs font-semibold text-foreground leading-tight">
-                  Flask AI Engine
+                  Enterprise AI Engine
                 </span>
-                <span className="text-[10px] text-muted-foreground">Port 5001 Connected</span>
+                <span className="text-[10px] text-muted-foreground">Live · Connected</span>
               </div>
             </div>
             <Activity className="w-4 h-4 text-emerald-500 shrink-0" />

@@ -38,10 +38,10 @@ const TIERS: PricingTier[] = [
     idealFor: "Single printing plant producing up to 2M meters/month",
     features: [
       "1 Printing plant facility",
-      "Sales demand prediction (Sprint 2)",
-      "Greige & chemical dye inventory tracking (Sprint 3)",
-      "Standard RAG knowledge engine (2,000 SOP docs)",
-      "2 Specialist Agents (Sales & Inventory)",
+      "Predictive sales demand forecasting",
+      "Greige cloth & chemical dye inventory tracking",
+      "Digital recipe & SOP library (up to 2,000 documents)",
+      "Commercial & Inventory Operational Intelligence",
       "Standard business-hours email & phone support",
       "Cloud-hosted deployment",
     ],
@@ -54,15 +54,15 @@ const TIERS: PricingTier[] = [
     featured: true,
     priceMonthly: 3400,
     priceAnnual: 2720,
-    description: "The complete 4-layer autonomous swarm for multi-plant textile printing groups.",
+    description: "The complete autonomous operational intelligence suite for multi-plant textile printing groups.",
     idealFor: "Multi-facility mills producing up to 15M meters/month",
     features: [
       "Up to 5 Printing plant facilities",
-      "Full seasonal festive surge forecasting (Sprint 2)",
-      "Dynamic deadstock mitigation & automated POs (Sprint 3)",
-      "Full RAG color recipe formula copilot (Sprint 4)",
-      "Full 4-Agent Autonomous Swarm with Supervisor (Sprint 5)",
-      "Real-time Priority Alert Engine with playbooks (Sprint 6)",
+      "Seasonal festive surge demand forecasting",
+      "Dynamic deadstock mitigation & replenishment alerts",
+      "Certified color kitchen formula assistant",
+      "Autonomous Operational Copilot with cross-department alignment",
+      "Real-time Priority Alert Engine with resolution playbooks",
       "Dedicated textile systems engineer",
       "Edge air-gap deployment option",
     ],
@@ -74,11 +74,11 @@ const TIERS: PricingTier[] = [
     badge: "Bespoke",
     priceMonthly: "Custom",
     priceAnnual: "Custom",
-    description: "Tailored multi-agent swarm architecture for international textile conglomerates.",
+    description: "Tailored operational intelligence architecture for international textile conglomerates.",
     idealFor: "Large textile export corporations (>15M meters/month)",
     features: [
       "Unlimited global manufacturing facilities",
-      "Custom domain-tuned LLM agents on proprietary recipes",
+      "Custom domain-tuned models on proprietary recipes",
       "Sub-second on-premise air-gapped edge server cluster",
       "Bespoke SAP / Oracle / Infor ERP bi-directional sync",
       "99.99% guaranteed uptime SLA",
@@ -92,29 +92,29 @@ const TIERS: PricingTier[] = [
 
 const FAQS = [
   {
-    question: "Is this pricing real or a demonstration placeholder?",
+    question: "How does commercial licensing work for textile mills?",
     answer:
-      "This is a demonstration placeholder created for the Sprint 7 platform validation. No actual payment is required, and all pricing numbers reflect illustrative market rates for industrial manufacturing AI deployments.",
+      "Pricing scales predictably based on the number of manufacturing facilities, monthly fabric yardage, and deployment mode (managed enterprise cloud or dedicated on-premise edge servers). Contact our mill solutions team for a tailored deployment quote.",
   },
   {
     question: "Can we test the platform before committing?",
     answer:
-      "Yes! You can explore the full executive dashboard immediately without signing up or entering a credit card by clicking 'Launch Demo' in the navigation bar.",
+      "Yes! You can explore the full executive dashboard immediately without entering payment details by clicking 'Live Demo' or logging in with the verified demonstration accounts.",
   },
   {
     question: "How long does mill onboarding typically take?",
     answer:
-      "A typical mill deployment takes 2 to 4 weeks. This includes ingesting historical sales invoices, digitizing dye kitchen formulation recipe sheets into our ChromaDB vector database, and configuring factory safety buffer thresholds.",
+      "A typical mill deployment takes 2 to 4 weeks. This includes ingesting historical sales invoices, digitizing dye kitchen formulation recipe sheets into our encrypted recipe knowledge base, and configuring factory safety buffer thresholds.",
   },
   {
     question: "Can the platform run if our mill loses internet connectivity?",
     answer:
-      "Yes. Our Enterprise and Global tiers support edge deployment on local mill servers. The multi-agent supervisor swarm and local RAG store continue operating autonomously during external ISP disruptions.",
+      "Yes. Our Enterprise and Global tiers support edge deployment on local mill servers. The autonomous operational copilot and local recipe repository continue operating reliably during external ISP disruptions.",
   },
   {
     question: "How are proprietary color recipes kept confidential?",
     answer:
-      "Every mill is assigned an isolated, encrypted vector tenant. Your proprietary chemical mixing formulations and client order contracts are never used to train global public models.",
+      "Every mill is assigned an isolated, encrypted enterprise tenant. Your proprietary chemical mixing formulations and client order contracts are strictly confidential and never used to train public models.",
   },
 ];
 

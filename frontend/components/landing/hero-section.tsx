@@ -33,7 +33,7 @@ export function HeroSection() {
               className="py-1 px-3.5 text-xs font-semibold gap-2 border-brand/40 bg-brand-muted/40 text-brand-muted-fg dark:text-brand shadow-xs"
             >
               <Sparkles className="w-3.5 h-3.5 text-brand shrink-0" />
-              <span>Sprint 7 Enterprise UI Platform · Autonomous Swarm v2.4</span>
+              <span>Enterprise Mill Intelligence · Autonomous Operational Platform</span>
             </Badge>
           </div>
 
@@ -47,8 +47,8 @@ export function HeroSection() {
 
           {/* Subtitle */}
           <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-            Unifying Sales Forecasting, Dynamic Grey Cloth Inventory Optimization, RAG Chemical
-            Formulations, and Multi-Agent Orchestration into a single real-time executive platform.
+            Unifying Sales Demand Forecasting, Dynamic Grey Cloth & Dye Optimization, Color
+            Formulation Intelligence, and Real-Time Executive Oversight into a single workspace.
           </p>
 
           {/* Call-to-Action Group */}
@@ -87,15 +87,15 @@ export function HeroSection() {
           <div className="flex flex-wrap items-center justify-center gap-6 pt-4 text-xs text-muted-foreground">
             <div className="flex items-center gap-1.5">
               <ShieldCheck className="w-4 h-4 text-emerald-500" />
-              <span>Zero Real Data Exposed</span>
+              <span>Enterprise Data Isolation</span>
             </div>
             <div className="flex items-center gap-1.5">
               <Zap className="w-4 h-4 text-amber-500" />
-              <span>Real-Time Flask API Sync</span>
+              <span>Continuous Factory Sync</span>
             </div>
             <div className="flex items-center gap-1.5">
               <Cpu className="w-4 h-4 text-brand" />
-              <span>4-Agent Consensus Swarm</span>
+              <span>Cross-Department Coordination</span>
             </div>
           </div>
         </div>

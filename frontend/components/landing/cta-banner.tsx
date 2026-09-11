@@ -18,7 +18,7 @@ export function CtaBanner() {
           <div className="relative max-w-3xl mx-auto space-y-6">
             <div className="inline-flex items-center">
               <span className="px-3 py-1 rounded-full text-xs font-semibold bg-white/15 text-white backdrop-blur-xs border border-white/20">
-                Sprint 7 Enterprise Platform · Production Ready
+                Enterprise Textile Intelligence Platform
               </span>
             </div>
 
@@ -27,7 +27,7 @@ export function CtaBanner() {
             </h2>
 
             <p className="text-base sm:text-lg text-indigo-100 max-w-2xl mx-auto leading-relaxed">
-              Register your mill account in seconds or sign in to configure the multi-agent swarm for your factory's specific machinery and dye formulations.
+              Register your mill account in seconds or sign in to access live executive forecasting, inventory buffers, and certified formulation intelligence.
             </p>
 
             {/* CTAs */}
@@ -67,12 +67,12 @@ export function CtaBanner() {
             <div className="pt-4 flex flex-wrap items-center justify-center gap-6 text-xs text-indigo-200">
               <div className="flex items-center gap-1.5">
                 <ShieldCheck className="w-4 h-4 text-emerald-300" />
-                <span>Zero real business data exposed</span>
+                <span>Strict Enterprise Data Isolation</span>
               </div>
               <div>•</div>
-              <div>Instant unauthenticated demo access</div>
+              <div>Interactive Executive Demo Ready</div>
               <div>•</div>
-              <div>On-premise air-gap deployable</div>
+              <div>On-Premise / Edge Deployable</div>
             </div>
           </div>
         </div>

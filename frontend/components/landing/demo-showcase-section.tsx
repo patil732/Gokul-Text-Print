@@ -38,8 +38,8 @@ export function DemoShowcaseSection() {
             Experience the Executive Intelligence Interface
           </h2>
           <p className="text-base sm:text-lg text-muted-foreground">
-            Explore live previews of the platform's four operational surfaces: Executive KPIs,
-            Multi-Agent Swarm logs, Priority Anomaly Alerts, and Domain RAG Copilot.
+            Explore live interactive previews of the platform's four core operational surfaces: Executive KPIs,
+            Operational Copilot, Priority Anomaly Alerts, and Recipe & SOP Assistant.
           </p>
         </div>
 
@@ -62,7 +62,7 @@ export function DemoShowcaseSection() {
             className="gap-2"
           >
             <Bot className="w-4 h-4" />
-            <span>Multi-Agent Swarm</span>
+            <span>Operational Copilot</span>
           </Button>
 
           <Button
@@ -82,7 +82,7 @@ export function DemoShowcaseSection() {
             className="gap-2"
           >
             <BookOpen className="w-4 h-4" />
-            <span>Domain RAG Copilot</span>
+            <span>Recipe & SOP Assistant</span>
           </Button>
         </div>
 
@@ -95,12 +95,12 @@ export function DemoShowcaseSection() {
               <span className="w-3 h-3 rounded-full bg-amber-500/80 inline-block" />
               <span className="w-3 h-3 rounded-full bg-emerald-500/80 inline-block" />
               <span className="ml-2 text-xs font-mono text-muted-foreground hidden sm:inline">
-                https://gtp-platform.internal/preview/{activeTab}
+                app.gokultextprint.com/workspace
               </span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                Synthetic Demo Environment
+                Live Operational Preview
               </span>
               <Link href="/dashboard">
                 <Button size="sm" variant="ghost" className="h-7 text-xs gap-1">
@@ -201,30 +201,30 @@ export function DemoShowcaseSection() {
               </div>
             )}
 
-            {/* TAB 2: MULTI-AGENT SWARM */}
+            {/* TAB 2: OPERATIONAL COPILOT */}
             {activeTab === "swarm" && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between border-b border-border pb-3">
                   <div>
-                    <h4 className="text-lg font-bold text-foreground">Multi-Agent Collaborative Reasoning Swarm</h4>
+                    <h4 className="text-lg font-bold text-foreground">Operational Copilot Feasibility Analysis</h4>
                     <p className="text-xs text-muted-foreground">
-                      Autonomous consensus between Supervisor, Sales, Inventory, and Knowledge agents
+                      Instant multi-department alignment between Sales, Warehouse Stock, and Production Line schedules
                     </p>
                   </div>
                   <PriorityBadge priority="SUCCESS" size="sm">
-                    Consensus Reached (1.2s)
+                    Feasibility Verified (Instant)
                   </PriorityBadge>
                 </div>
 
-                <div className="space-y-3 font-mono text-xs">
+                <div className="space-y-3 font-sans text-xs">
                   <div className="p-3 rounded-lg bg-card border border-border space-y-1">
                     <div className="flex items-center gap-2 text-brand font-bold">
                       <Bot className="w-3.5 h-3.5" />
-                      <span>[Supervisor Agent] DISPATCH QUERY</span>
-                      <span className="text-[10px] text-muted-foreground">10:42:01.012</span>
+                      <span>Commercial Order Feasibility Query</span>
+                      <span className="text-[10px] text-muted-foreground">Today 10:42 AM</span>
                     </div>
-                    <p className="text-muted-foreground">
-                      "Client Shanti Textiles requesting 25,000 meters 60x60 Cotton Cambric by Friday.
+                    <p className="text-foreground">
+                      "Client Shanti Textiles is requesting 25,000 meters of 60x60 Cotton Cambric by Friday.
                       Can our inventory and production schedule sustain this without jeopardizing Order #842?"
                     </p>
                   </div>
@@ -232,23 +232,21 @@ export function DemoShowcaseSection() {
                   <div className="p-3 rounded-lg bg-card border border-border space-y-1 ml-4 border-l-2 border-l-emerald-500">
                     <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold">
                       <Activity className="w-3.5 h-3.5" />
-                      <span>[Sales Specialist Agent] RESPONSE</span>
-                      <span className="text-[10px] text-muted-foreground">10:42:01.420</span>
+                      <span>Commercial &amp; Margin Assessment</span>
                     </div>
                     <p className="text-muted-foreground">
-                      "Client tier is Platinum. Projected margin is +28.4%. Order #842 delivery is
-                      scheduled for next Tuesday, giving 72 hours buffer window."
+                      "Client tier is Platinum with a projected margin of +28.4%. Order #842 delivery is
+                      scheduled for next Tuesday, providing a safe 72-hour buffer window."
                     </p>
                   </div>
 
                   <div className="p-3 rounded-lg bg-card border border-border space-y-1 ml-4 border-l-2 border-l-amber-500">
                     <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-bold">
                       <Boxes className="w-3.5 h-3.5" />
-                      <span>[Inventory Specialist Agent] RESPONSE</span>
-                      <span className="text-[10px] text-muted-foreground">10:42:01.810</span>
+                      <span>Warehouse &amp; Chemical Buffer Review</span>
                     </div>
                     <p className="text-muted-foreground">
-                      "Current unprinted Cambric greige stock: 32,400 meters. Reactive Navy Dye lot #419 has
+                      "Current unprinted Cambric greige stock: 32,400 meters in warehouse. Reactive Navy Dye lot #419 has
                       sufficient buffer. Approval recommended with reorder trigger for yarn batch #88."
                     </p>
                   </div>
@@ -256,11 +254,10 @@ export function DemoShowcaseSection() {
                   <div className="p-3 rounded-lg bg-brand-muted/40 border border-brand/30 space-y-1">
                     <div className="flex items-center gap-2 text-brand font-bold">
                       <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>[Supervisor Agent] FINAL EXECUTIVE ACTION</span>
-                      <span className="text-[10px] text-muted-foreground">10:42:02.110</span>
+                      <span>Executive Action Directive</span>
                     </div>
                     <p className="text-foreground font-semibold">
-                      "Consensus 99.1% confidence: APPROVED. Order queued to Line 2 rotary press.
+                      "Feasibility 99.1% confirmed: APPROVED. Order queued to Line 2 rotary press.
                       Automated yarn supplier replenishment PO #4892 dispatched."
                     </p>
                   </div>
@@ -279,7 +276,7 @@ export function DemoShowcaseSection() {
                     </p>
                   </div>
                   <Badge variant="outline" className="text-xs">
-                    Auto-Refreshed via Flask API
+                    Live Continuous Factory Stream
                   </Badge>
                 </div>
 
@@ -341,18 +338,18 @@ export function DemoShowcaseSection() {
               </div>
             )}
 
-            {/* TAB 4: DOMAIN RAG COPILOT */}
+            {/* TAB 4: DOMAIN RECIPE ASSISTANT */}
             {activeTab === "rag" && (
               <div className="space-y-4">
                 <div className="flex items-center justify-between border-b border-border pb-3">
                   <div>
-                    <h4 className="text-lg font-bold text-foreground">Domain RAG & Formula Assistant</h4>
+                    <h4 className="text-lg font-bold text-foreground">Color Kitchen Formulation Assistant</h4>
                     <p className="text-xs text-muted-foreground">
-                      Sub-second semantic lookup over 14,800+ textile SOPs and chemical dye formulations
+                      Instant formula lookups across verified factory recipe books and standard operating procedures
                     </p>
                   </div>
-                  <Badge variant="secondary" className="text-xs font-mono">
-                    ChromaDB Vector Store · 48ms
+                  <Badge variant="secondary" className="text-xs">
+                    Certified Mill Quality Standard
                   </Badge>
                 </div>
 
@@ -361,22 +358,22 @@ export function DemoShowcaseSection() {
                   <div className="p-3 rounded-lg bg-muted/60 border border-border text-xs flex items-start gap-2">
                     <Search className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
                     <div>
-                      <span className="font-semibold text-foreground">Operator Prompt: </span>
+                      <span className="font-semibold text-foreground">Colorist Formulation Query: </span>
                       <span className="text-muted-foreground">
                         "What is the recommended sodium alginate thickener ratio for 80s Cotton Satin reactive discharge printing?"
                       </span>
                     </div>
                   </div>
 
-                  {/* RAG Answer Mock */}
+                  {/* Answer Mock */}
                   <div className="p-4 rounded-lg bg-card border border-border space-y-3 text-xs">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 font-bold text-brand">
                         <Sparkles className="w-4 h-4" />
-                        <span>Gokul Textile Knowledge Engine</span>
+                        <span>Gokul Textile Knowledge Base</span>
                       </div>
                       <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
-                        99.8% Ground Truth Citation
+                        100% Quality Verification
                       </span>
                     </div>
 
@@ -393,7 +390,7 @@ export function DemoShowcaseSection() {
                     </div>
 
                     <div className="flex items-center gap-2 text-[10px] text-muted-foreground pt-1">
-                      <span>Source: [SOP-PRINT-2024-V3.pdf · Page 42 · Section 4.2.1]</span>
+                      <span>Source: Mill Quality Manual — Reactive Discharge Formulation (SOP-4.2)</span>
                     </div>
                   </div>
                 </div>

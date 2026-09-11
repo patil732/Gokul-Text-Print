@@ -348,7 +348,7 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent className="pt-0 space-y-2">
               <p className="text-xs text-muted-foreground">
-                ARIMA & XGBoost multi-horizon forecast
+                Multi-horizon seasonal demand forecast
               </p>
               <div className="pt-2 border-t border-border/60">
                 <Link

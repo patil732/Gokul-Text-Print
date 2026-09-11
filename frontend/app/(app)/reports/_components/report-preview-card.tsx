@@ -198,7 +198,7 @@ export function ReportPreviewCard({
             </div>
             <div className="p-2.5 rounded-lg border border-border/60 bg-muted/20 flex items-center gap-2">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-              <span className="text-foreground">XGBoost & Prophet Multi-Horizon Demand Projections</span>
+              <span className="text-foreground">Multi-Horizon Seasonal Demand Projections</span>
             </div>
             <div className="p-2.5 rounded-lg border border-border/60 bg-muted/20 flex items-center gap-2">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />

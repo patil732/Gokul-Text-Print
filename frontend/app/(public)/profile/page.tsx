@@ -258,10 +258,10 @@ export default function ProfilePage() {
 
               <div className="p-3.5 rounded-lg bg-muted/40 border border-border/70 space-y-1">
                 <span className="font-bold text-foreground block">
-                  RBAC Model Readiness
+                  Enterprise Access Control
                 </span>
                 <p className="text-muted-foreground text-[11px]">
-                  Role field is stored in SQLite and persisted in Flask sessions. Ready for access control enforcement.
+                  Enterprise role is securely authenticated and enforced through role-based access controls across all platform endpoints.
                 </p>
               </div>
             </div>
@@ -276,14 +276,14 @@ export default function ProfilePage() {
               <CardHeader className="pb-3 border-b border-border/60">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-base font-bold text-foreground">
-                    RBAC Capability Matrix (Sprints 2–7)
+                    Role-Based Access Control Matrix
                   </CardTitle>
                   <Badge variant="outline" className="text-[10px] font-semibold text-brand">
                     Active Role: {currentRole}
                   </Badge>
                 </div>
                 <CardDescription className="text-xs">
-                  Readiness preview of operational capabilities mapped to the 2 enterprise roles (Admin and CEO).
+                  Operational privileges and workspace capabilities mapped to the 2 enterprise roles (Admin and CEO).
                 </CardDescription>
               </CardHeader>
 

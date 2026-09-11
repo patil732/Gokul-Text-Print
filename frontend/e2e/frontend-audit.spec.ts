@@ -25,7 +25,7 @@ test.describe("Sprint 7 — Frontend End-to-End Enterprise Test Suite", () => {
     await expect(page.locator('a[href="/register"]').first()).toBeVisible();
 
     // Verify key landing sections are present
-    await expect(page.getByText(/Autonomous Intelligence Stack|System Architecture/i).first()).toBeVisible();
+    await expect(page.getByText(/Autonomous AI Powers Your Mill Operations|Autonomous Intelligence Stack|System Architecture/i).first()).toBeVisible();
     await expect(page.getByText(/Intelligent Factory Automation/i).first()).toBeVisible();
   });
 

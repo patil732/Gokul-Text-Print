@@ -552,10 +552,10 @@ export default function SalesIntelligencePage() {
             <div className="space-y-0.5">
               <CardTitle className="text-base font-bold flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-purple-500" />
-                <span>Historical Sales Model Predictions</span>
+                <span>Historical Sales Demand Forecasts</span>
               </CardTitle>
               <CardDescription className="text-xs">
-                Audit trail from sales_prediction_history table in SQLite.
+                Historical demand forecast audit trail and prediction accuracy records.
               </CardDescription>
             </div>
 

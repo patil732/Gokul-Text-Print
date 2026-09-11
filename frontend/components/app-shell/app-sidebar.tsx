@@ -230,9 +230,9 @@ export function AppSidebar() {
               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <div className="flex flex-col">
                 <span className="text-[11px] font-semibold text-foreground leading-tight">
-                  Flask AI Engine
+                  Enterprise AI Engine
                 </span>
-                <span className="text-[9px] text-muted-foreground">Port 5001 · Connected</span>
+                <span className="text-[9px] text-muted-foreground">Live · Connected</span>
               </div>
             </div>
             <Activity className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
@@ -240,7 +240,7 @@ export function AppSidebar() {
         ) : (
           <div
             className="w-full flex items-center justify-center p-2 rounded-md hover:bg-muted"
-            title="Flask AI Engine · Connected"
+            title="Enterprise AI Engine · Connected"
           >
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           </div>

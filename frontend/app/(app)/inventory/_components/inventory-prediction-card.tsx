@@ -196,7 +196,7 @@ export function InventoryPredictionCard({ onPredictionCompleted }: InventoryPred
 
             <p className="text-muted-foreground text-xs leading-relaxed">
               {String(result.decision).toLowerCase().includes("reorder")
-                ? "The XGBoost model determined that current storage levels are nearing critical threshold relative to planned production requirements. Recommendation: Dispatch purchase order for grey cloth."
+                ? "The AI supply model determined that current storage levels are nearing critical threshold relative to planned production requirements. Recommendation: Dispatch purchase order for grey cloth."
                 : "Storage levels across all 24 bins comfortably exceed required safety buffers. No immediate replenishment orders needed for the current production cycle."}
             </p>
           </div>

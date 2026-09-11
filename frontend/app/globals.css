@@ -220,7 +220,7 @@
   }
 }
 
-/* Sprint 8: Responsive table scrolling — ensures data tables are horizontally
+/* Responsive table scrolling — ensures data tables are horizontally
    scrollable on mobile/tablet without layout breakage.  */
 @layer utilities {
   .table-scroll-x {

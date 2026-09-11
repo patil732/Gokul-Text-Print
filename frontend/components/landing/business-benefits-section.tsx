@@ -66,12 +66,12 @@ const COMPARISON_ROWS = [
   {
     capability: "Recipe Formulation & SOPs",
     traditional: "Paper logbooks scattered on mill floor; tribal knowledge lost when staff leaves.",
-    gokul: "Sub-second hybrid RAG search over 14,800+ vector-indexed formulas and SOPs.",
+    gokul: "Instant digital search across verified color recipes and operational SOPs.",
   },
   {
     capability: "Operational Decisions",
     traditional: "Siloed communication between sales desk and shop floor leads to friction.",
-    gokul: "Autonomous multi-agent consensus swarm synthesizing cross-department trade-offs.",
+    gokul: "Autonomous operational copilot aligning sales orders, warehouse stock, and machine lines.",
   },
 ];
 

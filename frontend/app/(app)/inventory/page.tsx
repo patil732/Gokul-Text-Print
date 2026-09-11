@@ -634,7 +634,7 @@ export default function InventoryIntelligencePage() {
               </CardDescription>
             </div>
             <Badge variant="outline" className="text-[10px] font-mono">
-              Model: inventory / xgboost
+              Engine: Supply Buffer Optimizer
             </Badge>
           </CardHeader>
           <CardContent>

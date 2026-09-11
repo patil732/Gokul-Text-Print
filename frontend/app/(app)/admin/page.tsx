@@ -53,11 +53,11 @@ export default function AdminDashboardPage() {
     const dbStatus = mon?.database?.connected ? "ONLINE" : "OFFLINE";
     const docCount = mon?.documents?.total_documents ?? 0;
     return [
-      `[${ts}] AI Engine telemetry bus initialized — Flask API port 5001`,
+      `[${ts}] AI Engine telemetry bus initialized — core service online`,
       `[${ts}] AI Forecast Engine (Sales) status: ${salesStatus}`,
       `[${ts}] Supply Intelligence Engine (Inventory) status: ${invStatus}`,
       `[${ts}] Document Intelligence Engine: ${docCount} documents indexed`,
-      `[${ts}] Database: ${dbStatus} — ai_decision.db`,
+      `[${ts}] Database: ${dbStatus} — enterprise repository active`,
       `[${ts}] Role-based access control: Admin → /admin, CEO → /dashboard`,
       `[${ts}] Platform operational status: ${mon?.status === 'healthy' ? '100% OPERATIONAL' : mon?.status?.toUpperCase() ?? 'CHECKING'}`,
     ];
@@ -127,7 +127,7 @@ export default function AdminDashboardPage() {
             </span>
           </div>
           <p className="text-xs sm:text-sm text-muted-foreground">
-            Core ML model telemetry, ChromaDB vector indexing, ERP pipeline synchronization, and enterprise RBAC access.
+            AI model telemetry, knowledge indexing, ERP pipeline synchronization, and enterprise access control.
           </p>
         </div>
 
@@ -206,11 +206,11 @@ export default function AdminDashboardPage() {
                 {monitor?.models?.sales?.loaded ? "ACTIVE" : "READY"}
               </span>
               <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-                LightGBM
+                High-Precision Model
               </span>
             </div>
             <p className="text-[11px] text-muted-foreground mt-1">
-              SHAP explainability: {monitor?.models?.sales?.shap_loaded ? "Enabled" : "Active"}
+              Explainable AI: {monitor?.models?.sales?.shap_loaded ? "Active" : "Ready"}
             </p>
           </CardContent>
         </Card>

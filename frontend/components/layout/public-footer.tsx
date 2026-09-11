@@ -31,41 +31,41 @@ export function PublicFooter() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
-              <span className="font-medium text-foreground">Sprint 7 Platform Active</span>
+              <span className="font-medium text-foreground">Enterprise Platform Active</span>
               <span className="text-border">|</span>
-              <span>Autonomous Swarm v2.4</span>
+              <span>Autonomous AI Engine</span>
             </div>
           </div>
 
           {/* Solutions Column */}
           <div className="space-y-3">
             <p className="text-xs font-semibold uppercase tracking-wider text-foreground">
-              Architecture Layers
+              Core Solutions
             </p>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
-                <Link href="/technology#layer-sales" className="hover:text-foreground transition-colors">
-                  Sprint 2 · Sales Intelligence
+                <Link href="/technology#sales" className="hover:text-foreground transition-colors">
+                  Sales Demand Intelligence
                 </Link>
               </li>
               <li>
-                <Link href="/technology#layer-inventory" className="hover:text-foreground transition-colors">
-                  Sprint 3 · Inventory Optimization
+                <Link href="/technology#inventory" className="hover:text-foreground transition-colors">
+                  Warehouse &amp; Dye Optimization
                 </Link>
               </li>
               <li>
-                <Link href="/technology#layer-rag" className="hover:text-foreground transition-colors">
-                  Sprint 4 · Knowledge & RAG
+                <Link href="/technology#recipes" className="hover:text-foreground transition-colors">
+                  Color Kitchen &amp; SOPs
                 </Link>
               </li>
               <li>
-                <Link href="/technology#layer-agents" className="hover:text-foreground transition-colors">
-                  Sprint 5 · Multi-Agent Swarm
+                <Link href="/technology#copilot" className="hover:text-foreground transition-colors">
+                  Operational Copilot
                 </Link>
               </li>
               <li>
                 <Link href="/dashboard" className="hover:text-foreground transition-colors">
-                  Sprint 6 · Executive Dashboard
+                  Executive Strategy Dashboard
                 </Link>
               </li>
             </ul>
@@ -74,7 +74,7 @@ export function PublicFooter() {
           {/* Platform Navigation */}
           <div className="space-y-3">
             <p className="text-xs font-semibold uppercase tracking-wider text-foreground">
-              Public Portal
+              Platform Navigation
             </p>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
@@ -84,7 +84,7 @@ export function PublicFooter() {
               </li>
               <li>
                 <Link href="/technology" className="hover:text-foreground transition-colors">
-                  Technology Stack
+                  Platform Solutions
                 </Link>
               </li>
               <li>

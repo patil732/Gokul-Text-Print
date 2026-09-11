@@ -26,68 +26,68 @@ interface FeatureItem {
 const AI_FEATURES: FeatureItem[] = [
   {
     icon: Bot,
-    title: "Autonomous Supervisor Orchestrator",
-    category: "Multi-Agent Swarm · Sprint 5",
+    title: "Executive Operational Orchestrator",
+    category: "Autonomous Coordination",
     priority: "CRITICAL",
     priorityLabel: "Core AI",
     description:
-      "A supervisor LLM agent decomposes complex operational goals and assigns micro-tasks to Sales, Inventory, and Knowledge specialist workers, synthesizing the results with mathematical consensus.",
+      "Decomposes complex operational goals and aligns commercial orders with warehouse inventory and print line capacity, synthesizing trade-offs into actionable executive guidance.",
     highlights: [
-      "Dynamic sub-task delegation",
-      "Consensus conflict resolution",
-      "Explainable reasoning audit trail",
+      "Multi-department order validation",
+      "Instant feasibility assessments",
+      "Explainable managerial recommendations",
     ],
   },
   {
     icon: TrendingUp,
-    title: "Predictive Seasonal Demand Engine",
-    category: "Sales Intelligence · Sprint 2",
+    title: "Seasonal Fabric Demand Forecasting",
+    category: "Commercial Intelligence",
     priority: "HIGH",
     priorityLabel: "High Impact",
     description:
-      "Learns from multi-year textile invoice logs to model festive fabric surges, regional marriage seasons, and customer repeat cadences with 99.4% precision.",
+      "Learns from multi-year textile invoice records to model festive fabric surges, regional marriage seasons, and customer repeat cadences with 99.4% precision.",
     highlights: [
       "SKU-level 90-day demand curves",
       "Diwali & festive surge indicators",
-      "Client churn risk profiling",
+      "Client retention risk profiling",
     ],
   },
   {
     icon: Boxes,
     title: "Dynamic Grey Cloth & Dye Optimization",
-    category: "Inventory Intelligence · Sprint 3",
+    category: "Supply & Warehouse",
     priority: "HIGH",
     priorityLabel: "Cost Saver",
     description:
       "Eliminates capital lockup by dynamically computing safety buffers for reactive dyes, pigments, and unprinted grey fabric, alerting operators weeks before shortages or deadstock accumulation.",
     highlights: [
       "Turnover velocity tracking",
-      "Automated supplier PO triggers",
+      "Automated supplier replenishment triggers",
       "Dye chemical shelf-life alarms",
     ],
   },
   {
     icon: BookOpen,
-    title: "Domain RAG & Formula Copilot",
-    category: "Knowledge Engine · Sprint 4",
+    title: "Certified Formulation & SOP Copilot",
+    category: "Digital Recipe Kitchen",
     priority: "MEDIUM",
     priorityLabel: "Knowledge Base",
     description:
-      "An intelligent semantic copilot connected to mill manuals, GSM fabric specifications, and exact dye color mixing formulas for zero-error batch repeatability.",
+      "An intelligent digital assistant connected to mill recipe books, GSM fabric specifications, and exact dye color mixing formulas for zero-error batch repeatability.",
     highlights: [
-      "Sub-50ms hybrid vector search",
-      "Color shade & liquor ratio calculators",
+      "Instant certified formula lookups",
+      "Color shade & liquor ratio guidance",
       "Machine error code troubleshooting",
     ],
   },
   {
     icon: BellRing,
     title: "Proactive Priority Alert Engine",
-    category: "Executive BI · Sprint 6",
+    category: "Executive Oversight",
     priority: "CRITICAL",
     priorityLabel: "Real-Time",
     description:
-      "Monitors continuous factory telemetry to classify anomalies into CRITICAL, HIGH, MEDIUM, and LOW alerts, giving managers actionable resolution steps immediately.",
+      "Monitors continuous factory operations to classify anomalies into actionable alerts, providing leadership with clear resolution steps immediately.",
     highlights: [
       "Multi-channel anomaly thresholds",
       "One-click resolution playbooks",
@@ -96,16 +96,16 @@ const AI_FEATURES: FeatureItem[] = [
   },
   {
     icon: ShieldCheck,
-    title: "Air-Gapped Factory Security",
-    category: "Enterprise Infrastructure",
+    title: "Industrial Data Security & Privacy",
+    category: "Enterprise Security",
     priority: "SUCCESS",
-    priorityLabel: "Certified",
+    priorityLabel: "Enterprise",
     description:
-      "Built for enterprise textile mills with zero-trust token authentication, edge-ready processing, and a strict guarantee that proprietary formulations never leak to external models.",
+      "Built for enterprise textile mills with role-based access control, encrypted sessions, and a strict guarantee that proprietary formulations remain completely confidential.",
     highlights: [
+      "Dedicated role-based access control",
+      "Encrypted enterprise data isolation",
       "On-premise / edge deployment ready",
-      "Role-based access control (RBAC)",
-      "Isolated tenant vector stores",
     ],
   },
 ];

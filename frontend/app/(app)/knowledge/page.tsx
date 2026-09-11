@@ -317,7 +317,7 @@ export default function KnowledgeCenterPage() {
                 <span>Uploaded Technical Documents Catalog</span>
               </CardTitle>
               <CardDescription className="text-xs">
-                Synchronized with Flask document repository and SQLite documents table.
+                Synchronized with enterprise mill document repository and verified knowledge index.
               </CardDescription>
             </div>
             <Badge variant="outline" className="text-[10px] font-mono">
