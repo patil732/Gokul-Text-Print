@@ -20,3 +20,4 @@ export * from "./chat";
 export * from "./agents";
 export * from "./sales";
 export * from "./inventory";
+export * from "./documents";
