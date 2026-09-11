@@ -420,7 +420,7 @@ export default function TechnologyPage() {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm border-collapse">
+            <table className="w-full min-w-[640px] text-left text-sm border-collapse">
               <thead>
                 <tr className="border-b border-border">
                   <th className="py-3 px-4 font-semibold text-foreground w-1/4">System Layer</th>

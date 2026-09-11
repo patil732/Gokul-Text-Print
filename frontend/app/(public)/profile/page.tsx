@@ -310,7 +310,7 @@ export default function ProfilePage() {
 
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs border-collapse">
+                  <table className="w-full min-w-[540px] text-left text-xs border-collapse">
                     <thead>
                       <tr className="border-b border-border bg-muted/30 text-muted-foreground">
                         <th className="py-2.5 px-4 font-semibold">Platform Domain</th>

@@ -45,6 +45,13 @@ export default function FullPageCopilot() {
     scrollToBottom();
   }, [messages, isLoading]);
 
+  // Default sidebar closed on mobile
+  React.useEffect(() => {
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      setSidebarOpen(false);
+    }
+  }, []);
+
   // Load chat history from GET /api/chat/history
   const loadHistory = React.useCallback(async () => {
     setLoadingHistory(true);

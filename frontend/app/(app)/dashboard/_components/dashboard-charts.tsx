@@ -141,7 +141,7 @@ export function DashboardCharts({ trendData, clientData }: DashboardChartsProps)
         {!mounted ? (
           <div className="h-72 w-full bg-muted/20 animate-pulse rounded-xl" />
         ) : activeTab === "trend" ? (
-          <div className="h-72 w-full">
+          <div className="h-72 w-full min-w-0">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={formattedTrend} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                 <defs>
@@ -197,7 +197,7 @@ export function DashboardCharts({ trendData, clientData }: DashboardChartsProps)
             </ResponsiveContainer>
           </div>
         ) : (
-          <div className="h-72 w-full">
+          <div className="h-72 w-full min-w-0">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartClients} margin={{ top: 10, right: 10, left: -10, bottom: 25 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="currentColor" opacity={0.1} />

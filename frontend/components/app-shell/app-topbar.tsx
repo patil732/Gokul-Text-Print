@@ -181,7 +181,7 @@ export function AppTopbar() {
           </button>
 
           {notificationsOpen && (
-            <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-xl bg-card border border-border shadow-xl p-3 space-y-3 animate-in fade-in zoom-in-95 duration-150 z-50">
+            <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-96 max-w-sm rounded-xl bg-card border border-border shadow-xl p-3 space-y-3 animate-in fade-in zoom-in-95 duration-150 z-50">
               <div className="flex items-center justify-between border-b border-border/70 pb-2.5">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-bold text-foreground">Operational Alerts</span>
@@ -271,7 +271,7 @@ export function AppTopbar() {
           </button>
 
           {profileOpen && (
-            <div className="absolute right-0 mt-2 w-64 rounded-xl bg-card border border-border shadow-xl p-2.5 space-y-2 animate-in fade-in zoom-in-95 duration-150 z-50">
+            <div className="absolute right-0 mt-2 w-64 max-w-[calc(100vw-2rem)] rounded-xl bg-card border border-border shadow-xl p-2.5 space-y-2 animate-in fade-in zoom-in-95 duration-150 z-50">
               {user ? (
                 <div className="p-2 rounded-lg bg-muted/50 border border-border/60">
                   <div className="text-xs font-bold text-foreground truncate">{user.username}</div>

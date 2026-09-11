@@ -424,7 +424,7 @@ export default function AlertsPage() {
                               : "hover:bg-muted/30"
                           }`}
                         >
-                          <div className="flex items-start gap-3.5">
+                          <div className="flex items-start gap-3.5 min-w-0 flex-1">
                             <div className="mt-1 shrink-0">
                               {isResolved ? (
                                 <span className="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
@@ -435,7 +435,7 @@ export default function AlertsPage() {
                               )}
                             </div>
 
-                            <div className="space-y-1">
+                            <div className="space-y-1 min-w-0 flex-1">
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-muted text-muted-foreground">
                                   {alert.alert_id.slice(0, 8)}

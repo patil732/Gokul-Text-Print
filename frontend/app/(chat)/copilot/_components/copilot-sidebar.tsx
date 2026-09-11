@@ -51,12 +51,22 @@ export function CopilotSidebar({
     );
   }, [history, search]);
 
-  return (
-    <aside
-      className={`fixed inset-y-0 left-0 z-40 flex flex-col w-72 sm:w-80 bg-card border-r border-border transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${
-        isOpen ? "translate-x-0" : "-translate-x-full md:-ml-72 md:sm:-ml-80"
-      }`}
-    >
+    return (
+    <>
+      {/* Mobile Backdrop Overlay */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-35 md:hidden animate-in fade-in duration-200"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      )}
+
+      <aside
+        className={`fixed inset-y-0 left-0 z-40 flex flex-col w-72 sm:w-80 bg-card border-r border-border transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${
+          isOpen ? "translate-x-0" : "-translate-x-full md:-ml-72 md:sm:-ml-80"
+        }`}
+      >
       {/* Top Header */}
       <div className="flex items-center justify-between p-3.5 border-b border-border">
         <div className="flex items-center gap-2.5">
@@ -195,5 +205,6 @@ export function CopilotSidebar({
         </div>
       </div>
     </aside>
+    </>
   );
 }

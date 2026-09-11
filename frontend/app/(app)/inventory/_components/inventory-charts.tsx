@@ -76,7 +76,7 @@ export function InventoryCharts({ stockTrend = [] }: InventoryChartsProps) {
         {!mounted ? (
           <div className="h-72 w-full bg-muted/20 animate-pulse rounded-xl" />
         ) : (
-          <div className="h-72 w-full">
+          <div className="h-72 w-full min-w-0">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                 <defs>
