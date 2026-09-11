@@ -27,7 +27,7 @@ export default function RegisterPage() {
   const [username, setUsername] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [company, setCompany] = React.useState("");
-  const [role, setRole] = React.useState<UserRole>("Manager");
+  const [role, setRole] = React.useState<UserRole>("CEO");
   const [password, setPassword] = React.useState("");
   const [confirmPassword, setConfirmPassword] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
@@ -205,12 +205,10 @@ export default function RegisterPage() {
                   <select
                     value={role}
                     onChange={(e) => setRole(e.target.value as UserRole)}
-                    className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-hidden focus:ring-2 focus:ring-brand"
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-hidden focus:ring-2 focus:ring-brand font-medium"
                   >
-                    <option value="CEO">Chief Executive Officer (CEO)</option>
-                    <option value="Manager">Plant & Production Manager</option>
-                    <option value="Employee">Dye Kitchen & Line Specialist</option>
-                    <option value="Admin">System Administrator</option>
+                    <option value="CEO">CEO (Executive Admin — Strategic Suite)</option>
+                    <option value="Admin">Admin (System Administrator — Ops Suite)</option>
                   </select>
                 </div>
 

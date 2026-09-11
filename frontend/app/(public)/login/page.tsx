@@ -26,13 +26,25 @@ function LoginForm() {
   const justRegistered = searchParams.get("registered") === "true";
   const initialUser = searchParams.get("user") || "";
 
-  const { login } = useAuth();
+  const { user, isAuthenticated, isLoading, login } = useAuth();
 
   const [username, setUsername] = React.useState(initialUser);
   const [password, setPassword] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
+
+  // If already authenticated, directly navigate to the appropriate dashboard
+  React.useEffect(() => {
+    if (!isLoading && isAuthenticated && user) {
+      const roleStr = String(user.role || "").toUpperCase();
+      if (roleStr === "ADMIN") {
+        router.replace("/admin");
+      } else {
+        router.replace("/dashboard");
+      }
+    }
+  }, [isLoading, isAuthenticated, user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,8 +56,13 @@ function LoginForm() {
     setError(null);
     setLoading(true);
     try {
-      await login({ username: username.trim(), password });
-      router.push("/profile");
+      const loggedUser = await login({ username: username.trim(), password });
+      const targetRole = String(loggedUser.role || "").toUpperCase();
+      if (targetRole === "ADMIN") {
+        router.push("/admin");
+      } else {
+        router.push("/dashboard");
+      }
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -63,8 +80,13 @@ function LoginForm() {
     setError(null);
     setLoading(true);
     try {
-      await login({ username: uname, password: pwd });
-      router.push("/profile");
+      const loggedUser = await login({ username: uname, password: pwd });
+      const targetRole = String(loggedUser.role || "").toUpperCase();
+      if (targetRole === "ADMIN") {
+        router.push("/admin");
+      } else {
+        router.push("/dashboard");
+      }
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -164,36 +186,24 @@ function LoginForm() {
         {/* Discreet Demo Access Helper */}
         <div className="pt-3 border-t border-border/60 text-center space-y-2">
           <span className="text-[11px] text-muted-foreground block font-medium">
-            Demo quick fill:
+            Demo quick fill (2 Enterprise Roles):
           </span>
-          <div className="flex items-center justify-center gap-1.5 flex-wrap">
-            <button
-              type="button"
-              onClick={() => handleQuickFill("ceo", "ceo123")}
-              className="px-2 py-1 rounded text-[11px] font-medium bg-muted hover:bg-muted/80 text-foreground border border-border cursor-pointer transition-colors"
-            >
-              CEO
-            </button>
-            <button
-              type="button"
-              onClick={() => handleQuickFill("manager", "manager123")}
-              className="px-2 py-1 rounded text-[11px] font-medium bg-muted hover:bg-muted/80 text-foreground border border-border cursor-pointer transition-colors"
-            >
-              Manager
-            </button>
-            <button
-              type="button"
-              onClick={() => handleQuickFill("employee", "employee123")}
-              className="px-2 py-1 rounded text-[11px] font-medium bg-muted hover:bg-muted/80 text-foreground border border-border cursor-pointer transition-colors"
-            >
-              Employee
-            </button>
+          <div className="flex items-center justify-center gap-2 flex-wrap">
             <button
               type="button"
               onClick={() => handleQuickFill("admin", "admin123")}
-              className="px-2 py-1 rounded text-[11px] font-medium bg-muted hover:bg-muted/80 text-foreground border border-border cursor-pointer transition-colors"
+              className="px-3 py-1.5 rounded-lg text-xs font-bold bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30 cursor-pointer transition-colors flex items-center gap-1.5"
             >
-              Admin
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>Admin (System $\rightarrow$ /admin)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleQuickFill("ceo", "ceo123")}
+              className="px-3 py-1.5 rounded-lg text-xs font-bold bg-brand/10 hover:bg-brand/20 text-brand border border-brand/30 cursor-pointer transition-colors flex items-center gap-1.5"
+            >
+              <Layers className="w-3.5 h-3.5" />
+              <span>CEO (Executive $\rightarrow$ /dashboard)</span>
             </button>
           </div>
         </div>

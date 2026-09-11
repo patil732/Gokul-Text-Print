@@ -258,8 +258,6 @@ def init_db() -> None:
     seed_users = [
         ("admin", "admin123", "Admin", "admin@gokultextprint.internal"),
         ("ceo", "ceo123", "CEO", "ceo@gokultextprint.internal"),
-        ("manager", "manager123", "Manager", "manager@gokultextprint.internal"),
-        ("employee", "employee123", "Employee", "employee@gokultextprint.internal"),
     ]
     for uname, pwd, rle, eml in seed_users:
         cursor.execute("SELECT id FROM users WHERE username = ?", (uname,))

@@ -160,13 +160,16 @@ export function PublicNav() {
             </div>
           )}
 
-          <Link href="/dashboard" className="hidden md:inline-flex">
+          <Link
+            href={user?.role?.toUpperCase() === "ADMIN" ? "/admin" : "/dashboard"}
+            className="hidden md:inline-flex"
+          >
             <Button
               variant="outline"
               size="sm"
-              className="h-9 px-3 text-xs font-medium text-muted-foreground hover:text-foreground gap-1.5 border-border"
+              className="h-9 px-3 text-xs font-semibold text-foreground hover:bg-muted gap-1.5 border-border"
             >
-              <span>Demo</span>
+              <span>{user?.role?.toUpperCase() === "ADMIN" ? "Admin Center" : "Executive Dashboard"}</span>
             </Button>
           </Link>
 
@@ -276,12 +279,15 @@ export function PublicNav() {
               </div>
             )}
 
-            <Link href="/dashboard" className="w-full block">
+            <Link
+              href={user?.role?.toUpperCase() === "ADMIN" ? "/admin" : "/dashboard"}
+              className="w-full block"
+            >
               <Button
                 variant="ghost"
-                className="w-full flex items-center justify-center gap-2 text-muted-foreground"
+                className="w-full flex items-center justify-center gap-2 text-foreground font-semibold"
               >
-                <span>Launch Executive Demo</span>
+                <span>{user?.role?.toUpperCase() === "ADMIN" ? "Launch Admin Operations" : "Launch Executive Dashboard"}</span>
               </Button>
             </Link>
           </div>

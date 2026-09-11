@@ -165,7 +165,7 @@ export default function ForgotPasswordPage() {
                     Quick test suggestions:
                   </span>
                   <div className="flex flex-wrap gap-1.5">
-                    {["ceo", "admin", "manager", "employee"].map((role) => (
+                    {["admin", "ceo"].map((role) => (
                       <button
                         key={role}
                         type="button"

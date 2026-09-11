@@ -36,28 +36,16 @@ interface RoleMeta {
 
 const ROLE_METADATA: Record<UserRole, RoleMeta> = {
   CEO: {
-    title: "Chief Executive Officer",
+    title: "Chief Executive Officer (CEO)",
     badge: "CRITICAL",
     description: "Full strategic enterprise visibility, automated cross-agent supervisor briefings, and mill revenue metrics.",
-    scope: "Enterprise-Wide Executive Authority",
+    scope: "Enterprise-Wide Executive Authority (Redirect: /dashboard)",
   },
   Admin: {
-    title: "System Administrator",
+    title: "System Administrator (Admin)",
     badge: "HIGH",
     description: "Platform orchestration, telemetry bus configurations, vector tenant controls, and identity management.",
-    scope: "Infrastructure & Platform Administration",
-  },
-  Manager: {
-    title: "Plant & Production Manager",
-    badge: "MEDIUM",
-    description: "Rotary screen line throughput, machine error SOP lookups, shift scheduling, and inventory buffer approvals.",
-    scope: "Mill Floor Operational Oversight",
-  },
-  Employee: {
-    title: "Dye Kitchen & Line Specialist",
-    badge: "LOW",
-    description: "Chemical dye recipe formulation lookups, reactive batch mixing verification, and stock movement logging.",
-    scope: "Shop Floor Formulation & Machine Execution",
+    scope: "Infrastructure & Platform Administration (Redirect: /admin)",
   },
 };
 
@@ -67,8 +55,6 @@ interface PermissionRow {
   feature: string;
   ceo: PermissionLevel;
   admin: PermissionLevel;
-  manager: PermissionLevel;
-  employee: PermissionLevel;
 }
 
 const PERMISSIONS_MATRIX: PermissionRow[] = [
@@ -76,43 +62,36 @@ const PERMISSIONS_MATRIX: PermissionRow[] = [
     feature: "Executive Decision Engine & Briefings",
     ceo: true,
     admin: true,
-    manager: "Read Only",
-    employee: false,
   },
   {
     feature: "Sales Forecasts & Festive Seasonality Curves",
     ceo: true,
     admin: true,
-    manager: "Read Only",
-    employee: false,
   },
   {
     feature: "Grey Cloth & Chemical Dye Buffer Approvals",
     ceo: true,
     admin: true,
-    manager: true,
-    employee: "Read Only",
   },
   {
     feature: "Domain RAG Recipe Formulation Lookup",
     ceo: true,
     admin: true,
-    manager: true,
-    employee: true,
   },
   {
     feature: "Rotary Printer Maintenance & Error Codes",
     ceo: "Read Only",
     admin: true,
-    manager: true,
-    employee: true,
   },
   {
     feature: "Telemetry Ingestion & Swarm Orchestration",
     ceo: "Read Only",
     admin: true,
-    manager: false,
-    employee: false,
+  },
+  {
+    feature: "Infrastructure Pipeline Sync & Model Reloading",
+    ceo: "Read Only",
+    admin: true,
   },
 ];
 
@@ -187,8 +166,8 @@ export default function ProfilePage() {
     );
   }
 
-  const currentRole = (role as UserRole) || "Employee";
-  const roleMeta = ROLE_METADATA[currentRole] || ROLE_METADATA.Employee;
+  const currentRole = (role as UserRole) || "CEO";
+  const roleMeta = ROLE_METADATA[currentRole] || ROLE_METADATA.CEO;
 
   return (
     <PageTransition className="py-12 lg:py-20">
@@ -304,7 +283,7 @@ export default function ProfilePage() {
                   </Badge>
                 </div>
                 <CardDescription className="text-xs">
-                  Readiness preview of operational capabilities mapped to the 4 roles.
+                  Readiness preview of operational capabilities mapped to the 2 enterprise roles (Admin and CEO).
                 </CardDescription>
               </CardHeader>
 
@@ -314,10 +293,8 @@ export default function ProfilePage() {
                     <thead>
                       <tr className="border-b border-border bg-muted/30 text-muted-foreground">
                         <th className="py-2.5 px-4 font-semibold">Platform Domain</th>
-                        <th className="py-2.5 px-2 font-semibold text-center">CEO</th>
-                        <th className="py-2.5 px-2 font-semibold text-center">Admin</th>
-                        <th className="py-2.5 px-2 font-semibold text-center">Manager</th>
-                        <th className="py-2.5 px-2 font-semibold text-center">Employee</th>
+                        <th className="py-2.5 px-4 font-semibold text-center">CEO (Executive)</th>
+                        <th className="py-2.5 px-4 font-semibold text-center">Admin (System)</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/60">
@@ -329,7 +306,7 @@ export default function ProfilePage() {
                           <td className="py-3 px-4 font-medium text-foreground">
                             {row.feature}
                           </td>
-                          <td className="py-3 px-2 text-center">
+                          <td className="py-3 px-4 text-center">
                             {row.ceo === true ? (
                               <Check className="w-4 h-4 text-emerald-500 mx-auto" />
                             ) : row.ceo === "Read Only" ? (
@@ -338,28 +315,10 @@ export default function ProfilePage() {
                               <Minus className="w-4 h-4 text-muted-foreground mx-auto" />
                             )}
                           </td>
-                          <td className="py-3 px-2 text-center">
+                          <td className="py-3 px-4 text-center">
                             {row.admin === true ? (
                               <Check className="w-4 h-4 text-emerald-500 mx-auto" />
                             ) : row.admin === "Read Only" ? (
-                              <span className="text-[10px] font-medium text-amber-500">Read</span>
-                            ) : (
-                              <Minus className="w-4 h-4 text-muted-foreground mx-auto" />
-                            )}
-                          </td>
-                          <td className="py-3 px-2 text-center">
-                            {row.manager === true ? (
-                              <Check className="w-4 h-4 text-emerald-500 mx-auto" />
-                            ) : row.manager === "Read Only" ? (
-                              <span className="text-[10px] font-medium text-amber-500">Read</span>
-                            ) : (
-                              <Minus className="w-4 h-4 text-muted-foreground mx-auto" />
-                            )}
-                          </td>
-                          <td className="py-3 px-2 text-center">
-                            {row.employee === true ? (
-                              <Check className="w-4 h-4 text-emerald-500 mx-auto" />
-                            ) : row.employee === "Read Only" ? (
                               <span className="text-[10px] font-medium text-amber-500">Read</span>
                             ) : (
                               <Minus className="w-4 h-4 text-muted-foreground mx-auto" />

@@ -19,6 +19,7 @@ import {
   Info,
   CheckCircle2,
   ExternalLink,
+  ShieldAlert,
 } from "lucide-react";
 
 interface NotificationItem {
@@ -288,6 +289,16 @@ export function AppTopbar() {
               )}
 
               <div className="space-y-1 pt-1">
+                {user?.role?.toUpperCase() === "ADMIN" && (
+                  <Link
+                    href="/admin"
+                    onClick={() => setProfileOpen(false)}
+                    className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-semibold text-red-600 dark:text-red-400 bg-red-500/10 hover:bg-red-500/15 transition-colors"
+                  >
+                    <ShieldAlert className="w-4 h-4" />
+                    <span>Admin Center (System Ops)</span>
+                  </Link>
+                )}
                 <Link
                   href="/profile"
                   onClick={() => setProfileOpen(false)}

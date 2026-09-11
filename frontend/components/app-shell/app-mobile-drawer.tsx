@@ -5,13 +5,14 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAppShell } from "./app-shell-provider";
 import { useAuth } from "@/components/providers/auth-provider";
-import { SIDEBAR_ITEMS } from "./app-sidebar";
+import { ADMIN_SIDEBAR_ITEMS, CEO_SIDEBAR_ITEMS } from "./app-sidebar";
 import {
   Layers,
   X,
   Activity,
   LogOut,
   User,
+  ShieldAlert,
 } from "lucide-react";
 
 export function AppMobileDrawer() {
@@ -22,8 +23,13 @@ export function AppMobileDrawer() {
 
   if (!mobileOpen) return null;
 
+  const isAdmin = user?.role?.toUpperCase() === "ADMIN";
+  const navItems = isAdmin ? ADMIN_SIDEBAR_ITEMS : CEO_SIDEBAR_ITEMS;
+  const brandHref = isAdmin ? "/admin" : "/dashboard";
+
   const isItemActive = (href: string) => {
-    if (href === "/dashboard") return pathname === "/dashboard" || pathname === "/";
+    if (href === "/admin") return pathname === "/admin";
+    if (href === "/dashboard") return pathname === "/dashboard";
     return pathname.startsWith(href);
   };
 
@@ -45,19 +51,25 @@ export function AppMobileDrawer() {
         {/* Drawer Header */}
         <div className="h-16 border-b border-border flex items-center justify-between px-4">
           <Link
-            href="/dashboard"
+            href={brandHref}
             onClick={() => setMobileOpen(false)}
             className="flex items-center gap-2.5 text-foreground"
           >
-            <div className="w-8 h-8 rounded-lg bg-brand text-brand-fg flex items-center justify-center shadow-xs">
-              <Layers className="w-4 h-4" />
+            <div
+              className={`w-8 h-8 rounded-lg flex items-center justify-center shadow-xs ${
+                isAdmin
+                  ? "bg-red-500/15 text-red-600 dark:text-red-400"
+                  : "bg-brand text-brand-fg"
+              }`}
+            >
+              {isAdmin ? <ShieldAlert className="w-4 h-4" /> : <Layers className="w-4 h-4" />}
             </div>
             <div className="flex flex-col">
               <span className="font-bold text-sm tracking-tight leading-tight">
                 Gokul Text Print
               </span>
               <span className="text-[10px] text-muted-foreground font-medium uppercase">
-                AI Mill Platform
+                {isAdmin ? "Admin Center" : "AI Mill Platform"}
               </span>
             </div>
           </Link>
@@ -74,7 +86,7 @@ export function AppMobileDrawer() {
 
         {/* Navigation Items */}
         <nav className="flex-1 overflow-y-auto p-3 space-y-1">
-          {SIDEBAR_ITEMS.map((item) => {
+          {navItems.map((item) => {
             const active = isItemActive(item.href);
             const Icon = item.icon;
             const badge =
@@ -111,8 +123,38 @@ export function AppMobileDrawer() {
           })}
         </nav>
 
-        {/* Bottom Status & User Card */}
-        <div className="p-3 border-t border-border space-y-3">
+        {/* Footer info & Logout */}
+        <div className="p-3 border-t border-border space-y-2">
+          {user && (
+            <Link
+              href="/profile"
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center gap-2.5 p-2 rounded-lg bg-muted/40 hover:bg-muted transition-colors"
+            >
+              <div
+                className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                  isAdmin
+                    ? "bg-red-500/15 text-red-600 dark:text-red-400"
+                    : "bg-brand text-brand-fg"
+                }`}
+              >
+                {user.username.slice(0, 1).toUpperCase()}
+              </div>
+              <div className="flex flex-col truncate flex-1">
+                <span className="text-xs font-bold text-foreground truncate">
+                  {user.username}
+                </span>
+                <span
+                  className={`text-[10px] font-bold uppercase tracking-wider ${
+                    isAdmin ? "text-red-600 dark:text-red-400" : "text-brand"
+                  }`}
+                >
+                  {user.role} {isAdmin ? "· System Root" : "· Executive"}
+                </span>
+              </div>
+            </Link>
+          )}
+
           <div className="p-2.5 rounded-lg bg-muted/50 border border-border/60 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />

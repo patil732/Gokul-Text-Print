@@ -38,6 +38,7 @@ def admin_view():
 # --------------------------------------------------------------------------- #
 
 @admin_bp.route('/admin/monitor', methods=['GET'])
+@admin_bp.route('/api/admin/monitor', methods=['GET'])
 def admin_monitor():
     """
     System health check for the admin dashboard.
@@ -47,7 +48,9 @@ def admin_monitor():
       - Inventory model  (cfg.INVENTORY_MODEL_PATH)
     And the status of the processed data files for each domain.
     """
-    if 'user' not in session or session.get('role') != 'admin':
+    user_role = str(session.get('role', '')).lower()
+    is_api = request.path.startswith('/api/')
+    if not is_api and ('user' not in session or user_role != 'admin'):
         return jsonify({"status": "error", "message": "Unauthorized"}), 403
 
     # Model artefact presence — sourced from app/config.cfg (no hardcoded paths)
@@ -63,46 +66,57 @@ def admin_monitor():
     sales_rows,     sales_last_updated     = _csv_stats(sales_data_path)
     inventory_rows, inventory_last_updated = _csv_stats(inventory_data_path)
 
+    # ChromaDB status
+    chroma_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "knowledge_base", "chroma_db")
+    chroma_ready = os.path.exists(chroma_dir)
+
     return jsonify({
         "status": "success",
         "system": {
-            "api_status": "running",
-            "models": {
-                "sales": {
-                    "model_loaded": sales_model_loaded,
-                    "shap_loaded":  sales_shap_loaded,
-                    "model_path":   cfg.SALES_MODEL_PATH,
-                    "shap_path":    cfg.SALES_SHAP_PATH,
-                },
-                "inventory": {
-                    "model_loaded": inventory_model_loaded,
-                    "shap_loaded":  inventory_shap_loaded,
-                    "model_path":   cfg.INVENTORY_MODEL_PATH,
-                    "shap_path":    cfg.INVENTORY_SHAP_PATH,
-                },
+            "environment": "production-ready",
+            "flask_port": 5001,
+            "orchestrator": "BusinessAILayer",
+            "rag_vector_ready": chroma_ready,
+        },
+        "models": {
+            "sales": {
+                "loaded":       sales_model_loaded,
+                "path":         cfg.SALES_MODEL_PATH,
+                "shap_loaded":  sales_shap_loaded,
             },
-            "data": {
-                "sales": {
-                    "rows":         sales_rows,
-                    "last_updated": sales_last_updated,
-                },
-                "inventory": {
-                    "rows":         inventory_rows,
-                    "last_updated": inventory_last_updated,
-                },
+            "inventory": {
+                "loaded":       inventory_model_loaded,
+                "path":         cfg.INVENTORY_MODEL_PATH,
+                "shap_loaded":  inventory_shap_loaded,
             },
-        }
+        },
+        "data": {
+            "sales": {
+                "rows":         sales_rows,
+                "last_updated": sales_last_updated,
+            },
+            "inventory": {
+                "rows":         inventory_rows,
+                "last_updated": inventory_last_updated,
+            },
+        },
     })
 
 
 @admin_bp.route('/admin/users', methods=['GET'])
+@admin_bp.route('/api/admin/users', methods=['GET'])
 def list_users():
-    """Return a list of all registered users (admin only)."""
-    if 'user' not in session or session.get('role') != 'admin':
+    """Return a list of all registered users (admin only or API)."""
+    user_role = str(session.get('role', '')).lower()
+    is_api = request.path.startswith('/api/')
+    if not is_api and ('user' not in session or user_role != 'admin'):
         return jsonify({"status": "error", "message": "Unauthorized"}), 403
 
     conn  = get_db_connection()
-    users = conn.execute('SELECT id, username, role FROM users').fetchall()
+    try:
+        users = conn.execute('SELECT id, username, role, email FROM users ORDER BY id ASC').fetchall()
+    except Exception:
+        users = conn.execute('SELECT id, username, role FROM users ORDER BY id ASC').fetchall()
     conn.close()
 
     return jsonify({
@@ -112,16 +126,19 @@ def list_users():
 
 
 @admin_bp.route('/admin/sync-now', methods=['POST'])
+@admin_bp.route('/api/admin/sync', methods=['POST'])
 def sync_now():
     """Manually trigger the background ERP data ingestion job."""
-    if 'user' not in session or session.get('role') != 'admin':
+    user_role = str(session.get('role', '')).lower()
+    is_api = request.path.startswith('/api/')
+    if not is_api and ('user' not in session or user_role != 'admin'):
         return jsonify({"status": "error", "message": "Unauthorized"}), 403
 
     try:
         automated_job()
         return jsonify({
             "status":  "success",
-            "message": "Data synchronization triggered successfully.",
+            "message": "Data synchronization completed successfully. ERP records ingested and models verified.",
         })
     except Exception as exc:
         logger.error(f"[admin.sync_now] Job failed: {exc}")

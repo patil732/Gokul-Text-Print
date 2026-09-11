@@ -9,16 +9,15 @@ from utils.logger import logger
 
 auth_bp = Blueprint('auth', __name__)
 
-# Normalize role strings to standard RBAC format: "CEO", "Admin", "Manager", "Employee"
+# Normalize role strings to standard 2-role RBAC: "Admin", "CEO"
 ROLE_MAP = {
-    "ceo": "CEO",
     "admin": "Admin",
-    "manager": "Manager",
-    "employee": "Employee",
-    "CEO": "CEO",
     "Admin": "Admin",
-    "Manager": "Manager",
-    "Employee": "Employee",
+    "ceo": "CEO",
+    "CEO": "CEO",
+    "ceo admin": "CEO",
+    "CEO Admin": "CEO",
+    "ceo_admin": "CEO",
 }
 
 
@@ -31,13 +30,13 @@ def register():
             data = request.get_json(silent=True) or {}
             username = (data.get('username') or '').strip()
             password = data.get('password') or ''
-            role = data.get('role', 'Employee')
+            role = data.get('role', 'CEO')
             email = (data.get('email') or '').strip()
             company = (data.get('company') or '').strip()
         else:
             username = (request.form.get('username') or '').strip()
             password = request.form.get('password') or ''
-            role = request.form.get('role', 'Employee')
+            role = request.form.get('role', 'CEO')
             email = (request.form.get('email') or '').strip()
             company = (request.form.get('company') or '').strip()
 
@@ -59,7 +58,7 @@ def register():
             flash('Please provide a valid work email address.', 'danger')
             return render_template('register.html')
 
-        role_norm = ROLE_MAP.get(role, "Employee")
+        role_norm = ROLE_MAP.get(str(role).strip(), ROLE_MAP.get(str(role).strip().lower(), "CEO"))
 
         conn = get_db_connection()
         # Check if username or email already exists

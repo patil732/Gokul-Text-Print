@@ -18,12 +18,10 @@ def test_auth_full_lifecycle():
     app.config["TESTING"] = True
     client = app.test_client()
 
-    # 1. Test Login with all 4 RBAC roles
+    # 1. Test Login with the 2 enterprise RBAC roles (Admin, CEO)
     roles = [
         ("Admin", "admin", "admin123"),
         ("CEO", "ceo", "ceo123"),
-        ("Manager", "manager", "manager123"),
-        ("Employee", "employee", "employee123"),
     ]
     for role, user, pwd in roles:
         res = client.post("/api/auth/login", json={"username": user, "password": pwd})
@@ -33,16 +31,16 @@ def test_auth_full_lifecycle():
         assert data["user"]["role"] == role
         print(f"PASS: Login for {user} ({role})")
 
-    # 2. Test /api/auth/me for last logged in user (employee)
+    # 2. Test /api/auth/me for last logged in user (ceo)
     res = client.get("/api/auth/me")
     assert res.status_code == 200
     me_data = res.get_json()
     assert me_data["authenticated"] is True
-    assert me_data["user"]["role"] == "Employee"
+    assert me_data["user"]["role"] == "CEO"
     print("PASS: /api/auth/me verified")
 
     # 3. Test Forgot Password
-    res = client.post("/api/auth/forgot-password", json={"username": "employee"})
+    res = client.post("/api/auth/forgot-password", json={"username": "ceo"})
     assert res.status_code == 200
     token = res.get_json()["reset_token"]
     assert token is not None
@@ -55,19 +53,22 @@ def test_auth_full_lifecycle():
     print("PASS: Verify reset token passed")
 
     # 5. Test Reset Password
-    res = client.post("/api/auth/reset-password", json={"token": token, "password": "newemployeepassword123"})
+    res = client.post("/api/auth/reset-password", json={"token": token, "password": "newceopassword123"})
     assert res.status_code == 200
     print("PASS: Reset password succeeded")
 
     # 6. Test Login with new password
-    res = client.post("/api/auth/login", json={"username": "employee", "password": "newemployeepassword123"})
+    res = client.post("/api/auth/login", json={"username": "ceo", "password": "newceopassword123"})
     assert res.status_code == 200
     print("PASS: Login with new password succeeded")
 
+    # Restore default password for ceo
+    client.post("/api/auth/profile", json={"password": "ceo123"})
+
     # 7. Test Profile Update
-    res = client.put("/api/auth/profile", json={"email": "updated_employee@gokultextprint.internal"})
+    res = client.put("/api/auth/profile", json={"email": "ceo@gokultextprint.internal"})
     assert res.status_code == 200
-    assert res.get_json()["user"]["email"] == "updated_employee@gokultextprint.internal"
+    assert res.get_json()["user"]["email"] == "ceo@gokultextprint.internal"
     print("PASS: Profile update succeeded")
 
     # 8. Test Logout

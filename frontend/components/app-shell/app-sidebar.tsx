@@ -18,6 +18,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Activity,
+  ShieldAlert,
+  Server,
 } from "lucide-react";
 
 export interface NavItem {
@@ -28,7 +30,33 @@ export interface NavItem {
   badgeVariant?: "default" | "brand" | "amber" | "rose";
 }
 
-export const SIDEBAR_ITEMS: NavItem[] = [
+export const ADMIN_SIDEBAR_ITEMS: NavItem[] = [
+  {
+    label: "Admin Center",
+    href: "/admin",
+    icon: ShieldAlert,
+    badge: "SYS",
+    badgeVariant: "rose",
+  },
+  {
+    label: "CEO Executive View",
+    href: "/dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    label: "Alerts",
+    href: "/alerts",
+    icon: Bell,
+    badgeVariant: "rose",
+  },
+  {
+    label: "Settings",
+    href: "/settings",
+    icon: Settings,
+  },
+];
+
+export const CEO_SIDEBAR_ITEMS: NavItem[] = [
   {
     label: "Dashboard",
     href: "/dashboard",
@@ -74,13 +102,20 @@ export const SIDEBAR_ITEMS: NavItem[] = [
   },
 ];
 
+export const SIDEBAR_ITEMS = CEO_SIDEBAR_ITEMS;
+
 export function AppSidebar() {
   const pathname = usePathname();
   const { sidebarCollapsed, toggleSidebar, unreadAlertsCount } = useAppShell();
   const { user } = useAuth();
 
+  const isAdmin = user?.role?.toUpperCase() === "ADMIN";
+  const navItems = isAdmin ? ADMIN_SIDEBAR_ITEMS : CEO_SIDEBAR_ITEMS;
+  const brandHref = isAdmin ? "/admin" : "/dashboard";
+
   const isItemActive = (href: string) => {
-    if (href === "/dashboard") return pathname === "/dashboard" || pathname === "/";
+    if (href === "/admin") return pathname === "/admin";
+    if (href === "/dashboard") return pathname === "/dashboard";
     return pathname.startsWith(href);
   };
 
@@ -94,12 +129,18 @@ export function AppSidebar() {
       {/* Brand & Toggle Header */}
       <div className="h-16 border-b border-border flex items-center justify-between px-3.5">
         <Link
-          href="/dashboard"
+          href={brandHref}
           className="flex items-center gap-3 overflow-hidden text-foreground hover:opacity-90 transition-opacity"
-          title="Gokul Text Print — Enterprise AI Platform"
+          title={`Gokul Text Print — ${isAdmin ? "Admin Operations" : "Executive Intelligence"}`}
         >
-          <div className="w-9 h-9 rounded-lg bg-brand text-brand-fg flex items-center justify-center shrink-0 shadow-xs">
-            <Layers className="w-5 h-5" />
+          <div
+            className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 shadow-xs ${
+              isAdmin
+                ? "bg-red-500/15 text-red-600 dark:text-red-400"
+                : "bg-brand text-brand-fg"
+            }`}
+          >
+            {isAdmin ? <ShieldAlert className="w-5 h-5" /> : <Layers className="w-5 h-5" />}
           </div>
           {!sidebarCollapsed && (
             <div className="flex flex-col truncate">
@@ -107,7 +148,7 @@ export function AppSidebar() {
                 Gokul Text Print
               </span>
               <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
-                Industrial AI Mill
+                {isAdmin ? "Admin Center" : "Industrial AI Mill"}
               </span>
             </div>
           )}
@@ -117,9 +158,8 @@ export function AppSidebar() {
         <button
           type="button"
           onClick={toggleSidebar}
-          className="w-7 h-7 rounded-md border border-border hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors shrink-0"
-          title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
         >
           {sidebarCollapsed ? (
             <ChevronRight className="w-4 h-4" />
@@ -131,7 +171,7 @@ export function AppSidebar() {
 
       {/* Navigation Links */}
       <nav className="flex-1 overflow-y-auto py-4 px-2 space-y-1">
-        {SIDEBAR_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const active = isItemActive(item.href);
           const Icon = item.icon;
           const badge =
@@ -215,7 +255,13 @@ export function AppSidebar() {
             }`}
             title="Manage Profile & RBAC Role"
           >
-            <div className="w-7 h-7 rounded-full bg-brand text-brand-fg flex items-center justify-center text-xs font-bold shrink-0">
+            <div
+              className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                isAdmin
+                  ? "bg-red-500/15 text-red-600 dark:text-red-400"
+                  : "bg-brand text-brand-fg"
+              }`}
+            >
               {user.username.slice(0, 1).toUpperCase()}
             </div>
             {!sidebarCollapsed && (
@@ -223,8 +269,12 @@ export function AppSidebar() {
                 <span className="text-xs font-bold text-foreground truncate leading-tight">
                   {user.username}
                 </span>
-                <span className="text-[10px] text-brand font-semibold uppercase tracking-wider">
-                  {user.role}
+                <span
+                  className={`text-[10px] font-bold uppercase tracking-wider ${
+                    isAdmin ? "text-red-600 dark:text-red-400" : "text-brand"
+                  }`}
+                >
+                  {user.role} {isAdmin ? "· System Root" : "· Executive"}
                 </span>
               </div>
             )}

@@ -7,7 +7,7 @@
 
 import { apiFetch, apiGet, apiPost } from "./client";
 
-export type UserRole = "CEO" | "Manager" | "Employee" | "Admin";
+export type UserRole = "CEO" | "Admin";
 
 export interface User {
   id: number;
