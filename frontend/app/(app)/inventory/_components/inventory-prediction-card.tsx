@@ -61,9 +61,9 @@ export function InventoryPredictionCard({ onPredictionCompleted }: InventoryPred
           <div className="space-y-1">
             <CardTitle className="text-base font-bold flex items-center gap-2">
               <Bot className="w-4 h-4 text-purple-500" />
-              <span>Inventory Reorder ML Inference Simulator</span>
+              <span>Inventory Reorder AI Simulator</span>
               <Badge variant="outline" className="text-[10px] font-mono">
-                Sprint 3 XGBoost
+                AI Inference Engine
               </Badge>
             </CardTitle>
             <CardDescription className="text-xs">

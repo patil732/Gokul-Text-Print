@@ -292,7 +292,7 @@ export default function SalesIntelligencePage() {
                   Sales Intelligence & Demand Forecast
                 </h1>
                 <Badge variant="outline" className="text-[10px] font-semibold border-brand/30 text-brand">
-                  Sprint 2 + 6 API
+                  Live Analytics
                 </Badge>
               </div>
               <p className="text-xs sm:text-sm text-muted-foreground">
@@ -589,7 +589,7 @@ export default function SalesIntelligencePage() {
               columns={historyColumns}
               data={history}
               rowKey={(r) => r.prediction_id}
-              caption="Sprint 2 & Sprint 6 historical prediction audit log"
+              caption="Historical AI forecast audit log"
             />
           </CardContent>
         </Card>

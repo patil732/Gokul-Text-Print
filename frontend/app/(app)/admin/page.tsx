@@ -43,15 +43,25 @@ export default function AdminDashboardPage() {
   const [syncResult, setSyncResult] = React.useState<string | null>(null);
   const [syncError, setSyncError] = React.useState<string | null>(null);
 
-  const [logs, setLogs] = React.useState<string[]>([
-    "[SYSTEM] Telemetry bus initialized on Flask port 5001",
-    "[MODEL] Sales demand LightGBM model loaded: cfg.SALES_MODEL_PATH",
-    "[MODEL] Inventory safety buffer model loaded: cfg.INVENTORY_MODEL_PATH",
-    "[RAG] ChromaDB vector tenant online: textile recipe & SOP embeddings active",
-    "[DATA] Processed 27,146 ERP records across Grey Cloth and Dye formulations",
-    "[AUTH] Role-based routing verified: Admin -> /admin, CEO -> /dashboard",
-    "[READY] Gokul Text Print AI Core status: 100% OPERATIONAL",
-  ]);
+  const [logs, setLogs] = React.useState<string[]>([]);
+
+  // Build system logs from live backend data once monitor loads
+  const buildSystemLogs = React.useCallback((mon: AdminMonitorResponse) => {
+    const ts = new Date().toLocaleTimeString();
+    const salesStatus = mon?.models?.sales?.loaded ? "ACTIVE" : "STANDBY";
+    const invStatus = mon?.models?.inventory?.loaded ? "ACTIVE" : "STANDBY";
+    const dbStatus = mon?.database?.connected ? "ONLINE" : "OFFLINE";
+    const docCount = mon?.documents?.total_documents ?? 0;
+    return [
+      `[${ts}] AI Engine telemetry bus initialized — Flask API port 5001`,
+      `[${ts}] AI Forecast Engine (Sales) status: ${salesStatus}`,
+      `[${ts}] Supply Intelligence Engine (Inventory) status: ${invStatus}`,
+      `[${ts}] Document Intelligence Engine: ${docCount} documents indexed`,
+      `[${ts}] Database: ${dbStatus} — ai_decision.db`,
+      `[${ts}] Role-based access control: Admin → /admin, CEO → /dashboard`,
+      `[${ts}] Platform operational status: ${mon?.status === 'healthy' ? '100% OPERATIONAL' : mon?.status?.toUpperCase() ?? 'CHECKING'}`,
+    ];
+  }, []);
 
   const fetchData = React.useCallback(async () => {
     try {
@@ -63,6 +73,7 @@ export default function AdminDashboardPage() {
 
       if (monRes) {
         setMonitor(monRes);
+        setLogs(buildSystemLogs(monRes));
       }
       if (usrRes && usrRes.users) {
         setUsers(usrRes.users);
@@ -184,7 +195,7 @@ export default function AdminDashboardPage() {
           <CardContent className="pt-4 pb-4">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Sales ML Model
+                AI Forecast Engine
               </span>
               <div className="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
                 <Cpu className="w-3.5 h-3.5" />
@@ -208,7 +219,7 @@ export default function AdminDashboardPage() {
           <CardContent className="pt-4 pb-4">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Inventory Model
+                Supply Intelligence Engine
               </span>
               <div className="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
                 <Layers className="w-3.5 h-3.5" />
@@ -223,7 +234,7 @@ export default function AdminDashboardPage() {
               </span>
             </div>
             <p className="text-[11px] text-muted-foreground mt-1">
-              Deadstock probability & buffer alerts
+              Slow-moving stock probability &amp; safety buffer alerts
             </p>
           </CardContent>
         </Card>
@@ -232,7 +243,7 @@ export default function AdminDashboardPage() {
           <CardContent className="pt-4 pb-4">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                ChromaDB Vector Store
+                Document Intelligence Engine
               </span>
               <div className="w-7 h-7 rounded-lg bg-purple-500/10 text-purple-500 flex items-center justify-center">
                 <Database className="w-3.5 h-3.5" />
@@ -241,11 +252,11 @@ export default function AdminDashboardPage() {
             <div className="mt-2 flex items-baseline gap-2">
               <span className="text-xl font-extrabold text-foreground">ONLINE</span>
               <span className="text-[11px] font-semibold text-purple-600 dark:text-purple-400">
-                14,800+ SOPs
+                {monitor?.documents?.total_documents ? `${monitor.documents.total_documents.toLocaleString()} Docs` : "Ready"}
               </span>
             </div>
             <p className="text-[11px] text-muted-foreground mt-1">
-              RAG embeddings for chemical formulas
+              Semantic search across SOPs &amp; company knowledge base
             </p>
           </CardContent>
         </Card>

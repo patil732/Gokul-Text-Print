@@ -507,7 +507,7 @@ export default function DashboardPage() {
                   <span>Autonomous AI Action Queue</span>
                 </CardTitle>
                 <Badge variant="outline" className="text-[10px] font-semibold">
-                  Sprint 6 Model
+                  AI Recommendations
                 </Badge>
               </div>
               <CardDescription className="text-xs">

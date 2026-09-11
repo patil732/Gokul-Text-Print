@@ -241,7 +241,7 @@ export default function ReportsCenterPage() {
                 Reports Center & Document Exports
               </h1>
               <Badge variant="outline" className="text-[10px] font-semibold border-brand/30 text-brand">
-                Sprint 6 ReportLab API
+                Document Intelligence
               </Badge>
             </div>
             <p className="text-xs sm:text-sm text-muted-foreground">
@@ -393,7 +393,7 @@ export default function ReportsCenterPage() {
               </CardDescription>
             </div>
             <Badge variant="outline" className="text-[10px] font-mono">
-              Sprint 6 Architecture
+              Automated Reporting Engine
             </Badge>
           </CardHeader>
           <CardContent>

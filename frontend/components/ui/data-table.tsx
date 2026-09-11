@@ -142,7 +142,7 @@ export function DataTable<TRow extends object>({
   } as const;
 
   return (
-    <div className={cn("w-full overflow-x-auto rounded-xl border border-[var(--surface-border)]", className)}>
+    <div className={cn("w-full overflow-x-auto rounded-xl border border-[var(--surface-border)] thin-scrollbar", className)}>
       <table className="w-full min-w-[640px] table-auto border-collapse text-sm">
         {caption && (
           <caption className="px-4 py-2 text-left text-xs text-muted-foreground">

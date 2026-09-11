@@ -191,7 +191,7 @@ export default function KnowledgeCenterPage() {
                 Knowledge Center & Document Library
               </h1>
               <Badge variant="outline" className="text-[10px] font-semibold border-brand/30 text-brand">
-                Sprint 4 RAG API
+                Document Intelligence
               </Badge>
             </div>
             <p className="text-xs sm:text-sm text-muted-foreground">

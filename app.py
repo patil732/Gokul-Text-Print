@@ -16,7 +16,13 @@ def create_app():
     """
     app = Flask(__name__)
     app.config.from_object(Config)
-    app.secret_key = "super_secret_key"
+    # Sprint 8: secret key from environment (falls back to dev key only in local dev)
+    app.secret_key = os.environ.get("SECRET_KEY", "gtp-dev-secret-change-in-production")
+
+    # Sprint 8: Session security hardening
+    app.config["SESSION_COOKIE_HTTPONLY"] = True
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+    app.config["SESSION_COOKIE_SECURE"] = os.environ.get("FLASK_ENV", "development") == "production"
 
     # ── Sprint 7: CORS — allow Next.js frontend (dev + prod) ────────────── #
     # Only the allowed origins are configured here; no route logic is changed.
@@ -71,7 +77,8 @@ def create_app():
     @app.route('/')
     def index():
         if 'user' in session:
-            if session['role'] == 'ceo':
+            # Sprint 8: use normalized role strings ('CEO', 'Admin') from ROLE_MAP
+            if session.get('role', '').upper() == 'CEO':
                 return redirect(url_for('ceo.ceo_view'))
             return redirect(url_for('admin.admin_view'))
         return redirect(url_for('auth.login'))

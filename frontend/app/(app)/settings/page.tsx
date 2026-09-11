@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
+import { useAuth } from "@/components/providers/auth-provider";
 import {
   DashboardPreferences,
   getDashboardPreferences,
@@ -34,6 +35,7 @@ import {
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
+  const { user } = useAuth();
 
   // Settings State
   const [selectedTheme, setSelectedTheme] = useState<string>("system");
@@ -52,18 +54,18 @@ export default function SettingsPage() {
   const [dailyDigest, setDailyDigest] = useState<boolean>(true);
   const [weeklyPdf, setWeeklyPdf] = useState<boolean>(false);
 
-  // Profile
-  const [fullName, setFullName] = useState<string>("Priyanshu Patel");
-  const [email, setEmail] = useState<string>("ceo@gokultextprint.com");
-  const [phone, setPhone] = useState<string>("+91 98250 12345");
-  const [role, setRole] = useState<string>("CEO");
+  // Profile — seeded from live auth user; user can override in-form
+  const [fullName, setFullName] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [phone, setPhone] = useState<string>("");
+  const [role, setRole] = useState<string>("");
 
-  // Company
+  // Company — generic defaults; overridden by saved preferences on load
   const [millName, setMillName] = useState<string>("Gokul Text Print Pvt. Ltd.");
-  const [gstin, setGstin] = useState<string>("24AAACG1234F1Z5");
-  const [address, setAddress] = useState<string>("Plot 42-45, Pandesara GIDC, Surat, Gujarat 394221");
-  const [capacity, setCapacity] = useState<string>("120,000 meters / day");
-  const [machinery, setMachinery] = useState<string>("12 Rotary Screen Printing Lines, 4 Digital Stork Units");
+  const [gstin, setGstin] = useState<string>("");
+  const [address, setAddress] = useState<string>("");
+  const [capacity, setCapacity] = useState<string>("");
+  const [machinery, setMachinery] = useState<string>("");
 
   // UI status
   const [loading, setLoading] = useState<boolean>(true);
@@ -74,10 +76,18 @@ export default function SettingsPage() {
   useEffect(() => {
     let mounted = true;
 
+    // Seed profile from live auth session
+    if (user) {
+      setFullName(user.username || "");
+      setEmail(user.email || "");
+      setRole(user.role || "");
+    }
+
     async function loadData() {
       try {
+        const currentUser = user?.username || "ceo";
         const [prefsRes, providerRes] = await Promise.allSettled([
-          getDashboardPreferences("ceo"),
+          getDashboardPreferences(currentUser),
           getLlmProviderSetting(),
         ]);
 
@@ -125,7 +135,7 @@ export default function SettingsPage() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [user]);
 
   const handleThemeChange = (newTheme: string) => {
     setSelectedTheme(newTheme);
@@ -220,7 +230,7 @@ export default function SettingsPage() {
                   Enterprise Settings & Configuration
                 </h1>
                 <Badge variant="outline" className="text-[10px] font-semibold border-brand/30 text-brand">
-                  Sprint 6/7 Preferences
+                  Preferences
                 </Badge>
               </div>
               <p className="text-xs sm:text-sm text-muted-foreground">
@@ -321,20 +331,17 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* 2. LLM Provider Engine (Sprint 4 Config-Driven) */}
+        {/* 2. AI Provider Engine */}
         <Card className="bg-card border-border shadow-sm flex flex-col">
           <CardHeader className="pb-4 border-b border-border/60">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Cpu className="w-4 h-4 text-brand" />
-                <CardTitle className="text-base font-bold">LLM Provider Engine</CardTitle>
+                <CardTitle className="text-base font-bold">AI Provider Engine</CardTitle>
               </div>
-              <Badge variant="outline" className="text-[10px] font-mono border-brand/30 text-brand">
-                Sprint 4 Config
-              </Badge>
             </div>
             <CardDescription className="text-xs">
-              Switches underlying model driver in <code className="font-mono text-[11px]">model_config.yaml</code> with automatic singleton reset.
+              Switch the underlying AI model driver between providers with automatic configuration reset.
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-5 space-y-3 flex-1">

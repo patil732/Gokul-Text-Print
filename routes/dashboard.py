@@ -426,16 +426,25 @@ def get_dashboard_alerts():
     status_param = request.args.get("status", "ACTIVE").strip().upper()
     priority_param = request.args.get("priority")
     limit_param = request.args.get("limit")
+    # Sprint 8: offset-based pagination
+    offset_param = request.args.get("offset")
 
     limit_val = 20
     if limit_param:
         try:
-            limit_val = max(1, int(limit_param))
+            limit_val = max(1, min(int(limit_param), 100))
         except (ValueError, TypeError):
             return jsonify({
                 "status": "error",
-                "message": f"Invalid limit '{limit_param}'. Must be a positive integer.",
+                "message": f"Invalid limit '{limit_param}'. Must be a positive integer (max 100).",
             }), 400
+
+    offset_val = 0
+    if offset_param:
+        try:
+            offset_val = max(0, int(offset_param))
+        except (ValueError, TypeError):
+            offset_val = 0
 
     valid_priorities = ["CRITICAL", "HIGH", "MEDIUM", "LOW"]
     if priority_param and priority_param.strip().upper() not in valid_priorities:
@@ -455,16 +464,23 @@ def get_dashboard_alerts():
             limit=limit_val,
         )
 
+        # Sprint 8: slice for offset pagination; compute total for frontend
+        total_count = len(alerts)
+        paged_alerts = alerts[offset_val: offset_val + limit_val]
+
         elapsed_ms = round((time.perf_counter() - t_start) * 1000, 2)
         logger.info(
-            f"[dashboard_bp] GET /api/dashboard/alerts returned {len(alerts)} alerts "
-            f"in {elapsed_ms}ms (status={status_param}, priority={priority_param})"
+            f"[dashboard_bp] GET /api/dashboard/alerts returned {len(paged_alerts)}/{total_count} alerts "
+            f"in {elapsed_ms}ms (status={status_param}, priority={priority_param}, offset={offset_val})"
         )
 
         return jsonify({
             "status": "success",
-            "count": len(alerts),
-            "data": alerts,
+            "count": len(paged_alerts),
+            "total_count": total_count,
+            "offset": offset_val,
+            "limit": limit_val,
+            "data": paged_alerts,
             "elapsed_ms": elapsed_ms,
         }), 200
 

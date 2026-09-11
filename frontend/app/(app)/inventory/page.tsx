@@ -337,7 +337,7 @@ export default function InventoryIntelligencePage() {
                   Inventory Intelligence & Buffer Logistics
                 </h1>
                 <Badge variant="outline" className="text-[10px] font-semibold border-brand/30 text-brand">
-                  Sprint 3 + 6 API
+                  Live Analytics
                 </Badge>
               </div>
               <p className="text-xs sm:text-sm text-muted-foreground">
@@ -627,10 +627,10 @@ export default function InventoryIntelligencePage() {
             <div className="space-y-0.5">
               <CardTitle className="text-base font-bold flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-purple-500" />
-                <span>Sprint 3 Inventory Model Prediction History</span>
+                <span>Inventory AI Forecast History</span>
               </CardTitle>
               <CardDescription className="text-xs">
-                Audit trail from prediction_history table for the inventory XGBoost classifier.
+                Audit trail of AI supply forecast predictions logged over time.
               </CardDescription>
             </div>
             <Badge variant="outline" className="text-[10px] font-mono">
@@ -642,7 +642,7 @@ export default function InventoryIntelligencePage() {
               columns={predictionHistoryColumns}
               data={historyData}
               rowKey={(r) => r.id}
-              caption="Sprint 3 prediction_history SQLite log"
+              caption="AI supply forecast prediction audit log"
             />
           </CardContent>
         </Card>

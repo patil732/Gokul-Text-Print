@@ -36,6 +36,16 @@ export interface AdminMonitorResponse {
     sales: DataPipelineStatus;
     inventory: DataPipelineStatus;
   };
+  /** Sprint 8: optional fields from extended telemetry */
+  database?: {
+    connected: boolean;
+    path?: string;
+    size_mb?: number;
+  };
+  documents?: {
+    total_documents: number;
+    indexed_chunks?: number;
+  };
 }
 
 export interface AdminUserRecord {
