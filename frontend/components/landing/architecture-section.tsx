@@ -320,9 +320,9 @@ export function ArchitectureSection() {
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
 
-                <Link href="/dashboard">
+                <Link href="/login">
                   <Button size="sm" variant="outline" className="text-xs h-8">
-                    View Live Workspace
+                    Sign In to Mill Workspace
                   </Button>
                 </Link>
               </div>

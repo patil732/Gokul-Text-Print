@@ -102,9 +102,9 @@ export function DemoShowcaseSection() {
               <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
                 Live Operational Preview
               </span>
-              <Link href="/dashboard">
+              <Link href="/login">
                 <Button size="sm" variant="ghost" className="h-7 text-xs gap-1">
-                  <span>Open Full Dashboard</span>
+                  <span>Sign In to Portal</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Button>
               </Link>

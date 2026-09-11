@@ -385,9 +385,9 @@ export default function FeaturesPage() {
             </p>
           </div>
 
-          <Link href="/dashboard" className="shrink-0">
+          <Link href="/login" className="shrink-0">
             <Button size="lg" className="gap-2 font-semibold">
-              <span>Launch Live Workspace</span>
+              <span>Sign In to Mill Workspace</span>
               <ArrowRight className="w-4 h-4" />
             </Button>
           </Link>

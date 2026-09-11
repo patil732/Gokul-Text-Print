@@ -52,16 +52,6 @@ export function CtaBanner() {
                   <span>Sign In</span>
                 </Button>
               </Link>
-
-              <Link href="/dashboard">
-                <Button
-                  size="lg"
-                  variant="ghost"
-                  className="h-12 px-5 text-base font-medium text-indigo-200 hover:text-white hover:bg-white/10"
-                >
-                  <span>Explore Demo</span>
-                </Button>
-              </Link>
             </div>
 
             <div className="pt-4 flex flex-wrap items-center justify-center gap-6 text-xs text-indigo-200">

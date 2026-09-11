@@ -4,6 +4,7 @@ import { AppSidebar } from "@/components/app-shell/app-sidebar";
 import { AppTopbar } from "@/components/app-shell/app-topbar";
 import { AppSearchDialog } from "@/components/app-shell/app-search-dialog";
 import { AppMobileDrawer } from "@/components/app-shell/app-mobile-drawer";
+import { AuthGuard } from "@/components/app-shell/auth-guard";
 
 export default function AuthenticatedAppLayout({
   children,
@@ -11,28 +12,30 @@ export default function AuthenticatedAppLayout({
   children: React.ReactNode;
 }) {
   return (
-    <AppShellProvider>
-      <div className="flex h-screen w-full overflow-hidden bg-background text-foreground">
-        {/* Persistent Desktop Sidebar */}
-        <AppSidebar />
+    <AuthGuard>
+      <AppShellProvider>
+        <div className="flex h-screen w-full overflow-hidden bg-background text-foreground">
+          {/* Persistent Desktop Sidebar */}
+          <AppSidebar />
 
-        {/* Mobile / Tablet Drawer */}
-        <AppMobileDrawer />
+          {/* Mobile / Tablet Drawer */}
+          <AppMobileDrawer />
 
-        {/* Main View Area */}
-        <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
-          {/* Top Navbar */}
-          <AppTopbar />
+          {/* Main View Area */}
+          <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+            {/* Top Navbar */}
+            <AppTopbar />
 
-          {/* Scrollable Main Content */}
-          <main className="flex-1 overflow-y-auto bg-background/50">
-            {children}
-          </main>
+            {/* Scrollable Main Content */}
+            <main className="flex-1 overflow-y-auto bg-background/50">
+              {children}
+            </main>
+          </div>
+
+          {/* Global Search Modal */}
+          <AppSearchDialog />
         </div>
-
-        {/* Global Search Modal */}
-        <AppSearchDialog />
-      </div>
-    </AppShellProvider>
+      </AppShellProvider>
+    </AuthGuard>
   );
 }

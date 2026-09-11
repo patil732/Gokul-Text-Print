@@ -64,8 +64,8 @@ export function PublicFooter() {
                 </Link>
               </li>
               <li>
-                <Link href="/dashboard" className="hover:text-foreground transition-colors">
-                  Executive Strategy Dashboard
+                <Link href="/login" className="hover:text-foreground transition-colors">
+                  Enterprise Portal Sign In
                 </Link>
               </li>
             </ul>
@@ -110,23 +110,37 @@ export function PublicFooter() {
             </ul>
           </div>
 
-          {/* Governance & Mill Operations */}
+          {/* Official Factory & Sales Offices */}
           <div className="space-y-3">
             <p className="text-xs font-semibold uppercase tracking-wider text-foreground">
-              Enterprise Trust
+              Official Mill Locations
             </p>
-            <div className="space-y-2 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
-                <span>Zero Real-Data Exposure</span>
+            <div className="space-y-2.5 text-xs text-muted-foreground">
+              <div>
+                <span className="font-semibold text-foreground block">Head Office &amp; Factory:</span>
+                <span>B-74-77, Central Park, Pandesara, GIDC, Surat - 394221, Gujarat, India</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Activity className="w-4 h-4 text-brand shrink-0" />
-                <span>99.9% Telemetry Uptime</span>
+              <div>
+                <span className="font-semibold text-foreground block">Millennium Sales Office:</span>
+                <span>A-I Hall, Wing-A, Upper Ground, Millennium Textile Market, Ring Road, Surat - 395002</span>
               </div>
-              <p className="text-xs text-muted-foreground pt-2">
-                Certified for air-gapped industrial deployment on textile mill production floors.
-              </p>
+              <div className="pt-1 space-y-1">
+                <p>
+                  <strong className="text-foreground">Email: </strong>
+                  <a href="mailto:info@gokulprint.com" className="hover:text-brand underline">info@gokulprint.com</a>
+                </p>
+                <p>
+                  <strong className="text-foreground">Phone / WhatsApp: </strong>
+                  <a href="tel:+919081433354" className="hover:text-brand underline">+91 90814 33354</a>
+                </p>
+                <p>
+                  <strong className="text-foreground">Official Store: </strong>
+                  <a href="https://gokulprint.com" target="_blank" rel="noopener noreferrer" className="hover:text-brand inline-flex items-center gap-1">
+                    <span>gokulprint.com</span>
+                    <ArrowUpRight className="w-3 h-3" />
+                  </a>
+                </p>
+              </div>
             </div>
           </div>
         </div>

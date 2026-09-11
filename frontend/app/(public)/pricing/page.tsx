@@ -99,7 +99,7 @@ const FAQS = [
   {
     question: "Can we test the platform before committing?",
     answer:
-      "Yes! You can explore the full executive dashboard immediately without entering payment details by clicking 'Live Demo' or logging in with the verified demonstration accounts.",
+      "Yes! You can explore the platform immediately with our pre-configured demonstration accounts via the sign-in portal without entering payment details.",
   },
   {
     question: "How long does mill onboarding typically take?",
@@ -313,12 +313,12 @@ export default function PricingPage() {
           <div className="flex items-center gap-2 text-muted-foreground">
             <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
             <span>
-              All tiers include unauthenticated demo sandbox access. No credit card or business data required.
+              All tiers include evaluation sandbox access. Sign in through the secure portal to explore live mill workflows.
             </span>
           </div>
-          <Link href="/dashboard">
+          <Link href="/login">
             <Button size="sm" variant="outline" className="text-xs shrink-0">
-              Open Interactive Demo
+              Sign In to Portal
             </Button>
           </Link>
         </div>

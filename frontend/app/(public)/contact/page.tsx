@@ -87,9 +87,9 @@ export default function ContactPage() {
                     </div>
 
                     <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
-                      <Link href="/dashboard">
+                      <Link href="/login">
                         <Button className="gap-2 font-semibold">
-                          <span>Explore Live Executive Dashboard</span>
+                          <span>Sign In to Client Portal</span>
                           <ArrowRight className="w-4 h-4" />
                         </Button>
                       </Link>

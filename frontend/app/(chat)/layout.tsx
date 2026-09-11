@@ -7,14 +7,18 @@ export const metadata: Metadata = {
     "Dedicated ChatGPT-style executive assistant powered by Sales, Inventory, and Knowledge RAG agents.",
 };
 
+import { AuthGuard } from "@/components/app-shell/auth-guard";
+
 export default function ChatLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <div className="h-screen w-screen overflow-hidden bg-background text-foreground flex">
-      {children}
-    </div>
+    <AuthGuard>
+      <div className="h-screen w-screen overflow-hidden bg-background text-foreground flex">
+        {children}
+      </div>
+    </AuthGuard>
   );
 }

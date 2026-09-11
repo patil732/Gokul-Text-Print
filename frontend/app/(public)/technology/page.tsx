@@ -250,9 +250,9 @@ export default function TechnologyPage() {
                         </div>
                       ))}
                     </div>
-                    <Link href="/dashboard" className="pt-2">
+                    <Link href="/login" className="pt-2">
                       <Button size="sm" variant="outline" className="w-full text-xs h-8 gap-1.5">
-                        <span>Open in Workspace</span>
+                        <span>Sign In to Access</span>
                         <ArrowRight className="w-3.5 h-3.5" />
                       </Button>
                     </Link>

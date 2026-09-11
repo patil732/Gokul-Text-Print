@@ -133,6 +133,18 @@ export function PublicNav() {
                   {user.role}
                 </span>
               </Link>
+              <Link
+                href={user?.role?.toUpperCase() === "ADMIN" ? "/admin" : "/dashboard"}
+                className="hidden md:inline-flex"
+              >
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 px-3 text-xs font-semibold text-foreground hover:bg-muted gap-1.5 border-border"
+                >
+                  <span>{user?.role?.toUpperCase() === "ADMIN" ? "Admin Center" : "Executive Workspace"}</span>
+                </Button>
+              </Link>
               <Button
                 variant="ghost"
                 size="sm"
@@ -159,19 +171,6 @@ export function PublicNav() {
               </Link>
             </div>
           )}
-
-          <Link
-            href={user?.role?.toUpperCase() === "ADMIN" ? "/admin" : "/dashboard"}
-            className="hidden md:inline-flex"
-          >
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 px-3 text-xs font-semibold text-foreground hover:bg-muted gap-1.5 border-border"
-            >
-              <span>{user?.role?.toUpperCase() === "ADMIN" ? "Admin Center" : "Executive Dashboard"}</span>
-            </Button>
-          </Link>
 
           {/* Mobile Menu Button */}
           <button
@@ -279,17 +278,19 @@ export function PublicNav() {
               </div>
             )}
 
-            <Link
-              href={user?.role?.toUpperCase() === "ADMIN" ? "/admin" : "/dashboard"}
-              className="w-full block"
-            >
-              <Button
-                variant="ghost"
-                className="w-full flex items-center justify-center gap-2 text-foreground font-semibold"
+            {isAuthenticated && user && (
+              <Link
+                href={user?.role?.toUpperCase() === "ADMIN" ? "/admin" : "/dashboard"}
+                className="w-full block"
               >
-                <span>{user?.role?.toUpperCase() === "ADMIN" ? "Launch Admin Operations" : "Launch Executive Dashboard"}</span>
-              </Button>
-            </Link>
+                <Button
+                  variant="ghost"
+                  className="w-full flex items-center justify-center gap-2 text-foreground font-semibold"
+                >
+                  <span>{user?.role?.toUpperCase() === "ADMIN" ? "Launch Admin Operations" : "Launch Executive Dashboard"}</span>
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       )}
