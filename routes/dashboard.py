@@ -15,9 +15,13 @@ from __future__ import annotations
 
 import io
 import json
+import os
 import time
 from datetime import datetime
 from flask import Blueprint, jsonify, request, send_file, Response, session
+
+_THIS_DIR = os.path.dirname(os.path.abspath(__file__))
+_PROJECT_ROOT = os.path.dirname(_THIS_DIR)
 
 from app.dashboard.kpi.kpi_service import aggregate_kpis
 from utils.logger import logger
@@ -364,6 +368,48 @@ def generate_report_endpoint():
         }), 500
 
 
+def _seed_initial_alerts_if_empty():
+    """Ensure baseline operational alerts exist across Critical, Low Stock, Sales Drop, and Model Error categories."""
+    from database.db import get_db_connection
+    conn = get_db_connection()
+    try:
+        count = conn.execute("SELECT count(*) FROM alerts").fetchone()[0]
+        if count > 0:
+            return
+    except Exception:
+        return
+    finally:
+        conn.close()
+
+    try:
+        from app.dashboard.alerts import AlertEngine
+        engine = AlertEngine()
+        seeds = [
+            # 1. Critical Alerts (priority: CRITICAL)
+            ("LOW_STOCK", "CRITICAL", "Critical stockout breach: Grey Cotton 40s Cambric dropped below 2,000m safety buffer. Immediate mill replenishment required.", "ACTIVE"),
+            ("SALES_DROP", "CRITICAL", "Severe sales contraction detected: Surat wholesale corridor orders dropped by 26.4% in current billing cycle.", "RESOLVED"),
+            ("ETL_FAILURE", "CRITICAL", "ETL ingestion pipeline sync halted: Machina ERP rotary screen sensor batch #881 failed schema validation.", "ACTIVE"),
+            # 2. Low Stock (LOW_STOCK / OVERSTOCK)
+            ("LOW_STOCK", "HIGH", "Low stock warning: Micro Modal 60s balance approaching critical threshold (< 4,500m remaining in Bin #14).", "ACTIVE"),
+            ("OVERSTOCK", "MEDIUM", "Overstock alert: 1,850m Poly Chiffon batch #104 flagged as dead stock with zero movement over 45 days.", "RESOLVED"),
+            ("LOW_STOCK", "HIGH", "Chemical kitchen alert: Sodium Hydrosulfite discharge printing catalyst at 12% reorder point.", "RESOLVED"),
+            # 3. Sales Drop (SALES_DROP / SALES_SPIKE)
+            ("SALES_DROP", "HIGH", "Significant sales drop detected: Rayon Print 30s projected volume fell by 18.2% across Ahmedabad retail segment.", "ACTIVE"),
+            ("SALES_SPIKE", "MEDIUM", "Sales surge detected: Pure Silk Georgette demand surged +31.5%. Adjust rotary schedule to prevent bottlenecks.", "RESOLVED"),
+            ("SALES_DROP", "HIGH", "Client reorder delay: Top wholesale distributor 'Surat Fabrics Syndicate' has not placed scheduled bi-weekly order.", "RESOLVED"),
+            # 4. Model Errors (MODEL_FAILURE / ETL_FAILURE / MISSING_DATA / CONFIDENCE_DROP)
+            ("MODEL_FAILURE", "HIGH", "7-day ARIMA sales forecast degraded: Mean Absolute Percentage Error (MAPE) breached acceptable 15% ceiling.", "ACTIVE"),
+            ("CONFIDENCE_DROP", "MEDIUM", "AI Recommendation confidence drop: Multi-agent consensus confidence fell to 54.2% on batch scheduling.", "ACTIVE"),
+            ("MISSING_DATA", "HIGH", "Missing telemetry data: Digital Stork printing unit #2 temperature telemetry missing for 6 consecutive cycles.", "RESOLVED"),
+        ]
+        for alert_type, priority, msg, status in seeds:
+            created = engine.create_alert(alert_type, priority, msg)
+            if status == "RESOLVED" and created.get("alert_id"):
+                engine.resolve_alert(created["alert_id"])
+    except Exception as err:
+        logger.warning(f"[dashboard_bp] Initial alert seeding skipped: {err}")
+
+
 @dashboard_bp.route("/api/dashboard/alerts", methods=["GET"])
 def get_dashboard_alerts():
     """
@@ -375,24 +421,6 @@ def get_dashboard_alerts():
     status : "ACTIVE" | "RESOLVED" | "ALL", optional (default: "ACTIVE")
     priority : "CRITICAL" | "HIGH" | "MEDIUM" | "LOW", optional
     limit : int, optional (default: 20)
-
-    Response JSON
-    -------------
-    {
-      "status": "success",
-      "count": int,
-      "data": [
-        {
-          "alert_id": str,
-          "alert_type": str,
-          "priority": str,
-          "message": str,
-          "status": str,
-          "created_at": str
-        }
-      ],
-      "elapsed_ms": float
-    }
     """
     t_start = time.perf_counter()
     status_param = request.args.get("status", "ACTIVE").strip().upper()
@@ -420,6 +448,7 @@ def get_dashboard_alerts():
     try:
         from app.dashboard.alerts import AlertEngine
         engine = AlertEngine()
+        _seed_initial_alerts_if_empty()
         alerts = engine.get_active_alerts(
             priority_filter=priority_param,
             status=status_param,
@@ -444,6 +473,48 @@ def get_dashboard_alerts():
         return jsonify({
             "status": "error",
             "message": f"Failed to retrieve alerts: {str(exc)}",
+        }), 500
+
+
+@dashboard_bp.route("/api/dashboard/alerts/<string:alert_id>", methods=["PATCH"])
+def patch_dashboard_alert(alert_id: str):
+    """
+    Update the status of an alert (mark as RESOLVED or ACTIVE).
+    """
+    body = request.get_json(silent=True) or {}
+    new_status = body.get("status", "RESOLVED").strip().upper()
+    try:
+        from app.dashboard.alerts import AlertEngine
+        engine = AlertEngine()
+        if new_status == "RESOLVED":
+            ok = engine.resolve_alert(alert_id)
+        else:
+            from database.db import get_db_connection
+            conn = get_db_connection()
+            cur = conn.execute("UPDATE alerts SET status = ? WHERE alert_id = ?", (new_status, alert_id))
+            conn.commit()
+            ok = cur.rowcount > 0
+            conn.close()
+
+        if not ok:
+            return jsonify({
+                "status": "error",
+                "message": f"Alert '{alert_id}' not found."
+            }), 404
+
+        logger.info(f"[dashboard_bp] PATCH /api/dashboard/alerts/{alert_id} -> {new_status}")
+        return jsonify({
+            "status": "success",
+            "message": f"Alert '{alert_id}' status updated to '{new_status}'.",
+            "alert_id": alert_id,
+            "new_status": new_status,
+        }), 200
+
+    except Exception as exc:
+        logger.error(f"[dashboard_bp] Failed to update alert '{alert_id}': {exc}", exc_info=True)
+        return jsonify({
+            "status": "error",
+            "message": f"Failed to update alert: {str(exc)}"
         }), 500
 
 
@@ -582,5 +653,79 @@ def save_dashboard_preferences():
             "status": "error",
             "message": f"Failed to save preferences: {str(exc)}"
         }), 500
+
+
+# --------------------------------------------------------------------------- #
+# LLM Provider Configuration (Sprint 4 & Sprint 7 Settings)
+# --------------------------------------------------------------------------- #
+
+@dashboard_bp.route("/api/settings/llm_provider", methods=["GET"])
+def get_llm_provider_setting():
+    """
+    Read active LLM provider configuration from model_config.yaml (Sprint 4).
+    """
+    try:
+        import yaml
+        config_path = os.path.join(_PROJECT_ROOT, "config", "model_config.yaml")
+        with open(config_path, "r", encoding="utf-8") as f:
+            cfg = yaml.safe_load(f) or {}
+        active_provider = cfg.get("rag", {}).get("chat", {}).get("provider", "gemini").lower()
+        active_model = cfg.get("rag", {}).get("chat_providers", {}).get(active_provider, {}).get("model", "gemini-1.5-flash")
+        return jsonify({
+            "status": "success",
+            "provider": active_provider,
+            "model": active_model,
+            "available_providers": ["gemini", "openai"]
+        }), 200
+    except Exception as exc:
+        logger.error(f"[dashboard_bp] Failed to get LLM provider: {exc}", exc_info=True)
+        return jsonify({"status": "error", "message": str(exc)}), 500
+
+
+@dashboard_bp.route("/api/settings/llm_provider", methods=["POST"])
+def set_llm_provider_setting():
+    """
+    Update active LLM provider configuration in model_config.yaml and reset chat provider singleton.
+    """
+    body = request.get_json(silent=True) or {}
+    new_provider = (body.get("provider") or "").strip().lower()
+    if new_provider not in ["gemini", "openai"]:
+        return jsonify({
+            "status": "error",
+            "message": f"Invalid provider '{new_provider}'. Allowed values: ['gemini', 'openai']"
+        }), 400
+
+    try:
+        import yaml
+        config_path = os.path.join(_PROJECT_ROOT, "config", "model_config.yaml")
+        with open(config_path, "r", encoding="utf-8") as f:
+            cfg = yaml.safe_load(f) or {}
+
+        if "rag" not in cfg:
+            cfg["rag"] = {}
+        if "chat" not in cfg["rag"]:
+            cfg["rag"]["chat"] = {}
+
+        cfg["rag"]["chat"]["provider"] = new_provider
+
+        with open(config_path, "w", encoding="utf-8") as f:
+            yaml.safe_dump(cfg, f, default_flow_style=False, sort_keys=False)
+
+        # Reset chat singleton so subsequent requests pick up the new provider
+        try:
+            from app.rag.chat_service import reset_chat_provider
+            reset_chat_provider()
+        except Exception:
+            pass
+
+        return jsonify({
+            "status": "success",
+            "provider": new_provider,
+            "message": f"LLM Provider updated to '{new_provider}' successfully."
+        }), 200
+    except Exception as exc:
+        logger.error(f"[dashboard_bp] Failed to set LLM provider: {exc}", exc_info=True)
+        return jsonify({"status": "error", "message": str(exc)}), 500
+
 
 

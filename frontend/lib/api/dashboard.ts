@@ -45,16 +45,40 @@ export interface KpiResponse {
 }
 
 export interface DashboardPreferences {
-  theme: string;
-  pinned_widgets: string[];
-  widget_order: string[];
-  chart_filters: {
+  theme?: string;
+  llm_provider?: "gemini" | "openai";
+  api_keys?: {
+    gemini?: string;
+    openai?: string;
+  };
+  notifications?: {
+    email_alerts?: boolean;
+    critical_sms?: boolean;
+    daily_digest?: boolean;
+    weekly_pdf?: boolean;
+  };
+  profile?: {
+    full_name?: string;
+    email?: string;
+    phone?: string;
+    role?: string;
+  };
+  company?: {
+    mill_name?: string;
+    gstin?: string;
+    address?: string;
+    printing_capacity?: string;
+    active_machinery?: string;
+  };
+  pinned_widgets?: string[];
+  widget_order?: string[];
+  chart_filters?: {
     sales_range: string;
     inventory_range: string;
     start_date: string;
     end_date: string;
   };
-  collapsed_sections: string[];
+  collapsed_sections?: string[];
 }
 
 export interface PreferencesResponse {
@@ -63,6 +87,14 @@ export interface PreferencesResponse {
   data: DashboardPreferences;
   updated_at?: string;
   is_default?: boolean;
+}
+
+export interface LlmProviderResponse {
+  status: "success" | "error";
+  provider: "gemini" | "openai";
+  model?: string;
+  available_providers: string[];
+  message?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -99,4 +131,20 @@ export async function saveDashboardPreferences(
     user: userId,
     preferences,
   });
+}
+
+/**
+ * Read the active LLM provider from backend config.
+ */
+export async function getLlmProviderSetting(): Promise<LlmProviderResponse> {
+  return apiGet<LlmProviderResponse>("/api/settings/llm_provider");
+}
+
+/**
+ * Set the active LLM provider in backend config.
+ */
+export async function setLlmProviderSetting(
+  provider: "gemini" | "openai",
+): Promise<LlmProviderResponse> {
+  return apiPost<LlmProviderResponse>("/api/settings/llm_provider", { provider });
 }

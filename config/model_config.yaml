@@ -1,23 +1,5 @@
-# ============================================================
-# Model Configuration File
-# Defines algorithm choice, hyperparameter profiles for all
-# supported algorithms (random_forest, xgboost, lightgbm,
-# gradient_boosting), scaler settings, feature contracts,
-# and hyperparameter tuning grids for ML pipelines.
-# ============================================================
-
-# ------------------------------------------------------------
-# Sales Forecasting Pipeline Configuration
-# ------------------------------------------------------------
 sales:
-  # Active algorithm used by single-model path (sales_training.py).
-  # The multi-model evaluate.py trains ALL four algorithms and picks best.
-  # Options: xgboost | lightgbm | random_forest | gradient_boosting
   algorithm: xgboost
-
-  # ----------------------------------------------------------
-  # Default hyperparameter profiles (used as base/fallback)
-  # ----------------------------------------------------------
   algorithms:
     xgboost:
       n_estimators: 250
@@ -28,7 +10,6 @@ sales:
       random_state: 42
       n_jobs: -1
       eval_metric: logloss
-
     lightgbm:
       n_estimators: 250
       max_depth: 8
@@ -39,86 +20,90 @@ sales:
       random_state: 42
       n_jobs: -1
       verbose: -1
-
     random_forest:
       n_estimators: 200
       max_depth: 10
       random_state: 42
       n_jobs: -1
-
     gradient_boosting:
       n_estimators: 150
       max_depth: 5
       learning_rate: 0.1
       subsample: 0.8
       random_state: 42
-
-  # ----------------------------------------------------------
-  # Hyperparameter tuning configuration (used by evaluate.py)
-  # strategy : "random" | "grid" | "none"
-  # n_iter   : number of candidate draws (random search only)
-  # cv       : cross-validation folds
-  # scoring  : sklearn scoring string (primary ranking metric)
-  # Per-algo param grids follow below.
-  # ----------------------------------------------------------
   tuning:
     strategy: random
     n_iter: 8
     cv: 3
     scoring: neg_root_mean_squared_error
-
     random_forest:
-      n_estimators: [100, 200]
-      max_depth: [5, 10, null]
-      min_samples_split: [2, 5]
-
+      n_estimators:
+      - 100
+      - 200
+      max_depth:
+      - 5
+      - 10
+      - null
+      min_samples_split:
+      - 2
+      - 5
     xgboost:
-      n_estimators: [100, 200]
-      max_depth: [4, 6]
-      learning_rate: [0.05, 0.1]
-      subsample: [0.7, 0.9]
-
+      n_estimators:
+      - 100
+      - 200
+      max_depth:
+      - 4
+      - 6
+      learning_rate:
+      - 0.05
+      - 0.1
+      subsample:
+      - 0.7
+      - 0.9
     lightgbm:
-      n_estimators: [100, 200]
-      num_leaves: [31, 63]
-      learning_rate: [0.05, 0.1]
-      subsample: [0.7, 0.9]
-
+      n_estimators:
+      - 100
+      - 200
+      num_leaves:
+      - 31
+      - 63
+      learning_rate:
+      - 0.05
+      - 0.1
+      subsample:
+      - 0.7
+      - 0.9
     gradient_boosting:
-      n_estimators: [100, 150]
-      max_depth: [3, 5]
-      learning_rate: [0.05, 0.1]
-      subsample: [0.7, 0.9]
-
+      n_estimators:
+      - 100
+      - 150
+      max_depth:
+      - 3
+      - 5
+      learning_rate:
+      - 0.05
+      - 0.1
+      subsample:
+      - 0.7
+      - 0.9
   scaler:
     enabled: true
-    type: standard          # Options: standard | minmax | robust
-
+    type: standard
   features:
-    - sales
-    - sales_lag_1
-    - sales_lag_2
-    - sales_lag_3
-    - sales_ma_3
-    - sales_ma_7
-    - sales_ma_14
-    - sales_std_7
-    - momentum
-    - trend
-    - stock_ratio
-
+  - sales
+  - sales_lag_1
+  - sales_lag_2
+  - sales_lag_3
+  - sales_ma_3
+  - sales_ma_7
+  - sales_ma_14
+  - sales_std_7
+  - momentum
+  - trend
+  - stock_ratio
   target: target_decision
-
-
-# ------------------------------------------------------------
-# Inventory Reorder Prediction Pipeline Configuration
-# ------------------------------------------------------------
 inventory:
-  # Active algorithm. Options: xgboost | lightgbm | random_forest
-  # XGBoost active for both sales and inventory pipelines
   algorithm: xgboost
-
-  # Hyperparameter profiles per supported algorithm
   algorithms:
     lightgbm:
       n_estimators: 300
@@ -129,7 +114,6 @@ inventory:
       random_state: 42
       n_jobs: -1
       verbose: -1
-
     xgboost:
       n_estimators: 300
       max_depth: 6
@@ -138,105 +122,66 @@ inventory:
       random_state: 42
       n_jobs: -1
       eval_metric: logloss
-
     random_forest:
       n_estimators: 300
       max_depth: 8
       class_weight: balanced
       random_state: 42
       n_jobs: -1
-
   scaler:
     enabled: true
-    type: minmax            # Options: standard | minmax | robust
-
+    type: minmax
   features:
-    - total_stock
-    - warehouse_count
-    - avg_stock_per_wh
-    - max_stock_in_wh
-    - stock_concentration
-    - total_qty_planned
-    - total_produced
-    - production_gap
-    - fulfillment_rate
-    - has_open_orders
-    - available_qty
-    - safety_stock
-    - stock_turnover
-    - days_in_inventory
-    - fast_moving
-    - slow_moving
-    - dead_stock
-    - reorder_level
-
+  - total_stock
+  - warehouse_count
+  - avg_stock_per_wh
+  - max_stock_in_wh
+  - stock_concentration
+  - total_qty_planned
+  - total_produced
+  - production_gap
+  - fulfillment_rate
+  - has_open_orders
+  - available_qty
+  - safety_stock
+  - stock_turnover
+  - days_in_inventory
+  - fast_moving
+  - slow_moving
+  - dead_stock
+  - reorder_level
   target: reorder_flag
-
-
-# ------------------------------------------------------------
-# RAG Knowledge Engine — Embedding Configuration
-# Sprint 4 Step 3
-# ------------------------------------------------------------
 rag:
   embedding:
-    # Active provider.  Options: sentence_transformers | openai | gemini
-    # Switch provider here; no code changes required.
     provider: sentence_transformers
-    batch_size: 32            # chunks embedded per provider call
-
-  # Per-provider settings.  Only the active provider's block is used at runtime.
+    batch_size: 32
   providers:
     sentence_transformers:
-      model: all-MiniLM-L6-v2   # 384-dim, fast, runs fully offline
+      model: all-MiniLM-L6-v2
       dimension: 384
-
     openai:
-      model: text-embedding-3-small   # 1 536-dim
+      model: text-embedding-3-small
       dimension: 1536
-      api_key_env: OPENAI_API_KEY     # env var holding the API key
-
+      api_key_env: OPENAI_API_KEY
     gemini:
-      model: models/text-embedding-004   # 768-dim
+      model: models/text-embedding-004
       dimension: 768
-      api_key_env: GEMINI_API_KEY        # env var holding the API key
-
-  # ----------------------------------------------------------
-  # Vector search configuration (Sprint 4 Step 4)
-  # ----------------------------------------------------------
+      api_key_env: GEMINI_API_KEY
   search:
-    # K returned by default when the caller omits top_k
     default_top_k: 5
-    # Hard ceiling — requests above this are rejected with HTTP 400
     max_top_k: 50
-    # FAISS index type.  FlatIP = exact cosine (dot-product after L2-norm).
-    # Switch to IVFFlat or HNSW for >500k chunks.
     index_type: FlatIP
-    # Number of IVF cells to scan (ignored for FlatIP)
     nprobe: 10
-    # Seconds before the in-memory index is considered stale and rebuilt.
-    # 0 = never expire (only rebuilt after upload invalidation).
     cache_ttl_seconds: 300
-
-  # ----------------------------------------------------------
-  # Chat / generation configuration (Sprint 4 Step 5)
-  # ----------------------------------------------------------
   chat:
-    # Active LLM provider.  Options: gemini | openai
-    # Switch provider here; no code changes required.
     provider: gemini
-    # Number of retrieved chunks fed into the prompt as context
     top_k: 5
-    # Maximum tokens in the LLM response
     max_tokens: 1024
-    # Lower temperature = more factual / grounded answers
     temperature: 0.2
-
-  # Per-provider LLM settings (only the active provider block is used)
   chat_providers:
     gemini:
       model: gemini-2.5-flash
       api_key_env: GEMINI_API_KEY
-
     openai:
       model: gpt-4o-mini
       api_key_env: OPENAI_API_KEY
