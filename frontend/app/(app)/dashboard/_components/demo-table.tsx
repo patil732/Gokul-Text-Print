@@ -1,15 +1,5 @@
 "use client";
 
-/*
- * app/dashboard/_components/demo-table.tsx
- * ------------------------------------------
- * Client component wrapper for the design-system DataTable demo.
- *
- * Must be "use client" because DataTable uses useState internally,
- * and its column accessor/rowKey props are functions that cannot be
- * serialized across the RSC boundary from a Server Component.
- */
-
 import { DataTable, type Column } from "@/components/ui/data-table";
 import { PriorityBadge } from "@/components/ui/badge";
 import type { KpiResponse } from "@/lib/api/dashboard";
