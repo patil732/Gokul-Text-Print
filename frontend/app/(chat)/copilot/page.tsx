@@ -183,9 +183,9 @@ export default function FullPageCopilot() {
               <span className="p-1 rounded-md bg-purple-500/10 text-purple-600 dark:text-purple-400">
                 <Bot className="w-4 h-4" />
               </span>
-              <span className="font-bold text-sm tracking-tight text-foreground hidden sm:inline">
+              <h1 className="font-bold text-sm tracking-tight text-foreground hidden sm:inline">
                 Executive AI Copilot
-              </span>
+              </h1>
               <Badge
                 variant="outline"
                 className="text-[10px] font-mono border-emerald-500/30 text-emerald-600 dark:text-emerald-400 bg-emerald-500/5"

@@ -102,6 +102,7 @@ export function CopilotInput({ onSend, disabled, isLoading }: CopilotInputProps)
                 : "bg-muted text-muted-foreground opacity-40 cursor-not-allowed"
             }`}
             title="Send message (Enter)"
+            aria-label="Send message"
           >
             {isLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />

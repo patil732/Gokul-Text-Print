@@ -108,6 +108,8 @@ export function AppTopbar() {
         return { section: "Executive Reports", title: "Intelligence Summaries & Audit Logs" };
       case "/alerts":
         return { section: "Priority Alerts", title: "Operational Incident Queue" };
+      case "/admin":
+        return { section: "Operations", title: "Admin Operations Center" };
       case "/settings":
         return { section: "Settings", title: "Mill & Model Configuration" };
       case "/profile":
