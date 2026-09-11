@@ -58,14 +58,58 @@ def init_db() -> None:
     conn   = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-    # Users table
+    # Users table (RBAC-ready: CEO, Manager, Employee, Admin)
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id       INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT    UNIQUE NOT NULL,
             password TEXT           NOT NULL,
-            role     TEXT           NOT NULL CHECK(role IN ('ceo', 'admin'))
+            role     TEXT           NOT NULL CHECK(role IN ('ceo', 'admin', 'manager', 'employee', 'CEO', 'Manager', 'Employee', 'Admin')),
+            email    TEXT           DEFAULT ''
         )
+    """)
+
+    # Check if users table constraint needs migration to allow all 4 RBAC roles
+    try:
+        cursor.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='users'")
+        table_sql = cursor.fetchone()
+        if table_sql and "manager" not in table_sql[0].lower():
+            logger.info("[db] Migrating users table to support RBAC roles (CEO, Manager, Employee, Admin)...")
+            cursor.execute("""
+                CREATE TABLE users_rbac_new (
+                    id       INTEGER PRIMARY KEY AUTOINCREMENT,
+                    username TEXT    UNIQUE NOT NULL,
+                    password TEXT           NOT NULL,
+                    role     TEXT           NOT NULL CHECK(role IN ('ceo', 'admin', 'manager', 'employee', 'CEO', 'Manager', 'Employee', 'Admin')),
+                    email    TEXT           DEFAULT ''
+                )
+            """)
+            cursor.execute("INSERT INTO users_rbac_new (id, username, password, role) SELECT id, username, password, role FROM users")
+            cursor.execute("DROP TABLE users")
+            cursor.execute("ALTER TABLE users_rbac_new RENAME TO users")
+            logger.info("[db] Users table migrated successfully.")
+        else:
+            try:
+                cursor.execute("ALTER TABLE users ADD COLUMN email TEXT DEFAULT ''")
+            except Exception:
+                pass
+    except Exception as e:
+        logger.warning(f"[db] Users table migration check exception: {e}")
+
+    # Password reset tokens table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS password_reset_tokens (
+            id         INTEGER  PRIMARY KEY AUTOINCREMENT,
+            username   TEXT     NOT NULL,
+            token      TEXT     UNIQUE NOT NULL,
+            expires_at DATETIME NOT NULL,
+            used       INTEGER  DEFAULT 0,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cursor.execute("""
+        CREATE INDEX IF NOT EXISTS idx_reset_tokens_token
+        ON password_reset_tokens(token, used, expires_at)
     """)
 
     # Decision history table
@@ -204,6 +248,23 @@ def init_db() -> None:
             updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     """)
+
+    # Seed default RBAC demo accounts if absent
+    from werkzeug.security import generate_password_hash
+    seed_users = [
+        ("admin", "admin123", "Admin", "admin@gokultextprint.internal"),
+        ("ceo", "ceo123", "CEO", "ceo@gokultextprint.internal"),
+        ("manager", "manager123", "Manager", "manager@gokultextprint.internal"),
+        ("employee", "employee123", "Employee", "employee@gokultextprint.internal"),
+    ]
+    for uname, pwd, rle, eml in seed_users:
+        cursor.execute("SELECT id FROM users WHERE username = ?", (uname,))
+        if not cursor.fetchone():
+            cursor.execute(
+                "INSERT INTO users (username, password, role, email) VALUES (?, ?, ?, ?)",
+                (uname, generate_password_hash(pwd), rle, eml)
+            )
+            logger.info(f"[db] Seeded demo user '{uname}' with role '{rle}'")
 
     conn.commit()
     conn.close()

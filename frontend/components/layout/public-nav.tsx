@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/components/providers/auth-provider";
 import {
   Layers,
   Menu,
@@ -18,6 +19,8 @@ import {
   DollarSign,
   Mail,
   LogIn,
+  User,
+  LogOut,
 } from "lucide-react";
 
 interface NavItem {
@@ -38,6 +41,7 @@ const NAV_ITEMS: NavItem[] = [
 
 export function PublicNav() {
   const pathname = usePathname();
+  const { user, isAuthenticated, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [scrolled, setScrolled] = React.useState(false);
 
@@ -114,13 +118,28 @@ export function PublicNav() {
         <div className="flex items-center gap-2.5">
           <ThemeToggle />
 
-          <Link
-            href="/login"
-            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
-          >
-            <LogIn className="w-4 h-4" />
-            <span>Sign In</span>
-          </Link>
+          {isAuthenticated && user ? (
+            <Link
+              href="/profile"
+              className="hidden sm:inline-flex items-center gap-2 px-2.5 py-1 text-xs font-medium text-foreground bg-card hover:bg-muted border border-border rounded-full shadow-2xs transition-colors"
+            >
+              <div className="w-5 h-5 rounded-full bg-brand text-brand-fg flex items-center justify-center text-[10px] font-bold">
+                {user.username.slice(0, 1).toUpperCase()}
+              </div>
+              <span className="font-semibold max-w-[90px] truncate">{user.username}</span>
+              <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-brand-muted text-brand-muted-fg uppercase tracking-wider">
+                {user.role}
+              </span>
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+            >
+              <LogIn className="w-4 h-4" />
+              <span>Sign In</span>
+            </Link>
+          )}
 
           <Link href="/dashboard">
             <Button size="sm" className="hidden sm:inline-flex items-center gap-1.5 font-medium">
@@ -164,16 +183,66 @@ export function PublicNav() {
                 </Link>
               );
             })}
+
+            {isAuthenticated && (
+              <Link
+                href="/profile"
+                className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  pathname === "/profile"
+                    ? "text-brand font-semibold bg-brand-muted/60"
+                    : "text-foreground hover:bg-muted"
+                }`}
+              >
+                <User className="w-4 h-4 text-brand" />
+                <span>My Profile & RBAC Role</span>
+              </Link>
+            )}
           </div>
 
           <div className="pt-3 border-t border-border flex flex-col gap-2">
-            <Link
-              href="/login"
-              className="flex items-center justify-center gap-2 w-full py-2 text-sm font-medium rounded-md border border-border hover:bg-muted text-foreground"
-            >
-              <LogIn className="w-4 h-4" />
-              <span>Sign In (Demo Portal)</span>
-            </Link>
+            {isAuthenticated && user ? (
+              <div className="space-y-2">
+                <div className="p-2.5 rounded-lg bg-card border border-border flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-full bg-brand text-brand-fg flex items-center justify-center text-xs font-bold">
+                      {user.username.slice(0, 1).toUpperCase()}
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-foreground">{user.username}</div>
+                      <div className="text-[10px] text-muted-foreground">{user.email}</div>
+                    </div>
+                  </div>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-muted text-brand-muted-fg uppercase">
+                    {user.role}
+                  </span>
+                </div>
+
+                <div className="flex gap-2">
+                  <Link href="/profile" className="flex-1">
+                    <Button variant="outline" size="sm" className="w-full text-xs">
+                      View Profile
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => logout()}
+                    className="text-xs text-rose-500 hover:text-rose-600 gap-1"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>Sign Out</span>
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="flex items-center justify-center gap-2 w-full py-2 text-sm font-medium rounded-md border border-border hover:bg-muted text-foreground"
+              >
+                <LogIn className="w-4 h-4" />
+                <span>Sign In (Portal)</span>
+              </Link>
+            )}
 
             <Link href="/dashboard" className="w-full">
               <Button className="w-full flex items-center justify-center gap-2">

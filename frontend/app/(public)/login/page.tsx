@@ -7,6 +7,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Badge, PriorityBadge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PageTransition } from "@/components/ui/page-transition";
+import { useAuth } from "@/components/providers/auth-provider";
 import {
   Layers,
   ArrowRight,
@@ -17,32 +18,117 @@ import {
   Lock,
   Sparkles,
   LogIn,
+  AlertCircle,
+  Eye,
+  EyeOff,
+  Briefcase,
+  Users,
 } from "lucide-react";
+
+interface DemoRole {
+  role: "CEO" | "Admin" | "Manager" | "Employee";
+  username: string;
+  password: string;
+  badge: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "SUCCESS";
+  title: string;
+  description: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
+
+const DEMO_ROLES: DemoRole[] = [
+  {
+    role: "CEO",
+    username: "ceo",
+    password: "ceo123",
+    badge: "CRITICAL",
+    title: "Chief Executive Officer",
+    description: "Macro mill KPIs, financial forecasts, and autonomous supervisor agent briefings.",
+    icon: UserCheck,
+  },
+  {
+    role: "Admin",
+    username: "admin",
+    password: "admin123",
+    badge: "HIGH",
+    title: "System Administrator",
+    description: "Platform orchestration, telemetry bus controls, and system configuration.",
+    icon: ShieldCheck,
+  },
+  {
+    role: "Manager",
+    username: "manager",
+    password: "manager123",
+    badge: "MEDIUM",
+    title: "Plant & Production Manager",
+    description: "Shift throughput, rotary screen maintenance, and factory floor operations.",
+    icon: Factory,
+  },
+  {
+    role: "Employee",
+    username: "employee",
+    password: "employee123",
+    badge: "LOW",
+    title: "Dye Kitchen & Line Specialist",
+    description: "Chemical lot dispensing, color kitchen SOP lookups, and inventory logging.",
+    icon: Users,
+  },
+];
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = React.useState("executive@gokultextprint.internal");
-  const [password, setPassword] = React.useState("••••••••••••");
-  const [loadingRole, setLoadingRole] = React.useState<string | null>(null);
+  const { login, isAuthenticated, user } = useAuth();
 
-  const handleQuickLogin = (role: string) => {
-    setLoadingRole(role);
-    setTimeout(() => {
-      router.push("/dashboard");
-    }, 400);
+  const [username, setUsername] = React.useState("");
+  const [password, setPassword] = React.useState("");
+  const [showPassword, setShowPassword] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [loading, setLoading] = React.useState(false);
+  const [activePersona, setActivePersona] = React.useState<string | null>(null);
+
+  // If already authenticated, allow instant navigation
+  React.useEffect(() => {
+    if (isAuthenticated && user) {
+      // Optional: keep user on page if they want to switch accounts
+    }
+  }, [isAuthenticated, user]);
+
+  const executeLogin = async (uname: string, pwd: string) => {
+    setError(null);
+    setLoading(true);
+    try {
+      await login({ username: uname, password: pwd });
+      router.push("/profile");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Invalid username or password.");
+      }
+    } finally {
+      setLoading(false);
+      setActivePersona(null);
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoadingRole("email");
-    setTimeout(() => {
-      router.push("/dashboard");
-    }, 400);
+    if (!username || !password) {
+      setError("Please enter both username and password.");
+      return;
+    }
+    await executeLogin(username, password);
+  };
+
+  const handlePersonaClick = async (demo: DemoRole) => {
+    setUsername(demo.username);
+    setPassword(demo.password);
+    setActivePersona(demo.role);
+    await executeLogin(demo.username, demo.password);
   };
 
   return (
     <PageTransition className="py-12 lg:py-20">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         {/* Header */}
         <div className="text-center max-w-xl mx-auto space-y-3">
           <div className="inline-flex items-center gap-2 p-2 rounded-xl bg-brand-muted/40 text-brand font-bold text-sm">
@@ -55,142 +141,75 @@ export default function LoginPage() {
           </h1>
 
           <p className="text-sm text-muted-foreground">
-            Sprint 7 public unauthenticated demonstration mode is active. You can launch the platform
-            immediately with pre-configured executive roles.
+            Wired to the Flask authentication API with RBAC session support (CEO, Admin, Manager, Employee).
           </p>
         </div>
 
-        {/* Quick Demo Access Roles */}
+        {/* Quick Demo Personas */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
               <Sparkles className="w-4 h-4 text-brand" />
-              Instant One-Click Demo Personas:
+              One-Click RBAC Demo Personas:
             </span>
             <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-              No Password Needed
+              Live Flask Auth Ready
             </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Role 1 */}
-            <Card
-              className="group bg-card border-border hover:border-brand/70 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
-              onClick={() => handleQuickLogin("Executive")}
-            >
-              <CardHeader className="space-y-2 pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="w-8 h-8 rounded-lg bg-brand text-brand-fg flex items-center justify-center">
-                    <UserCheck className="w-4 h-4" />
-                  </div>
-                  <PriorityBadge priority="CRITICAL" size="sm">
-                    Full Access
-                  </PriorityBadge>
-                </div>
-                <CardTitle className="text-base font-bold text-foreground">
-                  Executive Director / Mill Owner
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-xs text-muted-foreground pb-4">
-                Macro factory KPIs, seasonal revenue forecasts, and autonomous supervisor agent briefings.
-              </CardContent>
-              <CardFooter className="pt-2 border-t border-border/60">
-                <Button
-                  size="sm"
-                  className="w-full text-xs font-semibold gap-1.5"
-                  disabled={loadingRole !== null}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {DEMO_ROLES.map((demo) => {
+              const Icon = demo.icon;
+              const isSelected = activePersona === demo.role;
+              return (
+                <Card
+                  key={demo.role}
+                  className={`group bg-card border-border hover:border-brand/70 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between ${
+                    isSelected ? "ring-2 ring-brand border-brand" : ""
+                  }`}
+                  onClick={() => handlePersonaClick(demo)}
                 >
-                  {loadingRole === "Executive" ? (
-                    <span>Launching...</span>
-                  ) : (
-                    <>
-                      <span>Enter as Executive</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </>
-                  )}
-                </Button>
-              </CardFooter>
-            </Card>
-
-            {/* Role 2 */}
-            <Card
-              className="group bg-card border-border hover:border-brand/70 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
-              onClick={() => handleQuickLogin("Production")}
-            >
-              <CardHeader className="space-y-2 pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="w-8 h-8 rounded-lg bg-muted text-foreground flex items-center justify-center">
-                    <Factory className="w-4 h-4" />
-                  </div>
-                  <PriorityBadge priority="HIGH" size="sm">
-                    Operations
-                  </PriorityBadge>
-                </div>
-                <CardTitle className="text-base font-bold text-foreground">
-                  Plant & Production Lead
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-xs text-muted-foreground pb-4">
-                Shift line output, rotary screen mesh tension alerts, and formula RAG troubleshooting.
-              </CardContent>
-              <CardFooter className="pt-2 border-t border-border/60">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="w-full text-xs font-semibold gap-1.5"
-                  disabled={loadingRole !== null}
-                >
-                  {loadingRole === "Production" ? (
-                    <span>Launching...</span>
-                  ) : (
-                    <>
-                      <span>Enter as Plant Lead</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </>
-                  )}
-                </Button>
-              </CardFooter>
-            </Card>
-
-            {/* Role 3 */}
-            <Card
-              className="group bg-card border-border hover:border-brand/70 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
-              onClick={() => handleQuickLogin("Inventory")}
-            >
-              <CardHeader className="space-y-2 pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="w-8 h-8 rounded-lg bg-muted text-foreground flex items-center justify-center">
-                    <Boxes className="w-4 h-4" />
-                  </div>
-                  <PriorityBadge priority="MEDIUM" size="sm">
-                    Supply Chain
-                  </PriorityBadge>
-                </div>
-                <CardTitle className="text-base font-bold text-foreground">
-                  Dye Kitchen & Stock Lead
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-xs text-muted-foreground pb-4">
-                Reactive dye reserves, grey cloth buffer velocity, and automated supplier PO proposals.
-              </CardContent>
-              <CardFooter className="pt-2 border-t border-border/60">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="w-full text-xs font-semibold gap-1.5"
-                  disabled={loadingRole !== null}
-                >
-                  {loadingRole === "Inventory" ? (
-                    <span>Launching...</span>
-                  ) : (
-                    <>
-                      <span>Enter as Stock Lead</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </>
-                  )}
-                </Button>
-              </CardFooter>
-            </Card>
+                  <CardHeader className="space-y-2 pb-3">
+                    <div className="flex items-center justify-between">
+                      <div className="w-8 h-8 rounded-lg bg-brand-muted text-brand-muted-fg flex items-center justify-center">
+                        <Icon className="w-4 h-4 text-brand" />
+                      </div>
+                      <PriorityBadge priority={demo.badge} size="sm">
+                        {demo.role}
+                      </PriorityBadge>
+                    </div>
+                    <div>
+                      <CardTitle className="text-sm font-bold text-foreground">
+                        {demo.title}
+                      </CardTitle>
+                      <span className="text-[11px] font-mono text-brand block mt-0.5">
+                        @{demo.username}
+                      </span>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="text-xs text-muted-foreground pb-4">
+                    {demo.description}
+                  </CardContent>
+                  <CardFooter className="pt-2 border-t border-border/60">
+                    <Button
+                      size="sm"
+                      variant={isSelected ? "default" : "outline"}
+                      className="w-full text-xs font-semibold gap-1.5"
+                      disabled={loading}
+                    >
+                      {isSelected ? (
+                        <span>Authenticating...</span>
+                      ) : (
+                        <>
+                          <span>Login as {demo.role}</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </>
+                      )}
+                    </Button>
+                  </CardFooter>
+                </Card>
+              );
+            })}
           </div>
         </div>
 
@@ -201,52 +220,90 @@ export default function LoginPage() {
           </div>
           <div className="relative flex justify-center text-xs uppercase">
             <span className="bg-background px-3 text-muted-foreground font-semibold">
-              Or Sign In With Enterprise SSO
+              Or Sign In With Mill Credentials
             </span>
           </div>
         </div>
 
-        {/* Standard Demo Login Box */}
+        {/* Standard Credentials Form */}
         <div className="max-w-md mx-auto">
-          <Card className="bg-card border-border shadow-xs">
+          <Card className="bg-card border-border shadow-md">
+            <CardHeader className="pb-3 border-b border-border/60">
+              <CardTitle className="text-base font-bold text-foreground">
+                Enterprise Credentials
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Enter your registered username or email to access your RBAC workspace.
+              </CardDescription>
+            </CardHeader>
+
             <CardContent className="pt-6">
+              {error && (
+                <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-xs text-destructive flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{error}</span>
+                </div>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-foreground">
-                    Corporate Email (Pre-filled Demo)
+                    Username or Email
                   </label>
                   <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground font-mono focus:outline-hidden focus:ring-2 focus:ring-brand"
+                    type="text"
+                    required
+                    autoComplete="username"
+                    placeholder="e.g. ceo, admin, manager"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-hidden focus:ring-2 focus:ring-brand"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-foreground">
-                    Authentication Password / Token
-                  </label>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground font-mono focus:outline-hidden focus:ring-2 focus:ring-brand"
-                  />
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-semibold text-foreground">Password</label>
+                    <Link
+                      href="/forgot-password"
+                      className="text-xs text-brand hover:underline font-medium"
+                    >
+                      Forgot password?
+                    </Link>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      required
+                      autoComplete="current-password"
+                      placeholder="Enter your password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full px-3 py-2 pr-10 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-hidden focus:ring-2 focus:ring-brand"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
 
                 <Button
                   type="submit"
                   size="lg"
-                  className="w-full font-semibold gap-2"
-                  disabled={loadingRole !== null}
+                  disabled={loading}
+                  className="w-full font-semibold gap-2 mt-2"
                 >
-                  {loadingRole === "email" ? (
-                    <span>Authorizing Demo Token...</span>
+                  {loading ? (
+                    <span>Verifying Session...</span>
                   ) : (
                     <>
                       <LogIn className="w-4 h-4" />
-                      <span>Sign In & Enter Dashboard</span>
+                      <span>Sign In to Platform</span>
                     </>
                   )}
                 </Button>
@@ -256,18 +313,18 @@ export default function LoginPage() {
         </div>
 
         {/* Trust Badges */}
-        <div className="pt-4 flex flex-wrap items-center justify-center gap-6 text-xs text-muted-foreground">
+        <div className="pt-2 flex flex-wrap items-center justify-center gap-6 text-xs text-muted-foreground">
           <div className="flex items-center gap-1.5">
             <ShieldCheck className="w-4 h-4 text-emerald-500" />
-            <span>Zero real business data exposed</span>
+            <span>Encrypted Session Cookie</span>
           </div>
           <div className="flex items-center gap-1.5">
             <Lock className="w-4 h-4 text-brand" />
-            <span>Air-gap mill security ready</span>
+            <span>RBAC Role Schema Active</span>
           </div>
           <div>•</div>
-          <Link href="/" className="text-brand hover:underline font-medium">
-            Return to Public Home
+          <Link href="/dashboard" className="text-brand hover:underline font-medium">
+            Jump Directly to Live Dashboard
           </Link>
         </div>
       </div>
