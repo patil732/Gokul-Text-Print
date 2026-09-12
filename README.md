@@ -1,4 +1,4 @@
-﻿# Gokul Text Print — Enterprise AI Platform
+# Gokul Text Print — Enterprise AI Platform
 
 > **Executive Intelligence Platform** for textile printing mill operations.  
 > AI-powered sales forecasting, inventory intelligence, multi-agent copilot, and automated reporting.
@@ -28,76 +28,48 @@
 
 ---
 
+---
+
 ## Quick Start
 
-### Prerequisites
-- Python 3.10+
-- Node.js 20+
+### 1. Terminal 1 — Start Backend (Flask API Server)
+```powershell
+cd backend
+..\venv\Scripts\python.exe app.py
+```
+> 🌐 Runs on: **`http://localhost:5001`**
 
-### 1. Clone and install backend
-`
-git clone <repo-url>
-cd "Gokul Text Print"
-python -m venv venv
-.\venv\Scripts\activate
-pip install -r requirements.txt
-`
-
-### 2. Configure environment
-`
-copy .env.example .env
-# Edit .env and set SECRET_KEY and GEMINI_API_KEY
-`
-
-### 3. Start Flask API server
-`
-python app.py
-# API available at http://localhost:5001
-`
-
-### 4. Install and start frontend
-`
+### 2. Terminal 2 — Start Frontend (Next.js Application)
+```powershell
 cd frontend
-npm install
 npm run dev
-# App available at http://localhost:3000
-`
+```
+> 🌐 Runs on: **`http://localhost:3000`**
 
 ---
 
 ## User Roles and Credentials
 
-| Role  | Username | Password | Default Landing       |
-|-------|----------|----------|-----------------------|
-| Admin | admin    | admin123 | /admin                |
-| CEO   | ceo      | ceo123   | /dashboard            |
-
----
-
-## Key Pages
-
-| Page                  | Path       | Available To |
-|-----------------------|------------|-------------|
-| Executive Dashboard   | /dashboard | CEO         |
-| Sales Intelligence    | /sales     | CEO         |
-| Inventory Intelligence| /inventory | CEO         |
-| AI Copilot            | /copilot   | CEO         |
-| Knowledge Center      | /knowledge | CEO         |
-| Reports Center        | /reports   | CEO         |
-| Alert Center          | /alerts    | Both        |
-| Settings              | /settings  | Both        |
-| Admin Operations      | /admin     | Admin only  |
+| Role | Username | Password | Direct Landing Page |
+| :--- | :--- | :--- | :--- |
+| **CEO / Executive** | `ceo` | `admin123` | `/dashboard` *(Executive Strategic Dashboard)* |
+| **System Admin** | `admin` | `admin123` | `/admin` *(Admin Operations & Telemetry)* |
 
 ---
 
 ## Running Tests
 
-Backend:
-  .\venv\Scripts\python.exe -m pytest tests/ -v --tb=short
+### Backend Pytest Suite (844 Tests):
+```powershell
+cd backend
+..\venv\Scripts\pytest.exe tests/
+```
 
-Frontend E2E (requires both servers running):
-  cd frontend
-  npx playwright test
+### Frontend E2E Playwright Suite (8 Scenarios):
+```powershell
+cd frontend
+npx playwright test
+```
 
 ---
 

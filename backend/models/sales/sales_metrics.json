@@ -1,7 +1,7 @@
 {
   "version": "20260722_integration",
   "best_model": "random_forest",
-  "trained_at": "2026-09-12T00:12:39.232102",
+  "trained_at": "2026-09-12T11:19:23.562391",
   "rmse": 0.0,
   "mae": 0.0,
   "r2": 1.0,
