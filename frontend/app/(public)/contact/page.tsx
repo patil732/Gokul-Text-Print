@@ -247,11 +247,11 @@ export default function ContactPage() {
                   <Mail className="w-4 h-4 text-brand shrink-0 mt-0.5" />
                   <div>
                     <span className="font-semibold text-foreground text-xs block">
-                      Industrial Solutions Desk:
+                      Official Email:
                     </span>
-                    <span className="text-xs font-mono text-muted-foreground">
-                      enterprise@gokultextprint.internal
-                    </span>
+                    <a href="mailto:info@gokulprint.com" className="text-xs font-mono text-muted-foreground hover:text-brand underline">
+                      info@gokulprint.com
+                    </a>
                   </div>
                 </div>
 
@@ -259,11 +259,11 @@ export default function ContactPage() {
                   <Phone className="w-4 h-4 text-brand shrink-0 mt-0.5" />
                   <div>
                     <span className="font-semibold text-foreground text-xs block">
-                      Direct Mill Hotline:
+                      Phone &amp; WhatsApp:
                     </span>
-                    <span className="text-xs font-mono text-muted-foreground">
-                      +91 (261) 289-4820 (Surat Hub)
-                    </span>
+                    <a href="tel:+919081433354" className="text-xs font-mono text-muted-foreground hover:text-brand underline">
+                      +91 90814 33354
+                    </a>
                   </div>
                 </div>
 
@@ -271,10 +271,10 @@ export default function ContactPage() {
                   <Clock className="w-4 h-4 text-brand shrink-0 mt-0.5" />
                   <div>
                     <span className="font-semibold text-foreground text-xs block">
-                      SLA Response Guarantee:
+                      Operations Hours:
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      Under 4 business hours for technical mill assessments
+                      Monday through Saturday, 09:30 to 19:30 IST
                     </span>
                   </div>
                 </div>
@@ -286,12 +286,18 @@ export default function ContactPage() {
               <CardHeader className="pb-2">
                 <div className="flex items-center gap-2 text-brand font-bold text-sm">
                   <MapPin className="w-4 h-4" />
-                  <span>Surat Mill Complex</span>
+                  <span>Surat Mill &amp; Sales Locations</span>
                 </div>
               </CardHeader>
-              <CardContent className="text-xs text-muted-foreground leading-relaxed">
-                Plots 48–52, GIDC Industrial Estate, Sachin, Surat, Gujarat 394230, India.
-                Equipped with visitor demonstration room and live edge telemetry terminal.
+              <CardContent className="text-xs text-muted-foreground leading-relaxed space-y-2.5">
+                <div>
+                  <strong className="text-foreground block">Head Office &amp; Factory:</strong>
+                  <span>B-74-77, Central Park, Pandesara GIDC, Surat - 394221, Gujarat, India.</span>
+                </div>
+                <div>
+                  <strong className="text-foreground block">Millennium Market Sales Hub:</strong>
+                  <span>A-I Hall, Wing-A, Upper Ground, Millennium Textile Market, Ring Road, Surat - 395002.</span>
+                </div>
               </CardContent>
             </Card>
 

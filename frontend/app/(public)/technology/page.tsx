@@ -39,7 +39,7 @@ const PILLARS = [
       "Automates sales order intelligence by analyzing historical client invoice cycles, regional wedding seasons, and festive surge patterns. Mill executives gain 30, 60, and 90-day visibility into SKU demand, enabling precise grey fabric procurement weeks ahead of deadlines.",
     benefits: [
       "99.4% demand prediction precision on high-volume fabric blends",
-      "Festive surge alerts for Jacquard, Cambric, Rayon, and Chiffon",
+      "Festive surge alerts for Pure Viscose, Liva Fabrics, Cotton Cambric 60s, Cupro, Chiffon, and Modal",
       "Customer repeat purchasing window notifications to prevent churn",
       "Profitable pricing guidance based on raw material market fluctuations",
     ],

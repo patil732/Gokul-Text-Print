@@ -95,25 +95,24 @@ export default function AboutPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           <div className="lg:col-span-7 space-y-4 text-base text-muted-foreground leading-relaxed">
             <h2 className="text-2xl font-bold text-foreground">
-              From Manual Rotary Presses to Autonomous Mill Intelligence
+              From Surat's Textile Hub to an Autonomous Intelligent Mill
             </h2>
             <p>
-              Established in Surat, Gujarat—the textile epicenter of Asia—Gokul Text Print began as a
-              dedicated printing unit catering to premium saree, dress material, and ethnic jacquard
-              exporters. Over three decades, our craftsmen mastered the subtle physics of reactive dyes,
-              discharge chemistry, and fabric shrinkage across hundreds of cotton, modal, and silk blends.
+              Headquartered in Surat, Gujarat—the textile epicenter of India—<strong>Gokul Tex Print</strong> has
+              grown into India's leading natural fabric supplier and wholesale manufacturer. We specialize in
+              100% pure natural fabrics including Viscose, Cotton Cambric, Silk, Chiffon, Velvet, and fine embroidery.
             </p>
             <p>
-              Yet as order volumes accelerated and client lead-time expectations compressed from weeks
-              to days, traditional paper logs and siloed communication began hitting physical limits.
-              Expensive reactive dyes expired in storage while production lines waited on urgent shipments;
-              valuable formulation wisdom remained locked in the heads of senior technicians.
+              Gokul Print proudly partners with <strong>Aditya Birla Group</strong> (Indian Rayon, Birla Century,
+              and accredited partners of <strong>Liva</strong>) and serves as a nationwide dealer of
+              <strong>Asahi Kasei Cupro Fabric, Japan</strong>. Our in-house design studio features over 30
+              textile designers who have delivered more than <strong>800+ collections to 250+ private labels globally</strong>.
             </p>
             <p>
-              In 2024, we launched the <strong>Enterprise Mill Intelligence Platform</strong>:
-              unifying deep predictive sales demand modeling, automated inventory buffer calculations, certified
-              color recipe retrieval, and an autonomous operational copilot. Today, Gokul Text Print
-              operates as one of India's most advanced autonomous smart mills.
+              To maintain our zero-defect quality standards across high-speed rotary printing, digital pigment printing,
+              and discharge color chemistry, we developed the <strong>Enterprise Mill Intelligence Platform</strong>:
+              harmonizing live sales demand, dynamic raw material buffers, certified dye formulations, and autonomous
+              line optimization across our Pandesara manufacturing complex.
             </p>
           </div>
 
@@ -124,31 +123,29 @@ export default function AboutPage() {
                   <div className="w-8 h-8 rounded-lg bg-brand text-brand-fg flex items-center justify-center">
                     <Award className="w-4 h-4" />
                   </div>
-                  <CardTitle className="text-base font-bold">Mill Operational Vital Stats</CardTitle>
+                  <CardTitle className="text-base font-bold">Official Mill Credentials</CardTitle>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4 text-sm">
                 <div className="flex items-center justify-between py-2 border-b border-border/60">
-                  <span className="text-muted-foreground">Established</span>
-                  <span className="font-bold text-foreground">1994 (32+ Years)</span>
+                  <span className="text-muted-foreground">Global Deliveries</span>
+                  <span className="font-bold text-foreground">800+ Collections · 250+ Labels</span>
                 </div>
                 <div className="flex items-center justify-between py-2 border-b border-border/60">
-                  <span className="text-muted-foreground">Monthly Output</span>
-                  <span className="font-bold text-foreground">14.8M Meters Processed</span>
+                  <span className="text-muted-foreground">In-House Design Studio</span>
+                  <span className="font-bold text-foreground">30+ Textile Designers</span>
                 </div>
                 <div className="flex items-center justify-between py-2 border-b border-border/60">
-                  <span className="text-muted-foreground">Print Technologies</span>
-                  <span className="font-bold text-foreground">Rotary Screen, Digital Pigment</span>
+                  <span className="text-muted-foreground">Strategic Alliances</span>
+                  <span className="font-bold text-foreground">Aditya Birla (Liva) &amp; Asahi Kasei</span>
                 </div>
                 <div className="flex items-center justify-between py-2 border-b border-border/60">
-                  <span className="text-muted-foreground">Platform Edition</span>
-                  <span className="font-bold text-brand">Enterprise Release Candidate</span>
+                  <span className="text-muted-foreground">Core Specialization</span>
+                  <span className="font-bold text-brand">100% Pure Natural Fabrics</span>
                 </div>
                 <div className="flex items-center justify-between py-2">
-                  <span className="text-muted-foreground">Air-Gapped Security</span>
-                  <PriorityBadge priority="SUCCESS" size="sm">
-                    Verified Edge Ready
-                  </PriorityBadge>
+                  <span className="text-muted-foreground">Printing Technologies</span>
+                  <span className="font-bold text-foreground text-xs">Digital, Screen, Discharge, Block</span>
                 </div>
               </CardContent>
             </Card>
@@ -225,29 +222,29 @@ export default function AboutPage() {
           </div>
         </div>
 
-        {/* Mill Locations */}
+        {/* Official Mill Locations */}
         <div className="p-8 rounded-2xl bg-card border border-border shadow-xs">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-brand font-bold">
                 <MapPin className="w-5 h-5" />
-                <span className="text-base">Surat Production & Printing Complex</span>
+                <span className="text-base">Head Office &amp; Factory (Pandesara GIDC)</span>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Plot 48–52, GIDC Industrial Estate, Sachin, Surat, Gujarat 394230, India.
-                Housing 8 automated rotary printing lines, digital reactive printers, stenter curing
-                machines, and the centralized AI Edge telemetry node.
+                B-74-77, Central Park, Pandesara GIDC, Surat - 394221, Gujarat, India.<br />
+                Housing state-of-the-art digital textile printing lines, rotary screen presses, natural fabric
+                dye kitchen, and automated AI edge operational monitoring.
               </p>
             </div>
 
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-brand font-bold">
                 <MapPin className="w-5 h-5" />
-                <span className="text-base">Mumbai Operations & AI Research Hub</span>
+                <span className="text-base">Millennium Market Commercial Hub</span>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Level 11, Maker Maxity, Bandra Kurla Complex (BKC), Mumbai, Maharashtra 400051, India.
-                Command center for multi-agent swarm development, client relations, and enterprise integrations.
+                A-I Hall, Wing-A, Upper Ground, Millennium Textile Market, Ring Road, Surat - 395002, Gujarat, India.<br />
+                Wholesale showroom, client sample sourcing, private label consultations, and global logistics hub.
               </p>
             </div>
           </div>
