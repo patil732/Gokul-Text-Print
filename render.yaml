@@ -1,0 +1,110 @@
+# render.yaml
+# -----------
+# Infrastructure-as-code for Render.com deployment.
+# Defines the Flask backend web service and the Next.js frontend static site.
+#
+# How to use:
+#   1. Push this file to your GitHub repo (main branch).
+#   2. In Render Dashboard → New → Blueprint → select this repo.
+#   3. Render will create both services automatically.
+#   4. Fill in all `sync: false` env vars in the Render dashboard.
+#      They are intentionally left blank here — never commit secrets.
+#
+# Persistent Disk:
+#   The backend uses a persistent disk for uploads, FAISS index, model PKLs,
+#   SHAP images, and reports. Attach it in the Render dashboard:
+#     Mount Path: /var/data
+#     Size: 10 GB (upgrade if SHAP files grow)
+#   Then set the disk env vars (DOCUMENTS_DIR, FAISS_INDEX_PATH, etc.)
+#   to point inside /var/data.
+
+services:
+  # ─────────────────────────────────────────────────────────────────────────
+  # Backend — Flask / Gunicorn
+  # ─────────────────────────────────────────────────────────────────────────
+  - type: web
+    name: gtp-backend
+    runtime: python
+    region: singapore       # closest to India; change to oregon or frankfurt as needed
+    plan: standard          # minimum for sentence-transformers + XGBoost + SHAP in memory
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn "app:create_app()" --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --log-level info
+    healthCheckPath: /health
+    autoDeploy: true        # auto-deploy on push to main
+
+    envVars:
+      # ── Flask core ──────────────────────────────────────────────────── #
+      - key: FLASK_ENV
+        value: production
+      - key: FLASK_DEBUG
+        value: "False"
+
+      # ── Secrets (fill in Render dashboard — sync: false) ────────────── #
+      - key: SECRET_KEY
+        sync: false          # generate with: python -c "import secrets; print(secrets.token_hex(32))"
+      - key: DATABASE_URL
+        sync: false          # postgresql://user:pass@host:5432/dbname   OR   sqlite:////var/data/platform.db
+
+      # ── ERP credentials ─────────────────────────────────────────────── #
+      - key: ERP_BASE_URL
+        sync: false
+      - key: ERP_API_KEY
+        sync: false
+      - key: ERP_API_SECRET
+        sync: false
+
+      # ── LLM provider keys ────────────────────────────────────────────── #
+      - key: LLM_PROVIDER
+        value: gemini
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+
+      # ── CORS — frontend origin ───────────────────────────────────────── #
+      # Set to your deployed frontend URL, e.g. https://gtp-frontend.onrender.com
+      - key: FRONTEND_ORIGIN
+        sync: false
+
+      # ── Model artefact versions ──────────────────────────────────────── #
+      - key: SALES_MODEL_VERSION
+        value: sales_rf
+      - key: INVENTORY_MODEL_VERSION
+        value: inventory_rf
+
+      # ── Persistent disk paths (mount disk at /var/data in dashboard) ── #
+      # After attaching the disk, set these to paths under /var/data:
+      - key: DOCUMENTS_DIR
+        sync: false          # e.g. /var/data/documents
+      - key: FAISS_INDEX_PATH
+        sync: false          # e.g. /var/data/faiss_index
+      - key: MODELS_DIR
+        sync: false          # e.g. /var/data/models
+      - key: REPORTS_DIR
+        sync: false          # e.g. /var/data/reports
+      - key: LOGS_DIR
+        sync: false          # e.g. /var/data/logs
+
+    disk:
+      name: gtp-data
+      mountPath: /var/data
+      sizeGB: 10
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Frontend — Next.js Static Site
+  # ─────────────────────────────────────────────────────────────────────────
+  - type: web
+    name: gtp-frontend
+    runtime: node
+    region: singapore
+    plan: free              # upgrade to starter if you need more build minutes
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    autoDeploy: true
+
+    envVars:
+      # Set to the deployed backend URL — e.g. https://gtp-backend.onrender.com
+      - key: NEXT_PUBLIC_API_BASE_URL
+        sync: false

@@ -18,3 +18,5 @@ google-generativeai
 faiss-cpu
 reportlab
 flask-cors
+gunicorn
+werkzeug

@@ -6,7 +6,7 @@ _BACKEND_DIR = os.path.dirname(os.path.abspath(__file__))
 if _BACKEND_DIR not in sys.path:
     sys.path.insert(0, _BACKEND_DIR)
 
-from flask import Flask, jsonify, redirect, url_for, session
+from flask import Flask, jsonify, redirect, url_for, session, make_response
 from flask_cors import CORS
 from config.settings import Config
 from utils.logger import logger
@@ -81,6 +81,25 @@ def create_app():
     app.register_blueprint(dashboard_bp)
 
 
+    # ── Health check ─────────────────────────────────────────────────── #
+    # No auth, no DB, no LLM — always fast and reliable.
+    @app.route('/health', methods=['GET'])
+    def health():
+        return make_response(jsonify({"status": "ok"}), 200)
+
+    # ── Production error handling ────────────────────────────────────── #
+    _is_prod = os.environ.get("FLASK_ENV", "development") == "production"
+
+    @app.errorhandler(500)
+    def internal_error(error):
+        if _is_prod:
+            return jsonify({"error": "Internal server error"}), 500
+        return jsonify({"error": str(error)}), 500
+
+    @app.errorhandler(404)
+    def not_found(error):
+        return jsonify({"error": "Not found"}), 404
+
     @app.route('/')
     def index():
         if 'user' in session:
@@ -104,4 +123,7 @@ def create_app():
 app = create_app()
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5001, debug=True)
+    _port = int(os.environ.get("PORT", 5001))
+    _debug = os.environ.get("FLASK_DEBUG", "True").lower() not in ("false", "0", "no") \
+             and os.environ.get("FLASK_ENV", "development") != "production"
+    app.run(host="0.0.0.0", port=_port, debug=_debug)

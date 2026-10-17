@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop, feature/final-release-deployment]
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────
+  # Backend — Python / Flask / Pytest
+  # ─────────────────────────────────────────────────────────────────────────
+  backend-test:
+    name: Backend Tests (Python 3.11)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend
+
+    env:
+      # Safe fake values — no real secrets in workflow
+      FLASK_ENV: testing
+      FLASK_DEBUG: "False"
+      SECRET_KEY: ci-test-secret-key-not-real
+      DATABASE_URL: "sqlite:///ci_test.db"
+      ERP_BASE_URL: "http://fake-erp.example.com"
+      ERP_API_KEY: "fake-erp-key"
+      ERP_API_SECRET: "fake-erp-secret"
+      LLM_PROVIDER: gemini
+      GEMINI_API_KEY: "fake-gemini-key-ci"
+      OPENAI_API_KEY: "fake-openai-key-ci"
+      FRONTEND_ORIGIN: "http://localhost:3000"
+      SALES_MODEL_VERSION: sales_rf
+      INVENTORY_MODEL_VERSION: inventory_rf
+      PYTEST_CURRENT_TEST: "1"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        run: python -m pytest tests/test_health.py tests/test_ci_smoke.py -q --tb=short
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Frontend — Next.js build
+  # ─────────────────────────────────────────────────────────────────────────
+  frontend-build:
+    name: Frontend Build (Node)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    env:
+      # Placeholder API URL for build-time env var; no real backend needed
+      NEXT_PUBLIC_API_BASE_URL: "https://placeholder-backend.onrender.com"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build

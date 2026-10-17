@@ -13,6 +13,11 @@ __pycache__/
 # Environment variables
 .env
 
+# CI test databases (ephemeral)
+backend/ci_test.db
+backend/ci_smoke.db
+*.db
+
 # Build files
 build/
 dist/

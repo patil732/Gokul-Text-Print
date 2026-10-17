@@ -24,7 +24,11 @@ class Settings:
 class Config(Settings):
     """Flask configuration class."""
     SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
-    DEBUG = os.getenv("FLASK_DEBUG", "True") == "True"
+    _flask_env = os.getenv("FLASK_ENV", "development")
+    # DEBUG is always False in production, regardless of FLASK_DEBUG value
+    DEBUG = (os.getenv("FLASK_DEBUG", "True").lower() not in ("false", "0", "no")) \
+            and (_flask_env != "production")
+
 
 # Global settings instance
 settings = Settings()
