@@ -95,7 +95,16 @@ Rationale: sentence-transformers (~150 MB) + SHAP (100 MB peak) + XGBoost + Flas
 
 > Run: `cd backend && pytest tests/test_health.py tests/test_ci_smoke.py -q`
 
-Results will be filled in after CI run.
+```
+................                                     [100%]
+16 passed in 21.85s
+```
+
+✅ **All 16 CI smoke tests pass locally.**
+
+Breakdown:
+- `test_health.py` — 4 tests: `/health` returns 200, JSON `{"status":"ok"}`, correct content-type, no auth required
+- `test_ci_smoke.py` — 12 tests: health, auth routes, sales forecast, inventory predict, RAG search, agent status/ask
 
 ---
 
