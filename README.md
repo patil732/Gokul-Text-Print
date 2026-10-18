@@ -115,7 +115,7 @@ See **[DEPLOYMENT.md](DEPLOYMENT.md)** for the complete guide, including:
 
 **Quick reference — start command:**
 ```bash
-gunicorn "app:create_app()" --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
 ```
 
 **Health check:** `GET /health` → `{"status": "ok"}`

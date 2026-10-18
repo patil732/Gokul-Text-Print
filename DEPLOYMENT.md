@@ -100,19 +100,23 @@ npm run dev                         # starts on http://localhost:3000
 The app uses the **factory pattern** (`create_app()`). The verified start command:
 
 ```bash
-gunicorn "app:create_app()" \
+gunicorn wsgi:app \
   --bind 0.0.0.0:$PORT \
   --workers 2 \
   --timeout 120 \
   --log-level info
 ```
 
-> **Why 2 workers?** The sentence-transformers embedding model loads ~1 GB into memory per worker. With SHAP (~23 MB) and XGBoost/LightGBM models, use 2 workers on a **Standard plan** (2 GB RAM). Scale workers only after upgrading the instance.
+> **Why `wsgi:app` not `app:create_app()`?**  
+> Both `backend/app.py` (the Flask entry point) and `backend/app/` (a Python package) exist in the backend root. Python's import system resolves **the package directory first**, so `gunicorn "app:create_app()"` imports `app/__init__.py` — which has no `create_app` — and crashes with `AttributeError: module 'app' has no attribute 'create_app'`.  
+> `wsgi.py` loads `app.py` by explicit filesystem path using `importlib`, bypassing the collision.
+
+> **Why 2 workers?** sentence-transformers loads ~150 MB per worker; with SHAP + XGBoost use 2 workers on a **Standard plan** (2 GB RAM).
 
 To verify locally:
 ```bash
 cd backend
-FLASK_ENV=production SECRET_KEY=test gunicorn "app:create_app()" --bind 0.0.0.0:5001 --workers 1 --timeout 120
+FLASK_ENV=production SECRET_KEY=test gunicorn wsgi:app --bind 0.0.0.0:5001 --workers 1 --timeout 120
 curl http://localhost:5001/health   # should return {"status": "ok"}
 ```
 
@@ -139,7 +143,7 @@ curl http://localhost:5001/health   # should return {"status": "ok"}
 - Runtime: **Python 3**
 - Root directory: `backend`
 - Build command: `pip install -r requirements.txt`
-- Start command: `gunicorn "app:create_app()" --bind 0.0.0.0:$PORT --workers 2 --timeout 120`
+- Start command: `gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120`
 - Health check path: `/health`
 - Plan: **Standard** (minimum)
 - Auto-deploy: from `main` branch
