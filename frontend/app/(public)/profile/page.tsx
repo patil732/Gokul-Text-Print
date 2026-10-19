@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { PageTransition } from "@/components/ui/page-transition";
 import { useAuth } from "@/components/providers/auth-provider";
 import { updateUserProfile, UserRole } from "@/lib/api/auth";
+import { API_BASE_URL } from "@/lib/api/client";
 import {
   User,
   ShieldCheck,
@@ -427,7 +428,7 @@ export default function ProfilePage() {
               <CardContent className="space-y-2 text-xs text-muted-foreground">
                 <div className="flex justify-between">
                   <span>Backend Auth Origin:</span>
-                  <span className="font-mono text-foreground">http://localhost:5001</span>
+                  <span className="font-mono text-foreground">{API_BASE_URL}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Session Cookie:</span>

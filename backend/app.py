@@ -27,9 +27,11 @@ def create_app():
     app.secret_key = os.environ.get("SECRET_KEY", "gtp-dev-secret-change-in-production")
 
     # Sprint 8: Session security hardening
+    _is_prod = os.environ.get("FLASK_ENV", "development") == "production"
     app.config["SESSION_COOKIE_HTTPONLY"] = True
-    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-    app.config["SESSION_COOKIE_SECURE"] = os.environ.get("FLASK_ENV", "development") == "production"
+    # In production (HTTPS), default to None so cross-site frontends (Vercel/Render/localhost) can send session cookies
+    app.config["SESSION_COOKIE_SAMESITE"] = os.environ.get("SESSION_COOKIE_SAMESITE", "None" if _is_prod else "Lax")
+    app.config["SESSION_COOKIE_SECURE"] = os.environ.get("SESSION_COOKIE_SECURE", "true" if _is_prod else "false").lower() == "true"
 
     # ── Sprint 7: CORS — allow Next.js frontend (dev + prod) ────────────── #
     # Only the allowed origins are configured here; no route logic is changed.
