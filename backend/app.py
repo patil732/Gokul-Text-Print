@@ -32,6 +32,10 @@ def create_app():
     # In production (HTTPS), default to None so cross-site frontends (Vercel/Render/localhost) can send session cookies
     app.config["SESSION_COOKIE_SAMESITE"] = os.environ.get("SESSION_COOKIE_SAMESITE", "None" if _is_prod else "Lax")
     app.config["SESSION_COOKIE_SECURE"] = os.environ.get("SESSION_COOKIE_SECURE", "true" if _is_prod else "false").lower() == "true"
+    # Optional: restrict session cookie to a custom domain (e.g. ".myapp.com")
+    _cookie_domain = os.environ.get("SESSION_COOKIE_DOMAIN")
+    if _cookie_domain:
+        app.config["SESSION_COOKIE_DOMAIN"] = _cookie_domain
 
     # ── Sprint 7: CORS — allow Next.js frontend (dev + prod) ────────────── #
     # Only the allowed origins are configured here; no route logic is changed.
@@ -47,6 +51,27 @@ def create_app():
         supports_credentials=True,
     )
     logger.info(f"[CORS] Allowed origins: {list(dict.fromkeys(_cors_origins))}")
+
+    # ── Cross-site Set-Cookie hardening ────────────────────────────────────── #
+    # Modern Chrome (≥ v127) blocks third-party cookies unless Partitioned is
+    # present alongside SameSite=None; Secure.  Flask does not natively add
+    # the Partitioned attribute, so we patch it in via after_request.
+    if _is_prod:
+        @app.after_request
+        def _harden_set_cookie(response):
+            """Append Partitioned attribute to session cookies for cross-site compat."""
+            cookies = response.headers.getlist("Set-Cookie")
+            if cookies:
+                patched = []
+                for cookie in cookies:
+                    if "SameSite=None" in cookie and "Partitioned" not in cookie:
+                        cookie += "; Partitioned"
+                    patched.append(cookie)
+                # Replace all Set-Cookie headers
+                response.headers.pop("Set-Cookie")
+                for c in patched:
+                    response.headers.add("Set-Cookie", c)
+            return response
     # ──────────────────────────────────────────────────────────────────────── #
 
     # Initialize Database

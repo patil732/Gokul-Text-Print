@@ -26,7 +26,7 @@ services:
     name: gtp-backend
     runtime: python
     region: singapore       # closest to India; change to oregon or frankfurt as needed
-    plan: standard          # minimum for sentence-transformers + XGBoost + SHAP in memory
+    plan: starter           # CPU-only PyTorch keeps memory under starter threshold (~512 MB)
     rootDir: backend
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 1 --timeout 120 --log-level info
@@ -62,9 +62,13 @@ services:
       - key: OPENAI_API_KEY
         sync: false
 
-      # ── CORS — frontend origin ───────────────────────────────────────── #
+      # ── CORS & Cookies ────────────────────────────────────────────────── #
       # Set to your deployed frontend URL, e.g. https://gtp-frontend-2zw6.onrender.com
       - key: FRONTEND_ORIGIN
+        sync: false
+      # Optional: restrict session cookie domain (e.g. ".onrender.com" if both
+      # services share the same parent domain)
+      - key: SESSION_COOKIE_DOMAIN
         sync: false
 
       # ── Model artefact versions ──────────────────────────────────────── #
@@ -85,6 +89,9 @@ services:
         sync: false          # e.g. /var/data/reports
       - key: LOGS_DIR
         sync: false          # e.g. /var/data/logs
+      # Cache sentence-transformers model on persistent disk so it survives redeploys
+      - key: SENTENCE_TRANSFORMERS_HOME
+        value: /var/data/st_models
 
     disk:
       name: gtp-data

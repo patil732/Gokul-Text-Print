@@ -54,7 +54,10 @@ def init_db() -> None:
         )
         return
 
-    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+    # Ensure parent directory exists (handles both relative and absolute paths)
+    _db_dir = os.path.dirname(DB_PATH)
+    if _db_dir:
+        os.makedirs(_db_dir, exist_ok=True)
     conn   = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 

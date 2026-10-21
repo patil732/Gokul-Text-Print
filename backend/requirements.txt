@@ -1,3 +1,13 @@
+# ── CPU-only PyTorch constraint ───────────────────────────────────────────
+# sentence-transformers depends on torch. Without this constraint pip pulls
+# the full CUDA build (~2 GB) which exceeds Render's free/starter plan memory.
+# On Render, set SENTENCE_TRANSFORMERS_HOME=/var/data/st_models to cache models
+# on the persistent disk.
+# If your embedding provider is "gemini" or "openai" (no local model needed),
+# you can remove sentence-transformers AND these torch lines entirely.
+--find-links https://download.pytorch.org/whl/cpu
+torch --index-url https://download.pytorch.org/whl/cpu
+
 flask
 python-dotenv
 pandas
@@ -9,8 +19,6 @@ apscheduler
 numpy
 pyyaml
 xgboost
-lightgbm
-pytest
 pypdf
 sentence-transformers
 openai
